@@ -2,6 +2,8 @@
 
 Este é o repositório backend para o "Sistema de Controle de Acesso de Veículos".
 
+> **⚠️ Status do Projeto:** Este projeto está em **desenvolvimento inicial**. A documentação abaixo descreve a arquitetura planejada e funcionalidades que estão sendo implementadas.
+
 ## Visão Geral
 
 A arquitetura geral do projeto é dividida em dois repositórios distintos: `siscav-api` (este) e `siscav-web` (frontend).
@@ -15,7 +17,7 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e é
     * Enviar comandos de acionamento para o portão.
 2.  **Script IoT (`apps/iot-device`):** Um script Python projetado para ser executado no dispositivo de borda (ex: Raspberry Pi). Este script utiliza a biblioteca **`easyocr`** para realizar o Reconhecimento Automático de Placas de Veículos (ALPR). Após capturar e processar a imagem de um veículo, ele envia os dados via `POST HTTPS` seguro para a API Central e aguarda uma resposta (`Autorizado`/`Negado`) para acionar o relé físico via `GPIO`.
 
-## Principais Funcionalidades
+## Principais Funcionalidades (Planejadas)
 
 * **Autenticação:** Sistema seguro de login para administradores baseado em **JWT**.
 * **Gerenciamento (CRUD):** Endpoints completos para Criar, Ler, Atualizar e Deletar placas na lista de veículos autorizados (whitelist).
@@ -23,6 +25,16 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e é
 * **Visualização de Logs:** Endpoint para o frontend buscar o histórico de logs de acesso, com suporte a filtragem por placa, intervalo de datas e status.
 * **Controle Remoto:** Endpoint que permite a um administrador autenticado acionar a abertura do portão remotamente através do painel web.
 * **Segurança:** Implementa limitação de taxa (rate limiting) no endpoint de login para prevenir força bruta e exige comunicação criptografada (HTTPS) do dispositivo IoT.
+
+### Funcionalidades Implementadas
+
+- ✅ Estrutura básica do projeto FastAPI
+- ✅ Endpoint raiz (`/`)
+- ✅ Endpoint de health check (`/api/v1/health`)
+- ⏳ Autenticação JWT (em desenvolvimento)
+- ⏳ CRUD de placas autorizadas (em desenvolvimento)
+- ⏳ Sistema de logs de acesso (em desenvolvimento)
+- ⏳ Integração com dispositivo IoT (em desenvolvimento)
 
 ## Stack Tecnológica
 
@@ -39,10 +51,7 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e é
 A estrutura de diretórios deste repositório segue uma abordagem orientada a domínio para máxima clareza e manutenibilidade.
 
 ```bash
-controle-acesso-veicular-api/
-├── .github/
-│   └── workflows/
-│       └── ci.yml          # Pipeline de CI (Lint, Test)
+siscav-api/
 ├── apps/
 │   ├── api/                # Serviço Backend FastAPI
 │   │   └── src/            # Código-fonte da API
@@ -56,15 +65,69 @@ controle-acesso-veicular-api/
 │   │       │       └── schemas/    # Modelos Pydantic (Validação)
 │   │       ├── alembic/            # Migrações de banco de dados
 │   │       └── main.py         # Ponto de entrada da aplicação FastAPI
-│   └── iot-device/         # Script Python ALPR (easyocr)
-├── .env.example            # Arquivo de exemplo para variáveis de ambiente
+│   └── iot-device/         # Script Python ALPR (easyocr) - em desenvolvimento
 ├── .gitignore
-├── docker-compose.yml      # Orquestra a API e o DB PostgreSQL
 ├── pyproject.toml          # Dependências (FastAPI, SQLAlchemy, Alembic...)
 └── README.md
 ```
 
 ## Guia de Instalação (Getting Started)
+
+> **Nota:** Os arquivos de configuração Docker estão sendo desenvolvidos. Por enquanto, você pode executar a aplicação localmente com Python.
+
+### Pré-requisitos
+
+* Python 3.10+
+* pip ou uv (gerenciador de pacotes Python)
+
+### Instalação Local (Desenvolvimento Atual)
+
+1. **Clonar o Repositório**
+
+```bash
+git clone https://github.com/JFMGDB/siscav-api.git
+cd siscav-api
+```
+
+2. **Criar Ambiente Virtual**
+
+```bash
+python -m venv venv
+
+# Windows (PowerShell)
+.\venv\Scripts\Activate.ps1
+
+# Linux/Mac
+source venv/bin/activate
+```
+
+3. **Instalar Dependências**
+
+```bash
+pip install -e ".[dev]"
+```
+
+4. **Executar a Aplicação**
+
+```bash
+cd apps/api/src
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+A API estará acessível em http://localhost:8000.
+
+5. **Testar os Endpoints**
+
+- **Raiz:** http://localhost:8000/
+- **Health Check:** http://localhost:8000/api/v1/health
+- **Documentação Swagger:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
+
+---
+
+## Guia de Instalação com Docker (Em Desenvolvimento)
+
+> **⚠️ Aviso:** Os arquivos Docker ainda não foram criados. Esta seção documenta como será a configuração futura.
 
 Este guia detalha como configurar e executar o ambiente de desenvolvimento local usando Docker.
 
@@ -76,13 +139,13 @@ Este guia detalha como configurar e executar o ambiente de desenvolvimento local
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/siscav-api.git
+git clone https://github.com/JFMGDB/siscav-api.git
 cd siscav-api
 ```
 
 ### 2. Configuração do Ambiente (.env)
 
-Crie um arquivo `.env` na raiz do projeto. Você pode copiar o arquivo `.env.example`:
+Crie um arquivo `.env` na raiz do projeto. Você pode copiar o arquivo `.env.example` (quando criado):
 
 ```bash
 cp .env.example .env
@@ -130,20 +193,30 @@ Para criar novas migrações após alterar os `models.py`:
 docker-compose exec api alembic revision --autogenerate -m "Descrição da sua migração"
 ```
 
+---
+
 ## Testes
 
-O pipeline de CI executa testes automatizados usando pytest. Para executá-los localmente:
+> **⚠️ Em desenvolvimento:** A suíte de testes está sendo implementada.
+
+O pipeline de CI executará testes automatizados usando pytest. Para executá-los localmente (quando disponível):
 
 ```bash
+# Com Docker
 docker-compose exec api pytest
+
+# Localmente
+pytest
 ```
 
 ## Integração Contínua (CI)
 
-Este projeto utiliza GitHub Actions para integração contínua. O fluxo de trabalho, definido em `.github/workflows/ci.yml`, é acionado em cada pull request para a branch develop e executa os seguintes passos:
+> **⚠️ Em desenvolvimento:** O pipeline de CI/CD está sendo configurado.
 
-* **Linting:** Verifica a qualidade e o estilo do código (ex: ruff ou flake8).
-* **Testes:** Executa a suíte de testes unitários com pytest.
+Este projeto utilizará GitHub Actions para integração contínua. O fluxo de trabalho será definido em `.github/workflows/ci.yml` e será acionado em cada pull request para a branch develop, executando:
+
+* **Linting:** Verificação da qualidade e estilo do código (ruff).
+* **Testes:** Execução da suíte de testes unitários com pytest.
 
 ## Documentação da API (Swagger)
 
@@ -151,4 +224,62 @@ Com a aplicação em execução, a documentação automática e interativa da AP
 
 * **Swagger UI:** http://localhost:8000/docs
 * **ReDoc:** http://localhost:8000/redoc
+
+## Roadmap
+
+### Fase 1: Setup e Infraestrutura ✅
+- [x] Estrutura básica do projeto
+- [x] Configuração FastAPI
+- [x] Definição de dependências (pyproject.toml)
+- [ ] Dockerfile e docker-compose.yml
+- [ ] Arquivo .env.example
+
+### Fase 2: Banco de Dados e Autenticação 🔄
+- [ ] Configuração PostgreSQL
+- [ ] Modelos SQLAlchemy (User, AuthorizedPlate, AccessLog)
+- [ ] Configuração Alembic para migrações
+- [ ] Sistema de autenticação JWT
+- [ ] Endpoints de login/logout
+- [ ] Middleware de autenticação
+
+### Fase 3: CRUD e API Principal 📋
+- [ ] Endpoints CRUD para placas autorizadas
+- [ ] Endpoint de registro de acesso (IoT)
+- [ ] Endpoint de visualização de logs
+- [ ] Endpoint de controle remoto do portão
+- [ ] Rate limiting no login
+- [ ] Validações com Pydantic
+
+### Fase 4: Dispositivo IoT 🤖
+- [ ] Script de captura de imagem
+- [ ] Integração com EasyOCR (ALPR)
+- [ ] Comunicação HTTPS com API
+- [ ] Controle de GPIO para relé
+- [ ] Tratamento de erros e retry logic
+
+### Fase 5: Testes e CI/CD 🧪
+- [ ] Testes unitários (pytest)
+- [ ] Testes de integração
+- [ ] GitHub Actions (CI/CD)
+- [ ] Linting automatizado (ruff)
+- [ ] Coverage reports
+
+### Fase 6: Documentação e Deploy 📚
+- [ ] Documentação completa da API
+- [ ] Guia de deploy em produção
+- [ ] Configuração de HTTPS
+- [ ] Monitoramento e logs
+
+## Contribuindo
+
+Contribuições são bem-vindas! Por favor, abra uma issue primeiro para discutir as mudanças que você gostaria de fazer.
+
+## Licença
+
+Este projeto está em desenvolvimento acadêmico na UNICAP.
+
+## Contato
+
+- **Repositório:** https://github.com/JFMGDB/siscav-api
+- **Frontend:** https://github.com/JFMGDB/siscav-web (em desenvolvimento)
 
