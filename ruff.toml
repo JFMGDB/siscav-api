@@ -1,0 +1,94 @@
+# Configuração do Ruff para o projeto SISCAV-API
+# Ruff é um linter Python extremamente rápido escrito em Rust
+
+# Comprimento máximo de linha (compatível com Black e Ruff format)
+line-length = 100
+
+# Versão mínima do Python
+target-version = "py310"
+
+# Excluir arquivos/pastas do linting
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "env",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+    "*.egg-info",
+    "alembic/versions/*.py",  # Não fazer lint em migrações do Alembic
+]
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "DTZ",    # flake8-datetimez
+    "T10",    # flake8-debugger
+    "EM",     # flake8-errmsg
+    "ISC",    # flake8-implicit-str-concat
+    "ICN",    # flake8-import-conventions
+    "G",      # flake8-logging-format
+    "PIE",    # flake8-pie
+    "T20",    # flake8-print
+    "PT",     # flake8-pytest-style
+    "Q",      # flake8-quotes
+    "RET",    # flake8-return
+    "SIM",    # flake8-simplify
+    "TID",    # flake8-tidy-imports
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate
+    "PD",     # pandas-vet
+    "PL",     # pylint
+    "TRY",    # tryceratops
+    "RUF",    # Ruff-specific rules
+]
+
+ignore = [
+    "E501",    # line-too-long (deixamos o formatter lidar com isso)
+    "B008",    # do not perform function call in argument defaults
+    "TRY003",  # avoid specifying long messages outside exception class
+    "PLR0913", # too many arguments
+]
+
+# Permitir auto-fix para regras seguras
+fixable = ["ALL"]
+unfixable = []
+
+[lint.per-file-ignores]
+# Ignorar imports não utilizados em arquivos __init__.py
+"__init__.py" = ["F401", "F403"]
+# Ignorar prints e números mágicos em scripts de teste
+"tests/**/*.py" = ["T20", "PLR2004"]
+
+[lint.isort]
+known-first-party = ["apps"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[lint.mccabe]
+# Complexidade ciclomática máxima
+max-complexity = 10
+
+[format]
+# Usar aspas duplas
+quote-style = "double"
+
+# Indentação com 4 espaços
+indent-style = "space"
+
+# Usar \n para quebra de linha (Unix)
+line-ending = "lf"
+
+# Preservar trailing comma em estruturas multilinhas
+skip-magic-trailing-comma = false

@@ -1,5 +1,10 @@
 # siscav-api: Backend do Sistema de Controle de Acesso de Veículos
 
+[![CI Pipeline](https://github.com/JFMGDB/siscav-api/actions/workflows/ci.yml/badge.svg)](https://github.com/JFMGDB/siscav-api/actions/workflows/ci.yml)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![License: Academic](https://img.shields.io/badge/license-Academic-green.svg)](https://unicap.br)
+
 Este é o repositório backend para o "Sistema de Controle de Acesso de Veículos".
 
 > **⚠️ Status do Projeto:** Este projeto está em **desenvolvimento inicial**. A documentação abaixo descreve a arquitetura planejada e funcionalidades que estão sendo implementadas.
@@ -31,6 +36,10 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e é
 - ✅ Estrutura básica do projeto FastAPI
 - ✅ Endpoint raiz (`/`)
 - ✅ Endpoint de health check (`/api/v1/health`)
+- ✅ Pipeline de CI/CD com GitHub Actions
+- ✅ Linting automatizado com Ruff
+- ✅ Testes unitários com Pytest (4 testes)
+- ✅ Documentação completa do CI/CD
 - ⏳ Autenticação JWT (em desenvolvimento)
 - ⏳ CRUD de placas autorizadas (em desenvolvimento)
 - ⏳ Sistema de logs de acesso (em desenvolvimento)
@@ -52,6 +61,13 @@ A estrutura de diretórios deste repositório segue uma abordagem orientada a do
 
 ```bash
 siscav-api/
+├── .github/
+│   ├── workflows/
+│   │   └── ci.yml              # Pipeline de CI/CD
+│   ├── CI_LOCAL_GUIDE.md       # Guia para testar CI localmente
+│   ├── GUIA_COMANDOS.md        # Comandos úteis e referências rápidas
+│   ├── PULL_REQUEST_TEMPLATE.md # Template para Pull Requests
+│   └── README_CI.md            # Documentação completa do CI/CD
 ├── apps/
 │   ├── api/                # Serviço Backend FastAPI
 │   │   └── src/            # Código-fonte da API
@@ -66,8 +82,16 @@ siscav-api/
 │   │       ├── alembic/            # Migrações de banco de dados
 │   │       └── main.py         # Ponto de entrada da aplicação FastAPI
 │   └── iot-device/         # Script Python ALPR (easyocr) - em desenvolvimento
+├── docs/                   # Documentação do projeto
+│   ├── Arquitetura - Critérios de Aceite e Devops.md
+│   ├── Arquitetura e Backlog do projeto.md
+│   └── Especificação de Projeto.md
+├── tests/                  # Testes unitários
+│   ├── __init__.py
+│   └── test_main.py        # Testes da API principal
 ├── .gitignore
-├── pyproject.toml          # Dependências (FastAPI, SQLAlchemy, Alembic...)
+├── pyproject.toml          # Dependências e configuração do projeto
+├── ruff.toml               # Configuração do linter Ruff
 └── README.md
 ```
 
@@ -197,26 +221,55 @@ docker-compose exec api alembic revision --autogenerate -m "Descrição da sua m
 
 ## Testes
 
-> **⚠️ Em desenvolvimento:** A suíte de testes está sendo implementada.
-
-O pipeline de CI executará testes automatizados usando pytest. Para executá-los localmente (quando disponível):
+A suíte de testes está implementada com pytest. Para executá-los localmente:
 
 ```bash
-# Com Docker
-docker-compose exec api pytest
-
-# Localmente
+# Com ambiente virtual ativado
 pytest
+
+# Com verbose e cobertura
+pytest -v --cov=apps --cov-report=term-missing
+
+# Executar testes específicos
+pytest tests/test_main.py
 ```
 
-## Integração Contínua (CI)
+## Integração Contínua (CI) ✅
 
-> **⚠️ Em desenvolvimento:** O pipeline de CI/CD está sendo configurado.
+Este projeto utiliza **GitHub Actions** para integração contínua. O pipeline está configurado e funcional!
 
-Este projeto utilizará GitHub Actions para integração contínua. O fluxo de trabalho será definido em `.github/workflows/ci.yml` e será acionado em cada pull request para a branch develop, executando:
+**Workflow:** `.github/workflows/ci.yml`
 
-* **Linting:** Verificação da qualidade e estilo do código (ruff).
-* **Testes:** Execução da suíte de testes unitários com pytest.
+O pipeline é acionado automaticamente em **Pull Requests para a branch `develop`** e executa:
+
+1. ✅ **Linting com Ruff** - Verifica qualidade e estilo do código
+2. ✅ **Verificação de Formatação** - Garante código bem formatado  
+3. ✅ **Testes Unitários com Pytest** - Executa todos os testes
+4. 📊 **Relatório de Cobertura** - Gera relatório de cobertura (opcional)
+
+### ⚠️ Bloqueio de Merge
+
+O pipeline **bloqueia automaticamente** a mesclagem se:
+- ❌ Houver erros de linting
+- ❌ O código não estiver formatado corretamente
+- ❌ Qualquer teste unitário falhar
+
+### Testar Localmente
+
+Antes de abrir um Pull Request, execute:
+
+```bash
+# Instalar dependências de dev
+pip install -e ".[dev]"
+
+# Simular o pipeline CI completo
+ruff check . && ruff format --check . && pytest -v
+```
+
+📚 **Documentação detalhada:**
+- **CI/CD Completo:** `.github/README_CI.md`
+- **Guia Local:** `.github/CI_LOCAL_GUIDE.md`
+- **Comandos Rápidos:** `.github/GUIA_COMANDOS.md`
 
 ## Documentação da API (Swagger)
 
@@ -258,11 +311,12 @@ Com a aplicação em execução, a documentação automática e interativa da AP
 - [ ] Tratamento de erros e retry logic
 
 ### Fase 5: Testes e CI/CD 🧪
-- [ ] Testes unitários (pytest)
+- [x] Testes unitários (pytest)
+- [x] GitHub Actions (CI/CD)
+- [x] Linting automatizado (ruff)
+- [x] Estrutura de testes básica
 - [ ] Testes de integração
-- [ ] GitHub Actions (CI/CD)
-- [ ] Linting automatizado (ruff)
-- [ ] Coverage reports
+- [ ] Coverage reports avançados
 
 ### Fase 6: Documentação e Deploy 📚
 - [ ] Documentação completa da API
@@ -274,6 +328,31 @@ Com a aplicação em execução, a documentação automática e interativa da AP
 
 Contribuições são bem-vindas! Por favor, abra uma issue primeiro para discutir as mudanças que você gostaria de fazer.
 
+### Workflow de Contribuição
+
+1. **Fork** o repositório
+2. Crie uma **branch** para sua feature (`git checkout -b feature/MinhaFeature`)
+3. **Teste localmente** antes de commitar:
+   ```bash
+   ruff check . && ruff format --check . && pytest -v
+   ```
+4. **Commit** suas mudanças (`git commit -m 'feat: Adiciona MinhaFeature'`)
+5. **Push** para a branch (`git push origin feature/MinhaFeature`)
+6. Abra um **Pull Request** para a branch `develop`
+7. Aguarde o **CI passar** ✅ e a **aprovação** do code review
+
+📝 Use o template de PR automaticamente fornecido pelo GitHub.
+
+## Documentação do Projeto
+
+Este repositório contém documentação técnica detalhada na pasta `docs/`:
+
+- **Arquitetura e Critérios de Aceite**: Critérios de aceitação para todas as tarefas (FND-01 a FND-08)
+- **Arquitetura e Backlog**: Detalhamento da arquitetura e backlog do projeto
+- **Especificação de Projeto**: Requisitos funcionais e não funcionais completos
+
+📚 Consulte estes documentos para entender melhor o projeto e seus requisitos.
+
 ## Licença
 
 Este projeto está em desenvolvimento acadêmico na UNICAP.
@@ -282,4 +361,3 @@ Este projeto está em desenvolvimento acadêmico na UNICAP.
 
 - **Repositório:** https://github.com/JFMGDB/siscav-api
 - **Frontend:** https://github.com/JFMGDB/siscav-web (em desenvolvimento)
-

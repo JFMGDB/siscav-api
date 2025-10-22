@@ -20,7 +20,49 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest",  # Para testes unitários 
-    "ruff",    # Para linting rápido 
-    "httpx"    # Cliente HTTP para usar nos testes
+    "pytest",              # Para testes unitários 
+    "pytest-cov",          # Para cobertura de código
+    "ruff",                # Para linting rápido 
+    "httpx"                # Cliente HTTP para usar nos testes
+]
+
+[tool.pytest.ini_options]
+# Configuração do Pytest para SISCAV-API
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",                    # Mostrar resumo de todos os resultados
+    "--strict-markers",       # Erro em marcadores não registrados
+    "--strict-config",        # Erro em configurações inválidas
+    "--showlocals",           # Mostrar variáveis locais em caso de falha
+]
+markers = [
+    "slow: marca testes que são lentos para executar",
+    "integration: marca testes de integração",
+    "unit: marca testes unitários",
+    "smoke: marca testes de smoke testing",
+]
+
+[tool.coverage.run]
+source = ["apps"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+    "*/alembic/versions/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
 ]
