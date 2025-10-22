@@ -1,0 +1,26 @@
+[project]
+name = "siscav-api"
+version = "0.1.0"
+description = "Backend do Sistema de Controle de Acesso Veicular"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy",
+    "pydantic",
+    "alembic",
+
+    # Driver do Banco de Dados (necessário para SQLAlchemy conectar ao PostgreSQL)
+    "psycopg2-binary",
+
+    # Autenticação 
+    "passlib[bcrypt]",     # Para hashing de senhas
+    "python-jose[cryptography]", # Para criação/validação de tokens JWT
+    "slowapi"              # Para limitação de taxa (rate limiting) no login 
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",  # Para testes unitários 
+    "ruff",    # Para linting rápido 
+    "httpx"    # Cliente HTTP para usar nos testes
+]
