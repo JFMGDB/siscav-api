@@ -1,7 +1,7 @@
 # siscav-api: Backend do Sistema de Controle de Acesso de Veículos
 
 [![CI Pipeline](https://github.com/JFMGDB/siscav-api/actions/workflows/ci.yml/badge.svg)](https://github.com/JFMGDB/siscav-api/actions/workflows/ci.yml)
-[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![License: Academic](https://img.shields.io/badge/license-Academic-green.svg)](https://unicap.br)
 
@@ -101,7 +101,7 @@ siscav-api/
 
 ### Pré-requisitos
 
-* Python 3.10+
+* Python 3.13+
 * pip ou uv (gerenciador de pacotes Python)
 
 ### Instalação Local (Desenvolvimento Atual)
@@ -128,7 +128,7 @@ source venv/bin/activate
 3. **Instalar Dependências**
 
 ```bash
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
 ```
 
 4. **Executar a Aplicação**
@@ -299,6 +299,21 @@ pytest -v --cov=apps --cov-report=term-missing
 # Executar testes específicos
 pytest tests/test_main.py
 ```
+
+## Troubleshooting
+
+- Import "fastapi.testclient" could not be resolved
+  - Certifique-se de que o seu editor/IDE está usando o interpretador do projeto (Python 3.13 no venv):
+    - VS Code (Pylance): Ctrl+Shift+P → "Python: Select Interpreter" → selecione "Python 3.13.5 ('venv': venv)".
+  - Instale as dependências de desenvolvimento no venv ativo:
+    ```bash
+    pip install -r requirements-dev.txt
+    ```
+  - Alternativa: troque o import no teste para Starlette (equivalente):
+    ```python
+    from starlette.testclient import TestClient
+    ```
+
 
 ## Integração Contínua (CI) 
 
