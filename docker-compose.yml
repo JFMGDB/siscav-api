@@ -1,0 +1,71 @@
+services:
+  # Serviço de banco de dados PostgreSQL para desenvolvimento local.
+  # Ativado somente quando o profile "local" é usado:
+  #   docker compose --env-file .env.local --profile local up -d --build
+  db:
+    image: postgres:16-alpine
+    container_name: siscav-db
+    profiles: ["local"]
+    # Variáveis são fornecidas via --env-file (não defina valores aqui)
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # Bind para localhost para evitar exposição externa do banco
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Espera o Postgres ficar pronto
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Endurecimento básico e higiene de logs
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  # Serviço da API FastAPI.
+  # Funciona com banco local (profile local ativo) ou remoto (Supabase, sem profile local).
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: siscav-api
+    # Pass-through somente dos nomes; valores vêm do --env-file selecionado
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONPATH=/app
+      - DATABASE_URL
+      - SECRET_KEY
+      - ALGORITHM
+      - ACCESS_TOKEN_EXPIRE_MINUTES
+      - REFRESH_TOKEN_EXPIRE_DAYS
+    # Hot-reload para desenvolvimento
+    command: uvicorn apps.api.src.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    # Bind para localhost para não expor externamente a API de dev
+    ports:
+      - "127.0.0.1:8000:8000"
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  # Volume nomeado para persistir os dados do Postgres em dev local
+  postgres_data:
+

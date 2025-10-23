@@ -1,0 +1,29 @@
+FROM python:3.12-slim AS base
+
+# Evita arquivos .pyc e garante logs imediatos
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# Dependências de build mínimas (mantidas enxutas para dev)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copia arquivos de requisitos (permite cache de camadas entre mudanças de código)
+COPY requirements.txt requirements-dev.txt ./
+
+# Instala dependências (dev inclui produção)
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && pip install -r requirements-dev.txt
+
+# Em desenvolvimento, o código é montado via bind mount pelo docker compose
+
+# Porta exposta da API
+EXPOSE 8000
+
+# Comando padrão é definido no docker-compose (uvicorn --reload)
+

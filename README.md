@@ -38,7 +38,7 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e é
 - ✅ Endpoint de health check (`/api/v1/health`)
 - ✅ Pipeline de CI/CD com GitHub Actions
 - ✅ Linting automatizado com Ruff
-- ✅ Testes unitários com Pytest (4 testes)
+- ✅ Testes unitários com Pytest 
 - ✅ Documentação completa do CI/CD
 - ⏳ Autenticação JWT (em desenvolvimento)
 - ⏳ CRUD de placas autorizadas (em desenvolvimento)
@@ -97,7 +97,7 @@ siscav-api/
 
 ## Guia de Instalação (Getting Started)
 
-> **Nota:** Os arquivos de configuração Docker estão sendo desenvolvidos. Por enquanto, você pode executar a aplicação localmente com Python.
+> **Nota:** Agora há suporte completo a Docker Compose para desenvolvimento. Você também pode executar localmente com Python, se preferir.
 
 ### Pré-requisitos
 
@@ -149,11 +149,9 @@ A API estará acessível em http://localhost:8000.
 
 ---
 
-## Guia de Instalação com Docker (Em Desenvolvimento)
+## Guia de Instalação com Docker (Desenvolvimento)
 
-> **⚠️ Aviso:** Os arquivos Docker ainda não foram criados. Esta seção documenta como será a configuração futura.
-
-Este guia detalha como configurar e executar o ambiente de desenvolvimento local usando Docker.
+Este guia detalha como configurar e executar o ambiente de desenvolvimento local usando Docker e Docker Compose (FND-02).
 
 ### Pré-requisitos
 
@@ -167,55 +165,123 @@ git clone https://github.com/JFMGDB/siscav-api.git
 cd siscav-api
 ```
 
-### 2. Configuração do Ambiente (.env)
+### 2. Configuração do Ambiente (.env) — escolha UMA opção
 
-Crie um arquivo `.env` na raiz do projeto. Você pode copiar o arquivo `.env.example` (quando criado):
-
-```bash
-cp .env.example .env
-```
-
-Edite o arquivo `.env` com as credenciais do seu banco de dados e as chaves de segurança da aplicação:
+Opção A) Local (PostgreSQL no Docker): crie `.env.local` com:
 
 ```ini
-# Configuração do PostgreSQL
-POSTGRES_USER=seu_usuario
-POSTGRES_PASSWORD=sua_senha_segura
+# PostgreSQL (serviço local "db")
+POSTGRES_USER=siscav_user
+POSTGRES_PASSWORD=siscav_password
 POSTGRES_DB=siscav_db
-POSTGRES_HOST=db # Nome do serviço no docker-compose.yml
 
-# URL de Conexão do SQLAlchemy (deve corresponder às credenciais acima)
-DATABASE_URL=postgresql+psycopg2://seu_usuario:sua_senha_segura@db/siscav_db
+# SQLAlchemy (aponta para o serviço db)
+DATABASE_URL=postgresql+psycopg2://siscav_user:siscav_password@db:5432/siscav_db
 
-# Configuração do JWT
-SECRET_KEY=sua_chave_secreta_muito_segura
+# JWT
+SECRET_KEY=change_me_in_production
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=30
+```
+
+Opção B) Remota (Supabase): crie `.env.supabase` com:
+
+```ini
+# SQLAlchemy (string do Supabase com SSL)
+DATABASE_URL=postgresql+psycopg2://<usuario>:<senha>@<host>:5432/<db>?sslmode=require
+
+# JWT (pode diferir por ambiente)
+SECRET_KEY=another_secret_key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# Não é necessário definir POSTGRES_USER/PASSWORD/DB para essa opção
 ```
 
 ### 3. Executar a Aplicação (Desenvolvimento)
 
-Use o Docker Compose para construir as imagens e iniciar os contêineres da API e do banco de dados:
+Opção A) Local (sobe API + Postgres com profile "local"):
 
 ```bash
-docker-compose up -d --build
+docker compose --env-file .env.local --profile local up -d --build
+```
+
+Opção B) Supabase (sobe apenas a API, sem serviço de DB local):
+
+```bash
+docker compose --env-file .env.supabase up -d --build
 ```
 
 A API estará acessível em http://localhost:8000.
 
 ### 4. Executar as Migrações (Alembic)
 
-Após iniciar os contêineres, aplique as migrações do banco de dados para criar as tabelas (User, AuthorizedPlate, AccessLog):
+Após iniciar os contêineres, aplique as migrações:
 
 ```bash
-docker-compose exec api alembic upgrade head
+# Local
+docker compose --env-file .env.local exec api alembic upgrade head
+
+# Supabase
+docker compose --env-file .env.supabase exec api alembic upgrade head
 ```
 
 Para criar novas migrações após alterar os `models.py`:
 
 ```bash
-docker-compose exec api alembic revision --autogenerate -m "Descrição da sua migração"
+# Local
+docker compose --env-file .env.local exec api alembic revision --autogenerate -m "Descrição da sua migração"
+
+# Supabase
+docker compose --env-file .env.supabase exec api alembic revision --autogenerate -m "Descrição da sua migração"
 ```
+
+### 5. Comandos úteis
+
+```bash
+# Ver logs em tempo real (ex.: local)
+docker compose --env-file .env.local logs -f api
+
+# Acessar um shell no contêiner da API
+docker compose --env-file .env.local exec api bash
+
+# Parar e remover serviços (mantendo volumes)
+docker compose --env-file .env.local down
+```
+
+Observações sobre variáveis de ambiente e exposição:
+
+- O `docker-compose.yml` define apenas os nomes das variáveis para “pass-through”. Os valores vêm do arquivo passado via `--env-file`. Assim, nenhum valor sensível fica codificado no compose.
+- Garanta que `.env.local` e `.env.supabase` estão listados no `.gitignore` para evitar commit de segredos.
+- Em ambientes remotos, use `?sslmode=require` no `DATABASE_URL` do Supabase.
+
+---
+
+## Sobre os arquivos de requisitos (requirements)
+
+- `requirements.txt`: dependências de runtime — o mínimo necessário para a API rodar (produção).
+- `requirements-dev.txt`: estende o base com `-r requirements.txt` e adiciona apenas ferramentas de desenvolvimento/teste (ex.: `pytest`, `ruff`, `httpx`).
+
+Como usar:
+
+```bash
+# Ambiente de produção/execução simples
+pip install -r requirements.txt
+
+# Ambiente de desenvolvimento/CI
+pip install -r requirements-dev.txt
+```
+
+No Docker:
+
+- `Dockerfile.dev` instala `-r requirements-dev.txt` para oferecer hot-reload e tooling dentro do container de desenvolvimento.
+- Em um futuro `Dockerfile` de produção, instale apenas `-r requirements.txt` para uma imagem menor e mais segura.
+
+Motivação:
+
+- Imagens mais enxutas em produção e builds mais rápidos (camadas de cache) em desenvolvimento.
+- Separação clara entre dependências necessárias para executar a API e ferramentas usadas apenas em dev/CI.
 
 ---
 
@@ -234,7 +300,7 @@ pytest -v --cov=apps --cov-report=term-missing
 pytest tests/test_main.py
 ```
 
-## Integração Contínua (CI) ✅
+## Integração Contínua (CI) 
 
 Este projeto utiliza **GitHub Actions** para integração contínua. O pipeline está configurado e funcional!
 
@@ -284,8 +350,8 @@ Com a aplicação em execução, a documentação automática e interativa da AP
 - [x] Estrutura básica do projeto
 - [x] Configuração FastAPI
 - [x] Definição de dependências (pyproject.toml)
-- [ ] Dockerfile e docker-compose.yml
-- [ ] Arquivo .env.example
+- [x] Dockerfile e docker-compose.yml
+- [ ] Arquivo .env.example (documentado no README)
 
 ### Fase 2: Banco de Dados e Autenticação 🔄
 - [ ] Configuração PostgreSQL
