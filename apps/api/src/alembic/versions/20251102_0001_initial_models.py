@@ -1,10 +1,11 @@
 """Modelos iniciais: users, authorized_plates, access_logs e ENUM access_status
 
 Revision ID: 20251102_0001
-Revises: 
+Revises:
 Create Date: 2025-11-02 00:00:00
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql

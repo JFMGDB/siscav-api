@@ -5,6 +5,10 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from apps.api.src.api.v1.db.base import Base
+import apps.api.src.api.v1.models.user
+import apps.api.src.api.v1.models.authorized_plate
+import apps.api.src.api.v1.models.access_log
 
 # Objeto de configuração do Alembic; provê acesso aos valores do .ini
 config = context.config
@@ -21,14 +25,6 @@ else:
 # Interpreta o arquivo de configuração para logging em Python.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# Importa metadata a partir dos modelos
-from apps.api.src.api.v1.db.base import Base  # noqa: E402
-
-# Garante que os modelos sejam importados para popular o metadata
-import apps.api.src.api.v1.models.user  # noqa: F401,E402
-import apps.api.src.api.v1.models.authorized_plate  # noqa: F401,E402
-import apps.api.src.api.v1.models.access_log  # noqa: F401,E402
 
 target_metadata = Base.metadata
 
