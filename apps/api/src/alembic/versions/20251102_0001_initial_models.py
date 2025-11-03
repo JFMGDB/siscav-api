@@ -10,7 +10,6 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-
 # Identificadores de revisão, usados pelo Alembic.
 revision = "20251102_0001"
 down_revision = None

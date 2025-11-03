@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api.src.api.v1.core.config import get_settings
 
-
 settings = get_settings()
 
 # Engine e fábrica de sessões para o SQLAlchemy.
