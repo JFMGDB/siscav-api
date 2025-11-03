@@ -33,6 +33,28 @@ Datas e horas no formato ISO (YYYY-MM-DD HH:MM).
 ### Security
 - 
 
+## [0.1.1] - 2025-11-03 20:19
+### Added
+- 
+
+### Changed
+- CI: Consolidado o workflow em `.github/workflows/ci.yml` (removida duplicação e unificados triggers/steps).
+- README: Corrigida estrutura do projeto (removidas referências a arquivos inexistentes em `.github/` e pasta `apps/iot-device` marcada como planejada) e seção de CI alinhada ao workflow atual.
+- docker-compose: adicionada dependência condicional `depends_on` com `service_healthy` para `api` → `db` no perfil local.
+- env.local.example: removido `DATABASE_URL` redundante; agora a app resolve via `POSTGRES_*` por padrão.
+
+### Fixed
+- CI: Removidas definições duplicadas no arquivo `.github/workflows/ci.yml`.
+
+### Deprecated
+- 
+
+### Removed
+- docker-compose: entradas `dns` e `extra_hosts` não essenciais no ambiente de desenvolvimento.
+
+### Security
+- 
+
 ## [0.1.0] - 2025-11-03
 ### Added (Adicionado)
 - Estrutura completa da API v1 (FND-03):
@@ -61,10 +83,8 @@ Datas e horas no formato ISO (YYYY-MM-DD HH:MM).
 ### Notes (Notas)
 - Critérios de aceitação do FND-03 atendidos: estrutura orientada a domínio criada e app inicia sem erros.
 - Alembic e migração inicial (FND-05) foram implementados.
+ - FND-08: Pipeline de CI básico configurado para PRs em `develop` e pushes em `main`/`develop`.
 
 ---
 
-Como adicionar uma nova entrada:
-1. Edite a seção `[Unreleased]`, adicionando itens em Added/Changed/Fixed…
-2. No release, copie o conteúdo de `[Unreleased]` para uma nova seção `## [x.y.z] - YYYY-MM-DD` e zere `[Unreleased]`.
-3. Mantenha descrições curtas e de alto nível; detalhes técnicos vão nos PRs.
+

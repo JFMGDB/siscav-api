@@ -13,14 +13,14 @@ Este é o repositório backend para o "Sistema de Controle de Acesso de Veículo
 
 A arquitetura geral do projeto é dividida em dois repositórios distintos: `siscav-api` (este) e `siscav-web` (frontend).
 
-Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e é composto por duas aplicações Python principais:
+Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e tem como núcleo a **API Central**:
 
 1.  **API Central (`apps/api`):** Um serviço backend robusto construído com **FastAPI**. Ele serve como o "cérebro" do sistema, utilizando um banco de dados **PostgreSQL** para:
     * Autenticar administradores.
     * Validar placas de veículos recebidas contra uma "whitelist".
     * Registrar cada tentativa de acesso (com foto).
     * Enviar comandos de acionamento para o portão.
-2.  **Script IoT (`apps/iot-device`):** Um script Python projetado para ser executado no dispositivo de borda (ex: Raspberry Pi). Este script utiliza a biblioteca **`easyocr`** para realizar o Reconhecimento Automático de Placas de Veículos (ALPR). Após capturar e processar a imagem de um veículo, ele envia os dados via `POST HTTPS` seguro para a API Central e aguarda uma resposta (`Autorizado`/`Negado`) para acionar o relé físico via `GPIO`.
+> Nota: O **script IoT** (ALPR + comunicação com a API) está planejado para um repositório/pasta separado e ainda não está presente neste repositório.
 
 ## Principais Funcionalidades (Planejadas)
 
@@ -39,7 +39,7 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e é
 - ✅ Pipeline de CI/CD com GitHub Actions
 - ✅ Linting automatizado com Ruff
 - ✅ Testes unitários com Pytest 
-- ✅ Documentação completa do CI/CD
+- ✅ CI com GitHub Actions (lint + testes)
 - ⏳ Autenticação JWT (em desenvolvimento)
 - ⏳ CRUD de placas autorizadas (em desenvolvimento)
 - ⏳ Sistema de logs de acesso (em desenvolvimento)
@@ -62,12 +62,8 @@ A estrutura de diretórios deste repositório segue uma abordagem orientada a do
 ```bash
 siscav-api/
 ├── .github/
-│   ├── workflows/
-│   │   └── ci.yml              # Pipeline de CI/CD
-│   ├── CI_LOCAL_GUIDE.md       # Guia para testar CI localmente
-│   ├── GUIA_COMANDOS.md        # Comandos úteis e referências rápidas
-│   ├── PULL_REQUEST_TEMPLATE.md # Template para Pull Requests
-│   └── README_CI.md            # Documentação completa do CI/CD
+│   └── workflows/
+│       └── ci.yml              # Pipeline de CI (lint + testes)
 ├── apps/
 │   ├── api/                # Serviço Backend FastAPI
 │   │   └── src/            # Código-fonte da API
@@ -81,7 +77,7 @@ siscav-api/
 │   │       │       └── schemas/    # Modelos Pydantic (Validação)
 │   │       ├── alembic/            # Migrações de banco de dados (Alembic)
 │   │       └── main.py         # Ponto de entrada da aplicação FastAPI
-│   └── iot-device/         # Script Python ALPR (easyocr) - em desenvolvimento
+│   └── (iot-device)        # Planejado (fora deste repo por ora)
 ├── db/
 │   └── sql/
 │       └── supabase/        # Scripts SQL para migração manual no Supabase
@@ -190,8 +186,8 @@ POSTGRES_USER=siscav_user
 POSTGRES_PASSWORD=siscav_password
 POSTGRES_DB=siscav_db
 
-# SQLAlchemy (aponta para o serviço db)
-DATABASE_URL=postgresql+psycopg2://siscav_user:siscav_password@db:5432/siscav_db
+# Observação: a aplicação monta automaticamente o DATABASE_URL a partir das variáveis POSTGRES_*
+# (host padrão: db, porta: 5432). Não é necessário definir DATABASE_URL aqui.
 
 # JWT
 SECRET_KEY=change_me_in_production

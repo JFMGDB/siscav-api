@@ -51,16 +51,14 @@ services:
       - REFRESH_TOKEN_EXPIRE_DAYS
     # Hot-reload para desenvolvimento
     command: uvicorn apps.api.src.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - .:/app
     # Bind para localhost para não expor externamente a API de dev
     ports:
       - "127.0.0.1:8000:8000"
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    extra_hosts:
-      - "${SUPABASE_HOST}:${SUPABASE_HOST_IP}"
     security_opt:
       - no-new-privileges:true
     logging:
