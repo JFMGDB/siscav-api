@@ -5,10 +5,11 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+
 from apps.api.src.api.v1.db.base import Base
-import apps.api.src.api.v1.models.user
-import apps.api.src.api.v1.models.authorized_plate
-import apps.api.src.api.v1.models.access_log
+import apps.api.src.api.v1.models.user as _models_user
+import apps.api.src.api.v1.models.authorized_plate as _models_authorized_plate
+import apps.api.src.api.v1.models.access_log as _models_access_log
 
 # Objeto de configuração do Alembic; provê acesso aos valores do .ini
 config = context.config
@@ -27,6 +28,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
+# Referências para evitar remoção por linters e assegurar import dos modelos
+_ = (_models_user, _models_authorized_plate, _models_access_log)
 
 
 def run_migrations_offline() -> None:

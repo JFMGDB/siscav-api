@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from .api.v1.api import api_router
+
+from apps.api.src.api.v1.api import api_router
 
 app = FastAPI(title="Sistema de Controle de Acesso Veicular API", version="0.1.0")
 

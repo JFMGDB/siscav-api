@@ -1,11 +1,11 @@
-from datetime import datetime
 import uuid
+from datetime import datetime
 
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ..db.base import Base
+from apps.api.src.api.v1.db.base import Base
 
 
 class AuthorizedPlate(Base):
