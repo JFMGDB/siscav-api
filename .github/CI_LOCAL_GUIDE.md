@@ -12,7 +12,7 @@ python -m venv venv
 source venv/bin/activate      # Linux/Mac
 
 # Instalar dependências de dev
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
 ```
 
 ## 2. Executar Linting (Ruff)
@@ -53,8 +53,8 @@ pytest -m unit
 ## 4. Verificação Completa (Simula o CI)
 
 ```bash
-# Execute todos os comandos em sequência
-ruff check . && ruff format --check . && pytest -v
+# Execute todos os comandos em sequência (simula o CI)
+ruff check . && ruff format --check . && pytest -v --tb=short --cov=apps --cov-report=term-missing
 ```
 
 Se todos os comandos passarem sem erro, seu código está pronto para o Pull Request! ✅
@@ -86,8 +86,8 @@ Se todos os comandos passarem sem erro, seu código está pronto para o Pull Req
 O pipeline executa as seguintes etapas:
 
 1. ✅ **Checkout** - Clona o código
-2. ✅ **Setup Python** - Configura Python 3.12
-3. ✅ **Instalar Deps** - Instala dependências
+2. ✅ **Setup Python** - Configura Python 3.13
+3. ✅ **Instalar Deps** - Instala dependências via `requirements-dev.txt`
 4. ✅ **Ruff Check** - Verifica qualidade do código
 5. ✅ **Ruff Format** - Verifica formatação
 6. ✅ **Pytest** - Executa testes unitários

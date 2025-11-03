@@ -15,7 +15,8 @@ dependencies = [
     # Autenticação 
     "passlib[bcrypt]",     # Para hashing de senhas
     "python-jose[cryptography]", # Para criação/validação de tokens JWT
-    "slowapi"              # Para limitação de taxa (rate limiting) no login 
+    "slowapi",             # Para limitação de taxa (rate limiting) no login 
+    "email-validator"      # Necessário para validação robusta de EmailStr do Pydantic
 ]
 
 [project.optional-dependencies]

@@ -27,13 +27,12 @@ O workflow `.github/workflows/ci.yml` executa as seguintes etapas:
 1. **Checkout do Código** 
    - Clona o repositório
 
-2. **Setup Python 3.12**
-   - Configura o ambiente Python
-   - Utiliza cache de dependências pip para velocidade
+2. **Setup Python 3.13**
+   - Configura o ambiente Python com cache de dependências `pip`
 
 3. **Instalação de Dependências**
-   - Instala o projeto em modo editável com dependências de dev
-   - Comando: `pip install -e ".[dev]"`
+   - Instala dependências de desenvolvimento
+   - Comando: `pip install -r requirements-dev.txt`
 
 4. **Linting com Ruff** 
    - Verifica qualidade e estilo do código
@@ -46,8 +45,8 @@ O workflow `.github/workflows/ci.yml` executa as seguintes etapas:
    - **Falha se o código não estiver formatado**
 
 6. **Testes Unitários com Pytest** 🧪
-   - Executa todos os testes unitários
-   - Comando: `pytest -v --tb=short`
+   - Executa todos os testes unitários com cobertura
+   - Comando: `pytest -v --tb=short --cov=apps --cov-report=term-missing`
    - **Falha se qualquer teste falhar**
 
 7. **Relatório de Cobertura** 📊 (Opcional)
@@ -69,7 +68,7 @@ Isso é feito através do uso de `continue-on-error: false` em cada etapa críti
 
 ```bash
 # 1. Instalar dependências de dev
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
 
 # 2. Executar linting
 ruff check .
@@ -78,10 +77,10 @@ ruff check .
 ruff format --check .
 
 # 4. Executar testes
-pytest -v
+pytest -v --tb=short --cov=apps --cov-report=term-missing
 
 # 5. OU executar tudo de uma vez (simula o CI)
-ruff check . && ruff format --check . && pytest -v
+ruff check . && ruff format --check . && pytest -v --tb=short --cov=apps --cov-report=term-missing
 ```
 
 Se todos os comandos passarem, seu código está pronto para PR!
@@ -123,7 +122,6 @@ Planejado para implementação futura:
 - [ ] Deploy automático após merge em `develop`
 - [ ] Análise de segurança (Bandit, Safety)
 - [ ] Verificação de dependências vulneráveis
-- [ ] Notificações no Slack/Discord
 
 ## 🤝 Contribuindo
 

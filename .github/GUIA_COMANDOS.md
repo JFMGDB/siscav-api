@@ -74,7 +74,7 @@ pytest -s
 
 ```bash
 # Instalar dependências de dev
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
 
 # Atualizar pip
 python -m pip install --upgrade pip
@@ -284,7 +284,7 @@ git log --oneline -10
 
 ```bash
 # Instalar + testar
-pip install -e ".[dev]" && pytest -v
+pip install -r requirements-dev.txt && pytest -v --tb=short --cov=apps --cov-report=term-missing
 
 # Formatar + lint + testar
 ruff format . && ruff check . && pytest -v
@@ -296,5 +296,5 @@ git add . && git commit -m "feat: mensagem" && git push
 git checkout develop && git pull && git checkout -b feature/nova
 
 # Resetar ambiente de dev
-Remove-Item -Recurse -Force venv ; python -m venv venv ; .\venv\Scripts\Activate.ps1 ; pip install -e ".[dev]"
+Remove-Item -Recurse -Force venv ; python -m venv venv ; .\venv\Scripts\Activate.ps1 ; pip install -r requirements-dev.txt
 ```

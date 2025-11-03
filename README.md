@@ -79,19 +79,34 @@ siscav-api/
 │   │       │       ├── db/         # Sessão e base do SQLAlchemy
 │   │       │       ├── models/     # Modelos SQLAlchemy (Tabelas)
 │   │       │       └── schemas/    # Modelos Pydantic (Validação)
-│   │       ├── alembic/            # Migrações de banco de dados
+│   │       ├── alembic/            # Migrações de banco de dados (Alembic)
 │   │       └── main.py         # Ponto de entrada da aplicação FastAPI
 │   └── iot-device/         # Script Python ALPR (easyocr) - em desenvolvimento
+├── db/
+│   └── sql/
+│       └── supabase/        # Scripts SQL para migração manual no Supabase
+│           ├── 01_enable_extensions.sql
+│           ├── 02_types.sql
+│           ├── 03_tables.sql
+│           └── 04_indexes.sql
 ├── docs/                   # Documentação do projeto
 │   ├── Arquitetura - Critérios de Aceite e Devops.md
 │   ├── Arquitetura e Backlog do projeto.md
-│   └── Especificação de Projeto.md
+│   ├── Especificação de Projeto.md
+│   └── DB_MIGRATION_SUPABASE.md   # Guia para migração manual no Supabase
 ├── tests/                  # Testes unitários
 │   ├── __init__.py
 │   └── test_main.py        # Testes da API principal
 ├── .gitignore
+├── .dockerignore
+├── alembic.ini             # Configuração do Alembic
 ├── pyproject.toml          # Dependências e configuração do projeto
 ├── ruff.toml               # Configuração do linter Ruff
+├── Dockerfile.dev          # Ambiente de desenvolvimento da API
+├── docker-compose.yml      # Orquestração para dev/local/Supabase
+├── requirements.txt        # Dependências de runtime
+├── requirements-dev.txt    # Dependências de desenvolvimento/CI
+├── CHANGELOG.md            # Registro de mudanças
 └── README.md
 ```
 
@@ -215,6 +230,39 @@ docker compose --env-file .env.supabase up -d --build
 
 A API estará acessível em http://localhost:8000.
 
+#### Escolha explícita do ambiente (.env) e perfis
+
+- O arquivo `docker-compose.yml` define o serviço `db` com `profiles: ["local"]`. Isso significa:
+  - Com `.env.local` + `--profile local`: sobem `api` + `db` (Postgres local).
+  - Com `.env.supabase` (sem `--profile local`): sobe somente `api` (usa o Postgres do Supabase via `DATABASE_URL`).
+
+Exemplos de uso:
+
+```bash
+# Ambiente local (API + Postgres local)
+docker compose --env-file .env.local --profile local up -d --build
+
+# Ambiente Supabase (somente API)
+docker compose --env-file .env.supabase up -d --build
+```
+
+Alternar entre ambientes (recomendado):
+
+```bash
+# Derruba os serviços do ambiente atual (mantém volumes)
+docker compose --env-file .env.local down
+
+# Sobe no outro ambiente
+docker compose --env-file .env.supabase up -d --build
+```
+
+Opcional — reset do banco local:
+
+```bash
+# Cuidado: remove os volumes, apagando os dados do Postgres local
+docker compose --env-file .env.local down -v
+```
+
 ### 4. Executar as Migrações (Alembic)
 
 Após iniciar os contêineres, aplique as migrações:
@@ -255,6 +303,45 @@ Observações sobre variáveis de ambiente e exposição:
 - O `docker-compose.yml` define apenas os nomes das variáveis para “pass-through”. Os valores vêm do arquivo passado via `--env-file`. Assim, nenhum valor sensível fica codificado no compose.
 - Garanta que `.env.local` e `.env.supabase` estão listados no `.gitignore` para evitar commit de segredos.
 - Em ambientes remotos, use `?sslmode=require` no `DATABASE_URL` do Supabase.
+
+### Como o `DATABASE_URL` é resolvido
+
+A aplicação resolve a URL do banco por prioridade (vide `apps/api/src/api/v1/core/config.py`):
+
+1. Se `DATABASE_URL` estiver definido, usa exatamente esse valor.
+   - `.env.supabase`: aponta para o Supabase (com `sslmode=require`).
+   - `.env.local`: pode apontar para o Postgres do Docker (`db:5432`).
+2. Se não houver `DATABASE_URL`, mas existir `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB`,
+   a URL é montada automaticamente usando `POSTGRES_HOST` (default `db`) e `POSTGRES_PORT` (default `5432`).
+3. Caso nada disso exista, fallback para SQLite local: `sqlite:///./siscav_dev.db` (útil para execuções bare sem `.env`).
+
+Isso permite alternar entre Supabase e Postgres local apenas trocando o arquivo `.env` passado ao Docker Compose.
+
+---
+
+## Migração manual para Supabase (sem Docker)
+
+Quando houver impedimentos de rede/DNS no Docker, você pode aplicar o schema diretamente no Supabase.
+
+- Guia detalhado: `docs/DB_MIGRATION_SUPABASE.md`
+- Scripts SQL: `db/sql/supabase/`
+  - `01_enable_extensions.sql` (pgcrypto, pg_trgm)
+  - `02_types.sql` (ENUM `access_status`)
+  - `03_tables.sql` (`users`, `authorized_plates`, `access_logs`)
+  - `04_indexes.sql` (índices recomendados e opcionais com pg_trgm)
+
+Passos no Supabase Studio (SQL Editor): execute os arquivos na ordem 01 → 04.
+
+Após criar manualmente, sincronize o Alembic local sem tocar o banco:
+
+```powershell
+$env:DATABASE_URL='postgresql+psycopg2://<user>:<senha_urlenc>@<host>:5432/postgres?sslmode=require'
+alembic stamp head
+```
+
+Observações:
+- Se usar senha com caracteres especiais, faça URL-encode (`?` → `%3F`).
+- Se aparecer erro de `gen_random_uuid()`, rode no Supabase: `CREATE EXTENSION IF NOT EXISTS pgcrypto;`.
 
 ---
 
@@ -314,131 +401,25 @@ pytest tests/test_main.py
     from starlette.testclient import TestClient
     ```
 
+- Editor não resolve imports (e.g., "Import \"fastapi\" could not be resolved")
+  - Selecione o interpretador do projeto no editor:
+    - VS Code: Ctrl+Shift+P → "Python: Select Interpreter" → escolha `./venv` (Python 3.13).
+  - Recarregue a janela do VS Code após ativar o venv e instalar as dependências.
+  - Garanta que o terminal integrado esteja com o venv ativo ao rodar comandos (mostra `(venv)` no prompt).
+
+### Por que usar requirements .txt em vez de apenas pyproject.toml?
+
+- Este projeto oferece ambos os caminhos:
+  - Rápido/simples com pip: `requirements.txt` (runtime) e `requirements-dev.txt` (dev/CI), ideal para Docker cache e ambientes sem build backend.
+  - Alternativa via PEP 621: `pip install -e ".[dev]"` (já suportado por `pyproject.toml` em `[project.optional-dependencies].dev`).
+- No Docker/CI usamos os `.txt` por:
+  - Cache eficiente por camadas ao copiar apenas os requirements.
+  - Separação clara de deps de produção e de desenvolvimento.
+  - Menor superfície de ferramentas no container de runtime.
+
 
 ## Integração Contínua (CI) 
 
 Este projeto utiliza **GitHub Actions** para integração contínua. O pipeline está configurado e funcional!
 
 **Workflow:** `.github/workflows/ci.yml`
-
-O pipeline é acionado automaticamente em **Pull Requests para a branch `develop`** e executa:
-
-1. ✅ **Linting com Ruff** - Verifica qualidade e estilo do código
-2. ✅ **Verificação de Formatação** - Garante código bem formatado  
-3. ✅ **Testes Unitários com Pytest** - Executa todos os testes
-4. 📊 **Relatório de Cobertura** - Gera relatório de cobertura (opcional)
-
-### ⚠️ Bloqueio de Merge
-
-O pipeline **bloqueia automaticamente** a mesclagem se:
-- ❌ Houver erros de linting
-- ❌ O código não estiver formatado corretamente
-- ❌ Qualquer teste unitário falhar
-
-### Testar Localmente
-
-Antes de abrir um Pull Request, execute:
-
-```bash
-# Instalar dependências de dev
-pip install -e ".[dev]"
-
-# Simular o pipeline CI completo
-ruff check . && ruff format --check . && pytest -v
-```
-
-📚 **Documentação detalhada:**
-- **CI/CD Completo:** `.github/README_CI.md`
-- **Guia Local:** `.github/CI_LOCAL_GUIDE.md`
-- **Comandos Rápidos:** `.github/GUIA_COMANDOS.md`
-
-## Documentação da API (Swagger)
-
-Com a aplicação em execução, a documentação automática e interativa da API (Swagger UI) está disponível em:
-
-* **Swagger UI:** http://localhost:8000/docs
-* **ReDoc:** http://localhost:8000/redoc
-
-## Roadmap
-
-### Fase 1: Setup e Infraestrutura ✅
-- [x] Estrutura básica do projeto
-- [x] Configuração FastAPI
-- [x] Definição de dependências (pyproject.toml)
-- [x] Dockerfile e docker-compose.yml
-- [ ] Arquivo .env.example (documentado no README)
-
-### Fase 2: Banco de Dados e Autenticação 🔄
-- [ ] Configuração PostgreSQL
-- [ ] Modelos SQLAlchemy (User, AuthorizedPlate, AccessLog)
-- [ ] Configuração Alembic para migrações
-- [ ] Sistema de autenticação JWT
-- [ ] Endpoints de login/logout
-- [ ] Middleware de autenticação
-
-### Fase 3: CRUD e API Principal 📋
-- [ ] Endpoints CRUD para placas autorizadas
-- [ ] Endpoint de registro de acesso (IoT)
-- [ ] Endpoint de visualização de logs
-- [ ] Endpoint de controle remoto do portão
-- [ ] Rate limiting no login
-- [ ] Validações com Pydantic
-
-### Fase 4: Dispositivo IoT 🤖
-- [ ] Script de captura de imagem
-- [ ] Integração com EasyOCR (ALPR)
-- [ ] Comunicação HTTPS com API
-- [ ] Controle de GPIO para relé
-- [ ] Tratamento de erros e retry logic
-
-### Fase 5: Testes e CI/CD 🧪
-- [x] Testes unitários (pytest)
-- [x] GitHub Actions (CI/CD)
-- [x] Linting automatizado (ruff)
-- [x] Estrutura de testes básica
-- [ ] Testes de integração
-- [ ] Coverage reports avançados
-
-### Fase 6: Documentação e Deploy 📚
-- [ ] Documentação completa da API
-- [ ] Guia de deploy em produção
-- [ ] Configuração de HTTPS
-- [ ] Monitoramento e logs
-
-## Contribuindo
-
-Contribuições são bem-vindas! Por favor, abra uma issue primeiro para discutir as mudanças que você gostaria de fazer.
-
-### Workflow de Contribuição
-
-1. **Fork** o repositório
-2. Crie uma **branch** para sua feature (`git checkout -b feature/MinhaFeature`)
-3. **Teste localmente** antes de commitar:
-   ```bash
-   ruff check . && ruff format --check . && pytest -v
-   ```
-4. **Commit** suas mudanças (`git commit -m 'feat: Adiciona MinhaFeature'`)
-5. **Push** para a branch (`git push origin feature/MinhaFeature`)
-6. Abra um **Pull Request** para a branch `develop`
-7. Aguarde o **CI passar** ✅ e a **aprovação** do code review
-
-📝 Use o template de PR automaticamente fornecido pelo GitHub.
-
-## Documentação do Projeto
-
-Este repositório contém documentação técnica detalhada na pasta `docs/`:
-
-- **Arquitetura e Critérios de Aceite**: Critérios de aceitação para todas as tarefas (FND-01 a FND-08)
-- **Arquitetura e Backlog**: Detalhamento da arquitetura e backlog do projeto
-- **Especificação de Projeto**: Requisitos funcionais e não funcionais completos
-
-📚 Consulte estes documentos para entender melhor o projeto e seus requisitos.
-
-## Licença
-
-Este projeto está em desenvolvimento acadêmico na UNICAP.
-
-## Contato
-
-- **Repositório:** https://github.com/JFMGDB/siscav-api
-- **Frontend:** https://github.com/JFMGDB/siscav-web (em desenvolvimento)

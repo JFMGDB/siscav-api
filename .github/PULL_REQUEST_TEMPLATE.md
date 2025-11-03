@@ -31,7 +31,7 @@ Closes #
 - [ ] Meu código segue o estilo do projeto
 - [ ] Executei linting localmente (`ruff check .`)
 - [ ] Verifiquei a formatação (`ruff format --check .`)
-- [ ] Executei os testes localmente (`pytest -v`)
+- [ ] Executei os testes localmente (`pytest -v --tb=short --cov=apps --cov-report=term-missing`)
 - [ ] Todos os testes passaram ✅
 
 ### Código
