@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-import os
 from logging.config import fileConfig
+import os
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from apps.api.src.api.v1.db.base import Base
 import apps.api.src.api.v1.models.access_log as _models_access_log
 import apps.api.src.api.v1.models.authorized_plate as _models_authorized_plate
 import apps.api.src.api.v1.models.user as _models_user
-from apps.api.src.api.v1.db.base import Base
 
 # Objeto de configuração do Alembic; provê acesso aos valores do .ini
 config = context.config
