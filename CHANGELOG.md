@@ -42,6 +42,7 @@ Datas e horas no formato ISO (YYYY-MM-DD HH:MM).
 - README: Corrigida estrutura do projeto (removidas referências a arquivos inexistentes em `.github/` e pasta `apps/iot-device` marcada como planejada) e seção de CI alinhada ao workflow atual.
 - docker-compose: adicionada dependência condicional `depends_on` com `service_healthy` para `api` → `db` no perfil local.
 - env.local.example: removido `DATABASE_URL` redundante; agora a app resolve via `POSTGRES_*` por padrão.
+- README: adicionada seção de troubleshooting para correção de erros de lint (`ruff check --fix`) e formatação (`ruff format`).
 
 ### Fixed
 - CI: Removidas definições duplicadas no arquivo `.github/workflows/ci.yml`.
@@ -77,17 +78,4 @@ Datas e horas no formato ISO (YYYY-MM-DD HH:MM).
 ### Changed (Alterado)
 - `core/config.py`: Montagem de `DATABASE_URL` a partir de `POSTGRES_*` quando `DATABASE_URL` não estiver definido (compatível com `.env.local` e `.env.supabase`), com fallback seguro para SQLite em dev bare.
 - Documentação: README atualizado com a seção "Como o DATABASE_URL é resolvido" e docstrings no `core/config.py` detalhando as prioridades.
-- Documentação: README atualizado com instruções explícitas de uso do Docker para alternar entre `.env.local` (com `--profile local` para subir o `db`) e `.env.supabase` (somente `api`).
-- Documentação: README atualizado com seção de Alembic e estrutura do diretório `alembic/` (arquivo `alembic.ini` na raiz).
-- Alembic: `env.py` configurado com `compare_type=True` e `compare_server_default=True` para autogenerate mais preciso.
-- Modelos: colunas `id` e FKs alteradas para `UUID(as_uuid=True)` (PostgreSQL) com tipagem `uuid.UUID` e `default=uuid.uuid4` no ORM.
-- Migração inicial: IDs e FK ajustados para `postgresql.UUID(as_uuid=True)` com `server_default=gen_random_uuid()`; mantido ENUM `access_status` para `access_logs.status`.
-
-### Notes (Notas)
-- Critérios de aceitação do FND-03 atendidos: estrutura orientada a domínio criada e app inicia sem erros.
-- Alembic e migração inicial (FND-05) foram implementados.
- - FND-08: Pipeline de CI básico configurado para PRs em `develop` e pushes em `main`/`develop`.
-
----
-
-
+- Documentação: README atualizado com instruções explícitas de uso do Docker para alternar entre `.env.local` (com `--profile local` para subir o `db`) e `.env.supabase`

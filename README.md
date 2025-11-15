@@ -403,6 +403,16 @@ pytest tests/test_main.py
   - Recarregue a janela do VS Code após ativar o venv e instalar as dependências.
   - Garanta que o terminal integrado esteja com o venv ativo ao rodar comandos (mostra `(venv)` no prompt).
 
+- CI falhando por erros de Linting ou Formatação
+  - Antes de commitar, rode os comandos localmente para corrigir os problemas:
+    ```bash
+    # Para corrigir erros de lint (ex: imports não utilizados, etc.)
+    ruff check --fix .
+
+    # Para corrigir erros de formatação de código (ex: espaçamento, quebras de linha)
+    ruff format .
+    ```
+
 ### Por que usar requirements .txt em vez de apenas pyproject.toml?
 
 - Este projeto oferece ambos os caminhos:
