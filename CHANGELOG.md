@@ -46,6 +46,7 @@ Datas e horas no formato ISO (YYYY-MM-DD HH:MM).
 ### Fixed
 - CI: Removidas definições duplicadas no arquivo `.github/workflows/ci.yml`.
 - Lint (Ruff): padronizada ordenação/agrupamento de imports (I001) e uso de imports absolutos (TID252) nos módulos da API e modelos; ajuste em `alembic/env.py` para evitar F401 mantendo import de modelos por efeito colateral.
+- Lint (Ruff): executado `ruff check --select I --fix` para corrigir automaticamente a ordem dos imports nos arquivos `alembic/env.py` e na migração inicial.
 
 ### Deprecated
 - 
