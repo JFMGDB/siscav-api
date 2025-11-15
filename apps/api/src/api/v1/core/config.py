@@ -14,6 +14,7 @@ Resolução do DATABASE_URL (prioridade):
 Esse comportamento permite alternar entre Supabase, Postgres local (Docker) e um
 fallback de desenvolvimento sem alterar código.
 """
+
 import os
 from functools import lru_cache
 
@@ -60,5 +61,3 @@ class Settings(BaseModel):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
-

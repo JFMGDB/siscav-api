@@ -18,5 +18,3 @@ class AuthorizedPlateRead(AuthorizedPlateBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
-
-

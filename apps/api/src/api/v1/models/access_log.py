@@ -12,7 +12,9 @@ from apps.api.src.api.v1.db.base import Base
 class AccessLog(Base):
     __tablename__ = "access_logs"
 
-    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -24,5 +26,3 @@ class AccessLog(Base):
     authorized_plate_id: Mapped[uuid.UUID | None] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("authorized_plates.id"), nullable=True
     )
-
-

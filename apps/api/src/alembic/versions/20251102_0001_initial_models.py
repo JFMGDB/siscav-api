@@ -34,8 +34,18 @@ def upgrade() -> None:
         ),
         sa.Column("email", sa.Text(), nullable=False, unique=True),
         sa.Column("hashed_password", sa.Text(), nullable=False),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
     )
 
     # Tabela authorized_plates
@@ -51,8 +61,18 @@ def upgrade() -> None:
         sa.Column("plate", sa.Text(), nullable=False),
         sa.Column("normalized_plate", sa.Text(), nullable=False, unique=True),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
     )
 
     # Tabela access_logs
@@ -65,11 +85,21 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("gen_random_uuid()"),
         ),
-        sa.Column("timestamp", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "timestamp",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("plate_string_detected", sa.Text(), nullable=False),
         sa.Column("status", sa.Enum("Authorized", "Denied", name="access_status"), nullable=False),
         sa.Column("image_storage_key", sa.Text(), nullable=False),
-        sa.Column("authorized_plate_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("authorized_plates.id"), nullable=True),
+        sa.Column(
+            "authorized_plate_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("authorized_plates.id"),
+            nullable=True,
+        ),
     )
 
 
@@ -81,5 +111,3 @@ def downgrade() -> None:
     # Remove o tipo ENUM
     access_status = sa.Enum("Authorized", "Denied", name="access_status")
     access_status.drop(op.get_bind(), checkfirst=True)
-
-

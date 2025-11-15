@@ -17,5 +17,3 @@ class AccessLogRead(BaseModel):
     status: AccessStatus
     image_storage_key: str
     authorized_plate_id: UUID | None = None
-
-
