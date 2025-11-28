@@ -53,7 +53,8 @@ erDiagram
 
     authorized\_plates |
 
-|--o{ access\_logs : "é referenciada em"
+
+||--o{ access\_logs : "é referenciada em"
 
 ### **1.3 Decisões Arquiteturais Fundamentais**
 
@@ -233,3 +234,4 @@ O esquema atual pode ser estendido de forma limpa para suportar novas funcionali
 #### **Referências citadas**
 
 1. piiv-unicap-especificacao-projetos-solucoes-eletronicas-do-futuro\_v1.pdf
+

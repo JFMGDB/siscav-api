@@ -35,7 +35,7 @@ a arquitetura de repositórios separados e as distintas pilhas de tecnologia do 
 ● DevOps: Abrange todas as tarefas relacionadas à infraestrutura como código,
 automação de pipelines de integração e entrega contínua (CI/CD), containerização
 (Docker), e a configuração do ambiente de desenvolvimento. Estas tarefas formam a
-fundação sobre a qual as aplicações são construídas e operadas.
+fundaçã sobre a qual as aplicações são construídas e operadas.
 ● Back-end: Inclui tarefas relacionadas à lógica de negócio no lado do servidor,
 desenvolvimento de API RESTful, interação com o banco de dados, sistemas de
 autenticação e segurança. Notavelmente, as tarefas do dispositivo IoT (script Python
@@ -44,9 +44,6 @@ Python, processamento de dados e comunicação via HTTP, que são competências
 centrais de um desenvolvedor back-end.
 ● Front-end: Engloba todas as tarefas relacionadas à interface do usuário (UI) e à
 experiência do usuário (UX) do painel de administração. Isso inclui a construção de
-```
-
-```
 componentes visuais, gerenciamento de estado do lado do cliente, consumo da API do
 back-end e garantia de responsividade da aplicação web.
 ```
@@ -91,7 +88,7 @@ frontend (web).
 DevOps Dado que a
 arquitetura do
 projeto define uma
-separação clara
+separaçã clara
 entre front-end e
 back-end 1,
 Quando a
@@ -106,9 +103,6 @@ siscav-web.
 Cada repositório
 deve conter um
 arquivo .gitignore
-```
-
-```
 configurado
 apropriadamente
 para sua respectiva
@@ -160,8 +154,6 @@ up na raiz do
 repositório
 siscav-api, então
 um container para
-```
-
 a API FastAPI e um
 container para o
 banco de dados
@@ -204,6 +196,7 @@ arquivo .env
 referenciado no
 docker-compose.y
 ml).
+```
 
 
 **FND-03** Inicializar a
@@ -306,7 +299,6 @@ dev.
 ```
 **FND-05** Configurar Alembic **Back-end** Dado que o
 
-
 para migrações de
 banco de dados e
 criar modelos de
@@ -355,9 +347,6 @@ as tabelas users,
 authorized_plates e
 access_logs foram
 criadas com as
-```
-
-```
 colunas corretas.
 ```
 **FND-06** Implementar um
@@ -402,7 +391,7 @@ Next.js.
 
 ```
 Front-end Dado que a
-aplicação Next.js
+aplicaçã Next.js
 está em execução,
 Quando um
 navegador acessar
@@ -413,9 +402,6 @@ deve ser
 renderizada sem
 erros. A página
 deve exibir um
-```
-
-```
 título visível, como
 <h1>Sistema de
 Controle de Acesso
@@ -467,9 +453,6 @@ de linting (e.g., ruff
 ou flake8) e testes
 unitários (e.g.,
 pytest).Para
-```
-
-```
 siscav-web: O
 pipeline deve
 executar com
@@ -577,9 +560,6 @@ capaz de inicializar
 o leitor easyocr
 com os idiomas
 apropriados (e.g.,
-```
-
-```
 pt para
 português).A string
 correspondente à
@@ -630,9 +610,6 @@ reconhecimento de
 caracteres, visando
 atender aos
 requisitos de
-```
-
-```
 precisão RNF-002.
 ```
 **IOT-04** Desenvolver uma
@@ -690,9 +667,6 @@ for chamada, Então
 uma requisição
 POST deve ser
 enviada para o
-```
-
-```
 endpoint
 /api/v1/access_logs
 do servidor
@@ -742,9 +716,6 @@ de acesso. O script
 deve ser capaz de
 decodificar o corpo
 da resposta JSON
-```
-
-```
 e ler o valor da
 chave status.A
 lógica deve
@@ -795,9 +766,6 @@ funcionalidade
 deve cumprir o
 requisito de
 acionamento do
-```
-
-```
 portão RF-005.
 ```
 ## 2.3 Épico 3: Controle de Acesso Central & Logging (Backend)
@@ -855,9 +823,6 @@ processamento
 bem-sucedido.Dev
 e haver validação
 (usando Pydantic
-```
-
-```
 Schemas) para
 garantir que os
 dados esperados
@@ -909,7 +874,6 @@ resultado negativo
 ```
 **API-03** Implementar lógica
 para armazenar a
-
 ```
 Back-end Dado que a
 requisição para
@@ -966,9 +930,6 @@ processada pelo
 endpoint
 access_logs,
 Quando a
-```
-
-```
 verificação da
 placa for concluída,
 Então um novo
@@ -1016,9 +977,6 @@ encontrada na lista
 de autorizados, a
 resposta deve ser
 {"status":
-```
-
-```
 "Authorized"}.Se a
 placa não foi
 encontrada, a
@@ -1074,9 +1032,6 @@ back-end, Quando
 o comando pytest
 for executado,
 Então devem
-```
-
-```
 existir testes
 específicos para a
 função de
@@ -1116,8 +1071,6 @@ _stateless_ , o que simplifica o servidor e melhora sua escalabilidade. Conseque
 responsabilidade pelo gerenciamento do ciclo de vida do token é transferida para o
 front-end, que deve armazená-lo de forma segura (e.g., em um cookie httpOnly para mitigar
 ataques XSS), anexá-lo às requisições subsequentes e gerenciar o estado de autenticação na
-
-
 UI. Esta é uma troca de complexidade deliberada que favorece um design de back-end mais
 limpo e moderno.^1
 
@@ -1175,9 +1128,8 @@ atendendo às
 melhores práticas
 de segurança
 implícitas no
+RNF-006.1
 ```
-
-#### RNF-006.1
 
 **AUTH-02 (BE)** Implementar um
 endpoint /login que
@@ -1227,7 +1179,6 @@ inválidas, deve
 retornar um HTTP
 401 Unauthorized.
 ```
-
 **AUTH-03 (BE)** Implementar
 dependência
 FastAPI para
@@ -1277,16 +1228,14 @@ esta dependência.
 **AUTH-04 (FE)** Construir a página
 de Login e a UI do
 formulário na
+aplicação Next.js.
 
 ```
 Front-end Dado que o usuário
 não está
 autenticado,
 Quando ele acessa
-```
-
-```
-aplicação Next.js. a aplicação, Então
+a aplicação, Então
 a página de login
 em
 (public)/login/page.
@@ -1336,9 +1285,6 @@ Em caso de
 sucesso na
 resposta da API, o
 access_token JWT
-```
-
-```
 recebido deve ser
 armazenado no
 cliente. A estratégia
@@ -1390,9 +1336,6 @@ não houver token
 ou se ele for
 inválido/expirado, o
 usuário deve ser
-```
-
-```
 redirecionado
 automaticamente
 para a página
@@ -1450,9 +1393,6 @@ a página
 maior segurança,
 pode-se
 implementar um
-```
-
-```
 endpoint /logout
 que adicione o
 token a uma
@@ -1510,9 +1450,6 @@ POST
 /api/v1/whitelist,
 PUT
 /api/v1/whitelist/{pla
-```
-
-```
 te_id}, DELETE
 /api/v1/whitelist/{pla
 te_id}.Cada
@@ -1561,9 +1498,6 @@ campos de ações
 botão proeminente
 "Adicionar Nova
 Placa" deve estar
-```
-
-```
 presente na página.
 ```
 **WHT-03 (FE)** Implementar a
@@ -1621,9 +1555,6 @@ um formulário deve
 ser exibido. O
 formulário deve
 conter um campo
-```
-
-```
 de entrada para a
 nova placa e um
 botão "Salvar".Ao
@@ -1661,7 +1592,7 @@ uma linha
 específica, Então
 um modal ou
 formulário de
-edição deve ser
+ediçã deve ser
 exibido. O
 formulário deve vir
 pré-preenchido
@@ -1676,9 +1607,6 @@ ser feita para
 te_id} com os
 dados
 atualizados.Após o
-```
-
-```
 sucesso da
 requisição, o modal
 deve ser fechado e
@@ -1734,6 +1662,8 @@ executada.
 Adicionar
 funcionalidade de
 busca e paginação
+à tabela da
+whitelist.
 ```
 ```
 Back-end &
@@ -1743,12 +1673,6 @@ Front-end
 Dado que a lista de
 placas autorizadas
 é grande, Quando
-```
-
-à tabela da
-whitelist.
-
-```
 o usuário interage
 com a página da
 whitelist, Então ele
@@ -1791,7 +1715,6 @@ a tabela com os
 novos dados
 retornados.
 ```
-
 ## 2.6 Épico 6: Painel de Visualização de Logs de Acesso
 
 **Objetivo do Épico:** Construir a interface que permite aos administradores revisar o histórico
@@ -1852,9 +1775,6 @@ query SQL
 dinâmica para
 aplicar os filtros e a
 paginação de
-```
-
-```
 forma eficiente.
 ```
 **LOG-02 (FE)** Projetar e construir
@@ -1911,9 +1831,6 @@ para
 para buscar a
 primeira página de
 logs. Os resultados
-```
-
-```
 retornados pela API
 devem ser
 renderizados nas
@@ -1960,9 +1877,6 @@ placa para evitar
 chamadas
 excessivas à API
 enquanto o usuário
-```
-
-```
 digita.
 ```
 **LOG-05 (FE)** Implementar a
@@ -2020,9 +1934,6 @@ autenticação do
 usuário antes de
 servir o arquivo. O
 endpoint deve usar
-```
-
-```
 a mesma
 dependência de
 autenticação JWT
@@ -2081,9 +1992,6 @@ dashboard (e.g., na
 página de logs ou
 em um cabeçalho
 global). Front-end:
-```
-
-```
 Clicar no botão
 deve acionar uma
 chamada POST
@@ -2107,7 +2015,7 @@ autenticação.
 ## 2.7 Épico 7: Reforço e Polimento do Sistema
 
 **Objetivo do Épico:** Abordar requisitos não funcionais (RNFs) e preparar o sistema para uma
-implantação robusta e segura. Esta fase demonstra a maturidade do processo de
+implantaçã robusta e segura. Esta fase demonstra a maturidade do processo de
 planejamento, alocando tempo explicitamente para atividades cruciais que transformam um
 protótipo funcional em um sistema de qualidade de produção. Tarefas como documentação
 da API, segurança, usabilidade, confiabilidade e testes de desempenho são tratadas como
@@ -2139,9 +2047,6 @@ FastAPI está em
 execução, Quando
 um desenvolvedor
 acessa a rota /docs
-```
-
-```
 no navegador,
 Então uma
 interface interativa
@@ -2193,9 +2098,6 @@ em um curto
 período, Então o
 acesso deve ser
 temporariamente
-```
-
-```
 bloqueado.
 O endpoint POST
 /api/v1/auth/login
@@ -2245,9 +2147,6 @@ componentes
 devem se adaptar
 para fornecer uma
 experiência de
-```
-
-```
 usuário funcional e
 agradável.
 Todos os
@@ -2300,9 +2199,6 @@ a diretiva
 Restart=on-failure
 ou
 Restart=always.Isso
-```
-
-```
 garante a alta
 disponibilidade do
 endpoint, conforme
@@ -2312,7 +2208,7 @@ RNF-003.1
 **HRD-05 (DevOps)** Criar Dockerfiles
 prontos para
 produção para as
-aplicações api e
+aplicaçõs api e
 web.
 
 ```
@@ -2352,9 +2248,6 @@ Node.js integrado
 do Next.js) para
 servir os arquivos
 estáticos de
-```
-
-```
 produção.
 ```
 **HRD-06 (Docs)** Escrever os
@@ -2407,12 +2300,6 @@ RNF-008.1
 ```
 **HRD-07 (QA)** Realizar testes de
 ponta a ponta de
-
-```
-DevOps Dado um ambiente
-de teste que simula
-```
-
 todo o fluxo e
 medir em relação
 ao requisito de
@@ -2420,6 +2307,8 @@ latência de 5
 segundos.
 
 ```
+DevOps Dado um ambiente
+de teste que simula
 o sistema
 completo, Quando
 um veículo com
@@ -2457,332 +2346,7 @@ os resultados
 obtidos.
 ```
 
-# 3.0 Matriz de Resumo de Classificação de Tarefas
-
-A tabela a seguir fornece uma visão consolidada e de referência rápida da classificação de
-área para cada tarefa do projeto, facilitando o planejamento de sprints e a alocação de
-recursos da equipe.
-
-```
-ID da Tarefa Épico Classificação da Área
-```
-```
-FND-01 Fundação do Projeto &
-DevOps
-```
-```
-DevOps
-```
-```
-FND-02 Fundação do Projeto &
-DevOps
-```
-```
-DevOps
-```
-```
-FND-03 Fundação do Projeto &
-DevOps
-```
-```
-Back-end
-```
-```
-FND-04 Fundação do Projeto &
-DevOps
-```
-```
-Front-end
-```
-```
-FND-05 Fundação do Projeto &
-DevOps
-```
-```
-Back-end
-```
-```
-FND-06 Fundação do Projeto &
-DevOps
-```
-```
-Back-end
-```
-```
-FND-07 Fundação do Projeto &
-DevOps
-```
-```
-Front-end
-```
-```
-FND-08 Fundação do Projeto &
-DevOps
-```
-```
-DevOps
-```
-```
-IOT-01 Implementação do
-Dispositivo IoT ALPR
-```
-```
-Back-end
-```
-```
-IOT-02 Implementação do
-Dispositivo IoT ALPR
-```
-```
-Back-end
-```
-```
-IOT-03 Implementação do Back-end
-```
-
-```
-Dispositivo IoT ALPR
-```
-IOT-04 Implementação do
-Dispositivo IoT ALPR
-
-```
-Back-end
-```
-IOT-05 Implementação do
-Dispositivo IoT ALPR
-
-```
-Back-end
-```
-IOT-06 Implementação do
-Dispositivo IoT ALPR
-
-```
-Back-end
-```
-IOT-07 Implementação do
-Dispositivo IoT ALPR
-
-```
-Back-end
-```
-API-01 Controle de Acesso Central
-& Logging
-
-```
-Back-end
-```
-API-02 Controle de Acesso Central
-& Logging
-
-```
-Back-end
-```
-API-03 Controle de Acesso Central
-& Logging
-
-```
-Back-end
-```
-API-04 Controle de Acesso Central
-& Logging
-
-```
-Back-end
-```
-API-05 Controle de Acesso Central
-& Logging
-
-```
-Back-end
-```
-API-06 Controle de Acesso Central
-& Logging
-
-```
-Back-end
-```
-API-07 Controle de Acesso Central
-& Logging
-
-```
-Back-end
-```
-AUTH-01 Autenticação de
-Administrador
-
-```
-Back-end
-```
-
-AUTH-02 Autenticação de
-Administrador
-
-```
-Back-end
-```
-AUTH-03 Autenticação de
-Administrador
-
-```
-Back-end
-```
-AUTH-04 Autenticação de
-Administrador
-
-```
-Front-end
-```
-AUTH-05 Autenticação de
-Administrador
-
-```
-Front-end
-```
-AUTH-06 Autenticação de
-Administrador
-
-```
-Front-end
-```
-AUTH-07 Autenticação de
-Administrador
-
-```
-Full-Stack
-```
-WHT-01 Painel de Gerenciamento
-da Whitelist
-
-```
-Back-end
-```
-WHT-02 Painel de Gerenciamento
-da Whitelist
-
-```
-Front-end
-```
-WHT-03 Painel de Gerenciamento
-da Whitelist
-
-```
-Front-end
-```
-WHT-04 Painel de Gerenciamento
-da Whitelist
-
-```
-Front-end
-```
-WHT-05 Painel de Gerenciamento
-da Whitelist
-
-```
-Front-end
-```
-WHT-06 Painel de Gerenciamento
-da Whitelist
-
-```
-Front-end
-```
-WHT-07 Painel de Gerenciamento
-da Whitelist
-
-```
-Full-Stack
-```
-
-LOG-01 Painel de Visualização de
-Logs de Acesso
-
-```
-Back-end
-```
-LOG-02 Painel de Visualização de
-Logs de Acesso
-
-```
-Front-end
-```
-LOG-03 Painel de Visualização de
-Logs de Acesso
-
-```
-Front-end
-```
-LOG-04 Painel de Visualização de
-Logs de Acesso
-
-```
-Front-end
-```
-LOG-05 Painel de Visualização de
-Logs de Acesso
-
-```
-Front-end
-```
-LOG-06 Painel de Visualização de
-Logs de Acesso
-
-```
-Back-end
-```
-LOG-07 Painel de Visualização de
-Logs de Acesso
-
-```
-Full-Stack
-```
-HRD-01 Reforço e Polimento do
-Sistema
-
-```
-Back-end
-```
-HRD-02 Reforço e Polimento do
-Sistema
-
-```
-Back-end
-```
-HRD-03 Reforço e Polimento do
-Sistema
-
-```
-Front-end
-```
-HRD-04 Reforço e Polimento do
-Sistema
-
-```
-Back-end
-```
-HRD-05 Reforço e Polimento do
-Sistema
-
-```
-DevOps
-```
-HRD-06 Reforço e Polimento do
-Sistema
-
-```
-DevOps
-```
-
-```
-HRD-07 Reforço e Polimento do
-Sistema
-```
-```
-DevOps
-```
 ### Referências citadas
 
 ### 1. Arquitetura e Backlog de Projeto Acadêmico.pdf
-
 

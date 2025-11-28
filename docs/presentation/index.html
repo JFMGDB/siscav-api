@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconhecimento de Placas com IA - SISCAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/slides.css">
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Título -->
+        <section class="slide slide-title" data-slide="1">
+            <div class="slide-content">
+                <h1 class="title-main">Reconhecimento de Placas com Inteligência Artificial</h1>
+                <h2 class="title-subtitle">Sistema de Controle de Acesso Veicular - SISCAV</h2>
+                <div class="title-footer">
+                    <p>Automação de Controle de Acesso através de IoT e IA</p>
+                </div>
+                <div class="team-section">
+                    <h3 class="team-title">Equipe</h3>
+                    <div class="team-members">
+                        <div class="team-member">Anderson Marinho</div>
+                        <div class="team-member">José Felipe</div>
+                        <div class="team-member">José Gabriel</div>
+                        <div class="team-member">Jamilli Maria</div>
+                        <div class="team-member">Ailton Santos</div>
+                        <div class="team-member">Enio Bezerra</div>
+                        <div class="team-member">Walber</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 2: Contextualização - Problema -->
+        <section class="slide" data-slide="2">
+            <div class="slide-content">
+                <h2 class="slide-title">Contextualização do Projeto</h2>
+                <div class="content-section">
+                    <h3>Problema Atual</h3>
+                    <ul class="content-list">
+                        <li>Controle de acesso manual ou semi-automatizado</li>
+                        <li>Dependência de guardas de segurança para verificação</li>
+                        <li>Uso de controles remotos físicos vulneráveis</li>
+                        <li>Ausência de registro auditável de acessos</li>
+                        <li>Atrasos no fluxo de tráfego</li>
+                        <li>Riscos de segurança (perda, roubo ou clonagem de controles)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Contextualização - Solução -->
+        <section class="slide" data-slide="3">
+            <div class="slide-content">
+                <h2 class="slide-title">Proposta de Solução</h2>
+                <div class="content-section">
+                    <div class="solution-flow">
+                        <div class="flow-item">
+                            <div class="flow-icon">CAM</div>
+                            <h4>Captura de Imagem</h4>
+                            <p>Microcomputador com câmera captura imagem do veículo</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-item">
+                            <div class="flow-icon">IA</div>
+                            <h4>Reconhecimento IA</h4>
+                            <p>Algoritmo de IA identifica e extrai a placa automaticamente</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-item">
+                            <div class="flow-icon">API</div>
+                            <h4>Validação no Servidor</h4>
+                            <p>Servidor central valida placa em lista de autorizadas</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-item">
+                            <div class="flow-icon">REL</div>
+                            <h4>Controle do Portão</h4>
+                            <p>Módulo relé aciona portão se autorizado</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Evidência - Processo de Detecção em Tempo Real -->
+        <section class="slide" data-slide="4">
+            <div class="slide-content">
+                <h2 class="slide-title">Evidência: Processo de Detecção em Tempo Real</h2>
+                <div class="content-section">
+                    <div class="evidence-container">
+                        <div class="evidence-image-wrapper">
+                            <img src="assets/images/evidencia-processo-deteccao-tempo-real.png" 
+                                 alt="Evidência do processo de detecção de placas em tempo real" 
+                                 class="evidence-image">
+                        </div>
+                        <div class="evidence-description">
+                            <h3>Sistema em Funcionamento</h3>
+                            <p>Esta imagem demonstra o sistema SISCAV processando detecção de placas em tempo real, mostrando:</p>
+                            <ul class="content-list">
+                                <li>Frame de vídeo capturado pela câmera</li>
+                                <li>Placa veicular detectada e destacada com retângulo</li>
+                                <li>Texto extraído exibido acima da placa</li>
+                                <li>Status de autorização (Authorized/Denied) em tempo real</li>
+                                <li>Interface visual do sistema IoT funcionando</li>
+                            </ul>
+                            <p class="evidence-note">O sistema processa continuamente os frames de vídeo, detectando e reconhecendo placas automaticamente sem intervenção humana.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Justificativa da IA -->
+        <section class="slide" data-slide="5">
+            <div class="slide-content">
+                <h2 class="slide-title">Justificativa da Aplicação de IA</h2>
+                <div class="content-section">
+                    <div class="justification-grid">
+                        <div class="justification-item">
+                            <h3>Automação Completa</h3>
+                            <p>Elimina necessidade de intervenção humana no processo de identificação</p>
+                        </div>
+                        <div class="justification-item">
+                            <h3>Alta Precisão</h3>
+                            <p>Modelos de Deep Learning superam métodos tradicionais de OCR</p>
+                        </div>
+                        <div class="justification-item">
+                            <h3>Resiliência</h3>
+                            <p>Robusto a variações de iluminação, ângulo e condições ambientais</p>
+                        </div>
+                        <div class="justification-item">
+                            <h3>Escalabilidade</h3>
+                            <p>Processamento rápido permite múltiplos pontos de acesso simultâneos</p>
+                        </div>
+                        <div class="justification-item">
+                            <h3>Auditoria Digital</h3>
+                            <p>Registro automático de todas as tentativas de acesso com imagens</p>
+                        </div>
+                        <div class="justification-item">
+                            <h3>Experiência do Usuário</h3>
+                            <p>Acesso fluido sem necessidade de controles remotos ou chamadas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6: Aplicação de IA - Técnica -->
+        <section class="slide" data-slide="6">
+            <div class="slide-content">
+                <h2 class="slide-title">Aplicação de IA</h2>
+                <div class="content-section">
+                    <h3>Técnica Utilizada</h3>
+                    <div class="technique-box">
+                        <h4>Deep Learning para Reconhecimento Óptico de Caracteres (OCR)</h4>
+                        <p class="technique-description">
+                            O sistema utiliza uma abordagem híbrida combinando:
+                        </p>
+                        <ul class="technique-list">
+                            <li><strong>Visão Computacional Clássica:</strong> Para detecção e localização de placas</li>
+                            <li><strong>Redes Neurais Convolucionais (CNN):</strong> Para extração de características visuais</li>
+                            <li><strong>Redes Neurais Recorrentes (RNN):</strong> Para reconhecimento de sequências de caracteres</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7: Aplicação de IA - Biblioteca -->
+        <section class="slide" data-slide="7">
+            <div class="slide-content">
+                <h2 class="slide-title">Biblioteca Utilizada: EasyOCR</h2>
+                <div class="content-section">
+                    <div class="library-info">
+                        <div class="library-details">
+                            <h3>Características</h3>
+                            <ul class="content-list">
+                                <li>Biblioteca Python moderna baseada em PyTorch</li>
+                                <li>Modelos pré-treinados com Deep Learning</li>
+                                <li>Suporte a múltiplos idiomas (configurado para inglês - caracteres alfanuméricos)</li>
+                                <li>Alta precisão em condições não ideais</li>
+                                <li>Instalação simples via pip</li>
+                            </ul>
+                        </div>
+                        <div class="library-comparison">
+                            <h3>Vantagens sobre Alternativas</h3>
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>Critério</th>
+                                        <th>EasyOCR</th>
+                                        <th>Tesseract</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Precisão</td>
+                                        <td>Muito Alta</td>
+                                        <td>Baixa a Média</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Complexidade</td>
+                                        <td>Baixa</td>
+                                        <td>Alta</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Robustez</td>
+                                        <td>Alta</td>
+                                        <td>Baixa</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 8: Aplicação de IA - Algoritmos -->
+        <section class="slide" data-slide="8">
+            <div class="slide-content">
+                <h2 class="slide-title">Algoritmos e Modelos Utilizados</h2>
+                <div class="content-section">
+                    <div class="algorithms-grid">
+                        <div class="algorithm-card">
+                            <h3>1. Detecção de Placas</h3>
+                            <ul>
+                                <li>Equalização de Histograma</li>
+                                <li>Filtro Bilateral (redução de ruído)</li>
+                                <li>Detecção de Bordas (Canny)</li>
+                                <li>Operações Morfológicas</li>
+                                <li>Análise de Contornos</li>
+                                <li>Filtragem por características geométricas</li>
+                            </ul>
+                        </div>
+                        <div class="algorithm-card">
+                            <h3>2. Pré-processamento</h3>
+                            <ul>
+                                <li>Conversão para escala de cinza</li>
+                                <li>Detecção de tipo de placa (cor)</li>
+                                <li>Redimensionamento adaptativo</li>
+                                <li>Binarização adaptativa (Threshold)</li>
+                                <li>Inversão de cores quando necessário</li>
+                            </ul>
+                        </div>
+                        <div class="algorithm-card">
+                            <h3>3. OCR (EasyOCR)</h3>
+                            <ul>
+                                <li>CNN para extração de características</li>
+                                <li>RNN para reconhecimento de sequências</li>
+                                <li>Connectionist Temporal Classification (CTC)</li>
+                                <li>Allowlist de caracteres alfanuméricos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 9: Evidência - Detecção de Placas -->
+        <section class="slide" data-slide="9">
+            <div class="slide-content">
+                <h2 class="slide-title">Evidência: Detecção de Placas e Delimitação de Bordas</h2>
+                <div class="content-section">
+                    <div class="evidence-container">
+                        <div class="evidence-image-wrapper">
+                            <img src="assets/images/evidencia-deteccao-placas-e-delimitacao-das-bordas.png" 
+                                 alt="Evidência de detecção de placas e delimitação de bordas" 
+                                 class="evidence-image">
+                        </div>
+                        <div class="evidence-description">
+                            <h3>Processo de Detecção Visualizado</h3>
+                            <p>Esta imagem demonstra o resultado do algoritmo de detecção de placas aplicado em tempo real. O sistema identifica automaticamente a região da placa veicular através de:</p>
+                            <ul class="content-list">
+                                <li>Detecção de bordas usando algoritmo de Canny</li>
+                                <li>Operações morfológicas para conectar bordas</li>
+                                <li>Análise de contornos e filtragem geométrica</li>
+                                <li>Delimitação precisa da região da placa</li>
+                            </ul>
+                            <p class="evidence-note">A precisão na detecção é fundamental para o sucesso do reconhecimento OCR subsequente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 10: Técnica Didática - Detecção de Bordas -->
+        <section class="slide" data-slide="10">
+            <div class="slide-content">
+                <h2 class="slide-title">Técnica: Detecção de Bordas (Canny)</h2>
+                <div class="content-section">
+                    <div class="technique-explanation">
+                        <div class="explanation-text">
+                            <h3>Como Funciona</h3>
+                            <p>O algoritmo de Canny detecta bordas através de múltiplas etapas:</p>
+                            <ol class="numbered-list">
+                                <li><strong>Suavização:</strong> Reduz ruído com filtro Gaussiano</li>
+                                <li><strong>Gradiente:</strong> Calcula intensidade e direção das mudanças</li>
+                                <li><strong>Supressão não-máxima:</strong> Mantém apenas bordas mais fortes</li>
+                                <li><strong>Histerese:</strong> Conecta bordas usando dois thresholds (alto e baixo)</li>
+                            </ol>
+                        </div>
+                        <div class="visual-example">
+                            <h3>Exemplo Visual</h3>
+                            <div class="image-simulation">
+                                <div class="sim-step">
+                                    <div class="sim-label">Imagem Original</div>
+                                    <div class="sim-image original-image">
+                                        <div class="sim-plate">ABC1234</div>
+                                    </div>
+                                </div>
+                                <div class="sim-arrow">↓</div>
+                                <div class="sim-step">
+                                    <div class="sim-label">Após Canny</div>
+                                    <div class="sim-image edge-image">
+                                        <div class="edge-line"></div>
+                                        <div class="edge-line"></div>
+                                        <div class="edge-line"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="sim-description">Bordas detectadas destacam o contorno retangular da placa</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 11: Técnica Didática - Operações Morfológicas -->
+        <section class="slide" data-slide="11">
+            <div class="slide-content">
+                <h2 class="slide-title">Técnica: Operações Morfológicas</h2>
+                <div class="content-section">
+                    <div class="morphology-explanation">
+                        <div class="explanation-text">
+                            <h3>Objetivo</h3>
+                            <p>Conectar bordas próximas e preencher pequenas lacunas para formar contornos completos.</p>
+                            
+                            <h3>Operação: Fechamento (MORPH_CLOSE)</h3>
+                            <div class="morph-steps">
+                                <div class="morph-step">
+                                    <h4>1. Dilatação</h4>
+                                    <p>Expande as bordas para fora, conectando elementos próximos</p>
+                                </div>
+                                <div class="morph-step">
+                                    <h4>2. Erosão</h4>
+                                    <p>Contrai de volta, mantendo as conexões criadas</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="visual-example">
+                            <h3>Efeito Visual</h3>
+                            <div class="morph-visual">
+                                <div class="morph-before">
+                                    <div class="morph-label">Antes (Bordas Desconectadas)</div>
+                                    <div class="morph-demo disconnected">
+                                        <div class="morph-dot"></div>
+                                        <div class="morph-dot"></div>
+                                        <div class="morph-dot"></div>
+                                    </div>
+                                </div>
+                                <div class="morph-arrow">→</div>
+                                <div class="morph-after">
+                                    <div class="morph-label">Depois (Bordas Conectadas)</div>
+                                    <div class="morph-demo connected">
+                                        <div class="morph-line"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="sim-description">Resultado: Contornos fechados prontos para detecção</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 12: Técnica Didática - Deep Learning OCR -->
+        <section class="slide" data-slide="12">
+            <div class="slide-content">
+                <h2 class="slide-title">Técnica: Deep Learning para OCR</h2>
+                <div class="content-section">
+                    <div class="dl-explanation">
+                        <div class="dl-architecture">
+                            <h3>Arquitetura do EasyOCR</h3>
+                            <div class="dl-pipeline">
+                                <div class="dl-stage">
+                                    <div class="dl-box cnn-box">
+                                        <h4>CNN (Convolutional Neural Network)</h4>
+                                        <p>Extrai características visuais da imagem</p>
+                                        <div class="dl-visual">
+                                            <div class="feature-map">Mapa de Características</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dl-arrow">→</div>
+                                <div class="dl-stage">
+                                    <div class="dl-box rnn-box">
+                                        <h4>RNN (Recurrent Neural Network)</h4>
+                                        <p>Reconhece sequências de caracteres</p>
+                                        <div class="dl-visual">
+                                            <div class="sequence">A → B → C → 1 → 2 → 3 → 4</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dl-arrow">→</div>
+                                <div class="dl-stage">
+                                    <div class="dl-box ctc-box">
+                                        <h4>CTC (Connectionist Temporal Classification)</h4>
+                                        <p>Alinha sequência com texto final</p>
+                                        <div class="dl-visual">
+                                            <div class="result">ABC1234</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dl-benefits">
+                            <h3>Vantagens do Deep Learning</h3>
+                            <ul class="content-list">
+                                <li>Aprende padrões complexos automaticamente</li>
+                                <li>Robusto a variações (iluminação, ângulo, ruído)</li>
+                                <li>Alta precisão mesmo em condições não ideais</li>
+                                <li>Modelo pré-treinado (não requer treinamento customizado)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 13: Visão Computacional Clássica -->
+        <section class="slide" data-slide="13">
+            <div class="slide-content">
+                <h2 class="slide-title">Visão Computacional Clássica</h2>
+                <div class="content-section">
+                    <div class="technique-full-card cv-full-card">
+                        <div class="technique-hero">
+                            <div class="technique-icon-large cv-icon">CV</div>
+                            <div class="technique-hero-content">
+                                <h3>Detecção e Localização de Placas</h3>
+                                <p class="technique-subtitle">Algoritmos tradicionais de processamento de imagem para identificar regiões candidatas</p>
+                            </div>
+                        </div>
+                        
+                        <div class="technique-details-grid">
+                            <div class="technique-methods-section">
+                                <h4>Métodos Utilizados</h4>
+                                <div class="methods-list">
+                                    <div class="method-card">
+                                        <div class="method-icon"><i class="fas fa-search"></i></div>
+                                        <div class="method-content">
+                                            <strong>Detecção de Bordas</strong>
+                                            <span>Canny, Sobel</span>
+                                        </div>
+                                    </div>
+                                    <div class="method-card">
+                                        <div class="method-icon"><i class="fas fa-ruler-combined"></i></div>
+                                        <div class="method-content">
+                                            <strong>Análise de Contornos</strong>
+                                            <span>Filtragem geométrica</span>
+                                        </div>
+                                    </div>
+                                    <div class="method-card">
+                                        <div class="method-icon"><i class="fas fa-cog"></i></div>
+                                        <div class="method-content">
+                                            <strong>Filtros Morfológicos</strong>
+                                            <span>Dilatação, Erosão</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="technique-justification-section">
+                                <h4>Por que escolher Visão Computacional?</h4>
+                                <div class="justification-grid">
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-bolt"></i></div>
+                                        <strong>Rápido e Eficiente</strong>
+                                        <p>Detecção inicial em tempo real</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-microchip"></i></div>
+                                        <strong>Hardware Limitado</strong>
+                                        <p>Funciona em dispositivos IoT</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-bullseye"></i></div>
+                                        <strong>Sem Treinamento</strong>
+                                        <p>Não requer modelo pré-treinado</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-chart-line"></i></div>
+                                        <strong>Reduz Área de Busca</strong>
+                                        <p>Otimiza processamento OCR</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 14: Redes Neurais Convolucionais (CNN) -->
+        <section class="slide" data-slide="14">
+            <div class="slide-content">
+                <h2 class="slide-title">Redes Neurais Convolucionais (CNN)</h2>
+                <div class="content-section">
+                    <div class="technique-full-card cnn-full-card">
+                        <div class="technique-hero">
+                            <div class="technique-icon-large cnn-icon">CNN</div>
+                            <div class="technique-hero-content">
+                                <h3>Extração de Características Visuais</h3>
+                                <p class="technique-subtitle">Camadas convolucionais aprendem padrões visuais complexos automaticamente</p>
+                            </div>
+                        </div>
+                        
+                        <div class="technique-details-grid">
+                            <div class="technique-visual-section">
+                                <h4>Como Funciona</h4>
+                                <div class="cnn-pipeline-large">
+                                    <div class="pipeline-step-large">
+                                        <div class="step-visual image-step">Imagem</div>
+                                        <p>Imagem da Placa</p>
+                                    </div>
+                                    <div class="pipeline-arrow-large">→</div>
+                                    <div class="pipeline-step-large">
+                                        <div class="step-visual conv-step">Conv</div>
+                                        <p>Convolução</p>
+                                    </div>
+                                    <div class="pipeline-arrow-large">→</div>
+                                    <div class="pipeline-step-large">
+                                        <div class="step-visual pool-step">Pool</div>
+                                        <p>Pooling</p>
+                                    </div>
+                                    <div class="pipeline-arrow-large">→</div>
+                                    <div class="pipeline-step-large">
+                                        <div class="step-visual features-step">Features</div>
+                                        <p>Características</p>
+                                    </div>
+                                </div>
+                                <p class="visual-description">Processamento hierárquico extrai características de baixo a alto nível</p>
+                            </div>
+                            
+                            <div class="technique-justification-section">
+                                <h4>Por que escolher CNN?</h4>
+                                <div class="justification-grid">
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-brain"></i></div>
+                                        <strong>Padrões Complexos</strong>
+                                        <p>Reconhece automaticamente</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-adjust"></i></div>
+                                        <strong>Robusto</strong>
+                                        <p>Variações de iluminação e ângulo</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-layer-group"></i></div>
+                                        <strong>Hierárquico</strong>
+                                        <p>Extrai características em camadas</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-check-circle"></i></div>
+                                        <strong>Pré-treinado</strong>
+                                        <p>Base do EasyOCR</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 15: Redes Neurais Recorrentes (RNN) -->
+        <section class="slide" data-slide="15">
+            <div class="slide-content">
+                <h2 class="slide-title">Redes Neurais Recorrentes (RNN)</h2>
+                <div class="content-section">
+                    <div class="technique-full-card rnn-full-card">
+                        <div class="technique-hero">
+                            <div class="technique-icon-large rnn-icon">RNN</div>
+                            <div class="technique-hero-content">
+                                <h3>Reconhecimento de Sequências de Caracteres</h3>
+                                <p class="technique-subtitle">Processa sequências mantendo contexto e dependências temporais</p>
+                            </div>
+                        </div>
+                        
+                        <div class="technique-details-grid">
+                            <div class="technique-visual-section">
+                                <h4>Processamento Sequencial</h4>
+                                <div class="rnn-pipeline-large">
+                                    <div class="rnn-sequence-large">
+                                        <div class="char-cell-large">A</div>
+                                        <div class="char-arrow-large">→</div>
+                                        <div class="char-cell-large">B</div>
+                                        <div class="char-arrow-large">→</div>
+                                        <div class="char-cell-large">C</div>
+                                        <div class="char-arrow-large">→</div>
+                                        <div class="char-cell-large">1</div>
+                                        <div class="char-arrow-large">→</div>
+                                        <div class="char-cell-large">2</div>
+                                        <div class="char-arrow-large">→</div>
+                                        <div class="char-cell-large">3</div>
+                                        <div class="char-arrow-large">→</div>
+                                        <div class="char-cell-large">4</div>
+                                    </div>
+                                </div>
+                                <p class="visual-description">Cada caractere é reconhecido considerando o contexto dos anteriores</p>
+                            </div>
+                            
+                            <div class="technique-justification-section">
+                                <h4>Por que escolher RNN?</h4>
+                                <div class="justification-grid">
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-list-ol"></i></div>
+                                        <strong>Ideal para Sequências</strong>
+                                        <p>Texto da placa é sequencial</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-link"></i></div>
+                                        <strong>Contexto</strong>
+                                        <p>Considera relação entre caracteres</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-tools"></i></div>
+                                        <strong>Correção de Erros</strong>
+                                        <p>Usa contexto para corrigir</p>
+                                    </div>
+                                    <div class="justification-card">
+                                        <div class="just-icon"><i class="fas fa-bullseye"></i></div>
+                                        <strong>Alta Precisão</strong>
+                                        <p>Superior em tarefas de OCR</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 16: Sinergia das Técnicas -->
+        <section class="slide" data-slide="16">
+            <div class="slide-content">
+                <h2 class="slide-title">Sinergia das Técnicas</h2>
+                <div class="content-section">
+                    <div class="synergy-container">
+                        <div class="synergy-intro">
+                            <p class="synergy-intro-text">
+                                A combinação dessas três abordagens cria um <strong>pipeline robusto e eficiente</strong> 
+                                para reconhecimento automático de placas veiculares.
+                            </p>
+                        </div>
+                        
+                        <div class="synergy-flow">
+                            <div class="synergy-step">
+                                <div class="synergy-icon cv-synergy">CV</div>
+                                <h3>Visão Computacional</h3>
+                                <p>Localiza rapidamente a placa no frame completo</p>
+                                <div class="synergy-output">Região da Placa</div>
+                            </div>
+                            
+                            <div class="synergy-connector">
+                                <div class="connector-line"></div>
+                                <div class="connector-arrow">→</div>
+                            </div>
+                            
+                            <div class="synergy-step">
+                                <div class="synergy-icon cnn-synergy">CNN</div>
+                                <h3>Convolução Neural</h3>
+                                <p>Extrai características visuais complexas</p>
+                                <div class="synergy-output">Features</div>
+                            </div>
+                            
+                            <div class="synergy-connector">
+                                <div class="connector-line"></div>
+                                <div class="connector-arrow">→</div>
+                            </div>
+                            
+                            <div class="synergy-step">
+                                <div class="synergy-icon rnn-synergy">RNN</div>
+                                <h3>Rede Recorrente</h3>
+                                <p>Reconhece sequência de caracteres com contexto</p>
+                                <div class="synergy-output">ABC1234</div>
+                            </div>
+                        </div>
+                        
+                        <div class="synergy-benefits">
+                            <h3>Benefícios da Combinação</h3>
+                            <div class="benefits-grid">
+                                <div class="benefit-item">
+                                    <strong>Eficiência</strong>
+                                    <p>CV reduz área de processamento</p>
+                                </div>
+                                <div class="benefit-item">
+                                    <strong>Precisão</strong>
+                                    <p>CNN + RNN garantem alta acurácia</p>
+                                </div>
+                                <div class="benefit-item">
+                                    <strong>Robustez</strong>
+                                    <p>Resiliente a condições variadas</p>
+                                </div>
+                                <div class="benefit-item">
+                                    <strong>Velocidade</strong>
+                                    <p>Pipeline otimizado para tempo real</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 17: Pipeline Visual Completo -->
+        <section class="slide" data-slide="17">
+            <div class="slide-content">
+                <h2 class="slide-title">Pipeline Visual: Do Frame ao Texto</h2>
+                <div class="content-section">
+                    <div class="pipeline-visual">
+                        <div class="pipeline-stage">
+                            <div class="pipeline-label">1. Frame Original</div>
+                            <div class="pipeline-box original-box">
+                                <div class="pipeline-vehicle">Veículo</div>
+                                <div class="pipeline-plate-small">ABC1234</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow">↓</div>
+                        <div class="pipeline-stage">
+                            <div class="pipeline-label">2. Escala de Cinza</div>
+                            <div class="pipeline-box gray-box">
+                                <div class="pipeline-vehicle-gray">Veículo</div>
+                                <div class="pipeline-plate-gray">ABC1234</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow">↓</div>
+                        <div class="pipeline-stage">
+                            <div class="pipeline-label">3. Detecção de Bordas</div>
+                            <div class="pipeline-box edge-box">
+                                <div class="pipeline-edges">
+                                    <div class="edge-rect"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow">↓</div>
+                        <div class="pipeline-stage">
+                            <div class="pipeline-label">4. Região Extraída</div>
+                            <div class="pipeline-box plate-box">
+                                <div class="pipeline-plate-final">ABC1234</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow">↓</div>
+                        <div class="pipeline-stage">
+                            <div class="pipeline-label">5. Texto Reconhecido</div>
+                            <div class="pipeline-box text-box">
+                                <div class="pipeline-text">ABC1234</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 18: Filtros e Pré-processamento -->
+        <section class="slide" data-slide="18">
+            <div class="slide-content">
+                <h2 class="slide-title">Técnica: Filtros e Pré-processamento</h2>
+                <div class="content-section">
+                    <div class="filters-explanation">
+                        <div class="filter-grid">
+                            <div class="filter-item">
+                                <h3>Filtro Bilateral</h3>
+                                <p class="filter-purpose">Reduz ruído mantendo bordas nítidas</p>
+                                <div class="filter-visual">
+                                    <div class="filter-before">Imagem com Ruído</div>
+                                    <div class="filter-arrow-small">→</div>
+                                    <div class="filter-after">Imagem Suavizada</div>
+                                </div>
+                                <p class="filter-detail">Preserva bordas importantes enquanto remove ruído</p>
+                            </div>
+                            <div class="filter-item">
+                                <h3>Equalização de Histograma</h3>
+                                <p class="filter-purpose">Melhora contraste da imagem</p>
+                                <div class="filter-visual">
+                                    <div class="histogram-visual">
+                                        <div class="hist-bars">
+                                            <div class="hist-bar" style="height: 30%"></div>
+                                            <div class="hist-bar" style="height: 60%"></div>
+                                            <div class="hist-bar" style="height: 90%"></div>
+                                            <div class="hist-bar" style="height: 100%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="filter-detail">Redistribui intensidades para melhor visibilidade</p>
+                            </div>
+                            <div class="filter-item">
+                                <h3>Binarização Adaptativa</h3>
+                                <p class="filter-purpose">Converte para preto e branco</p>
+                                <div class="filter-visual">
+                                    <div class="binarization-visual">
+                                        <div class="bin-before">Imagem em Tons de Cinza</div>
+                                        <div class="bin-arrow-small">→</div>
+                                        <div class="bin-after">
+                                            <div class="bin-white">Fundo Branco</div>
+                                            <div class="bin-black">Texto Preto</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="filter-detail">Threshold adaptativo por região para melhor resultado</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 19: Aplicação de IA - Processamento de Dados -->
+        <section class="slide" data-slide="19">
+            <div class="slide-content">
+                <h2 class="slide-title">Processamento de Dados</h2>
+                <div class="content-section">
+                    <div class="processing-flow">
+                        <div class="processing-step">
+                            <div class="step-number">1</div>
+                            <h4>Captura do Frame</h4>
+                            <p>Imagem BGR (640x480 ou configurável) da câmera</p>
+                        </div>
+                        <div class="processing-step">
+                            <div class="step-number">2</div>
+                            <h4>Detecção de Região</h4>
+                            <p>Identificação de candidatos a placas usando visão computacional</p>
+                        </div>
+                        <div class="processing-step">
+                            <div class="step-number">3</div>
+                            <h4>Extração da Região</h4>
+                            <p>Isolamento da área da placa com margem de segurança</p>
+                        </div>
+                        <div class="processing-step">
+                            <div class="step-number">4</div>
+                            <h4>Pré-processamento</h4>
+                            <p>Otimização da imagem para OCR (filtros, redimensionamento, binarização)</p>
+                        </div>
+                        <div class="processing-step">
+                            <div class="step-number">5</div>
+                            <h4>Reconhecimento OCR</h4>
+                            <p>Extração de texto usando modelo de Deep Learning</p>
+                        </div>
+                        <div class="processing-step">
+                            <div class="step-number">6</div>
+                            <h4>Validação e Normalização</h4>
+                            <p>Validação de formato brasileiro (antigo ou Mercosul)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 20: Implementação - Arquitetura -->
+        <section class="slide" data-slide="20">
+            <div class="slide-content">
+                <h2 class="slide-title">Implementação - Arquitetura</h2>
+                <div class="content-section">
+                    <div class="architecture-diagram">
+                        <div class="arch-component">
+                            <h4>CameraService</h4>
+                            <p>Gerencia captura de vídeo</p>
+                        </div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-component">
+                            <h4>PlateDetector</h4>
+                            <p>Detecção de regiões candidatas</p>
+                        </div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-component">
+                            <h4>OCRService</h4>
+                            <p>Pré-processamento e OCR</p>
+                        </div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-component">
+                            <h4>PlateValidator</h4>
+                            <p>Validação de formato</p>
+                        </div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-component">
+                            <h4>PlateDebouncer</h4>
+                            <p>Evita duplicatas</p>
+                        </div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-component">
+                            <h4>APIClient</h4>
+                            <p>Comunicação com servidor</p>
+                        </div>
+                    </div>
+                    <div class="architecture-principles">
+                        <h3>Princípios Aplicados</h3>
+                        <ul class="principles-list">
+                            <li><strong>SOLID:</strong> Separação de responsabilidades, cada classe com função única</li>
+                            <li><strong>DRY:</strong> Código reutilizável, sem duplicação</li>
+                            <li><strong>Componentização:</strong> Módulos independentes e testáveis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 21: Implementação - Código Detecção -->
+        <section class="slide" data-slide="21">
+            <div class="slide-content">
+                <h2 class="slide-title">Implementação - Detecção de Placas</h2>
+                <div class="content-section">
+                    <div class="code-example">
+                        <h3>PlateDetector.detect_plates()</h3>
+                        <pre><code>def detect_plates(self, frame):
+    # 1. Converter para escala de cinza
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # 2. Equalização de histograma
+    gray_eq = cv2.equalizeHist(gray)
+    
+    # 3. Filtro bilateral (reduz ruído)
+    gray_filtered = cv2.bilateralFilter(
+        gray_eq, 9, 75, 75
+    )
+    
+    # 4. Detecção de bordas (Canny)
+    edges = cv2.Canny(
+        gray_filtered, 50, 150
+    )
+    
+    # 5. Operações morfológicas
+    kernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (3, 3)
+    )
+    edges = cv2.morphologyEx(
+        edges, cv2.MORPH_CLOSE, kernel
+    )
+    
+    # 6. Encontrar contornos
+    contours, _ = cv2.findContours(
+        edges, cv2.RETR_TREE, 
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+    
+    # 7. Filtrar por características
+    # (tamanho, aspecto, área)
+    return candidates</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 22: Implementação - Código OCR -->
+        <section class="slide" data-slide="22">
+            <div class="slide-content">
+                <h2 class="slide-title">Implementação - OCR e Validação</h2>
+                <div class="content-section">
+                    <div class="code-example">
+                        <h3>OCRService.read_plate()</h3>
+                        <pre><code>def read_plate(self, plate_img):
+    # 1. Pré-processamento adaptativo
+    plate_processed, color = self.preprocess_plate(
+        plate_img, vehicle_type
+    )
+    
+    # 2. OCR com EasyOCR
+    results = self.reader.readtext(
+        plate_processed,
+        detail=0,
+        allowlist="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    )
+    
+    # 3. Normalização
+    text = "".join(results).replace(" ", "").upper()
+    normalized = normalize_plate(text)
+    
+    # 4. Validação formato brasileiro
+    is_valid, validated_plate = validate_brazilian_plate(
+        normalized
+    )
+    
+    # Formatos aceitos:
+    # - Antigo: ABC1234
+    # - Mercosul: ABC1D23
+    
+    return validated_plate if is_valid else None</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 23: Implementação - Fluxo Principal -->
+        <section class="slide" data-slide="23">
+            <div class="slide-content">
+                <h2 class="slide-title">Implementação - Fluxo Principal</h2>
+                <div class="content-section">
+                    <div class="code-example">
+                        <h3>main() - Loop Principal</h3>
+                        <pre><code>def main():
+    # Inicialização de serviços
+    camera = CameraService()
+    ocr_service = OCRService()
+    plate_detector = PlateDetector()
+    api_client = APIClient()
+    debouncer = PlateDebouncer()
+    
+    while True:
+        # 1. Capturar frame
+        frame = camera.read_frame()
+        
+        # 2. Detectar placas
+        candidates = plate_detector.detect_plates(frame)
+        
+        # 3. Processar cada candidato
+        for x, y, w, h in candidates:
+            # Extrair região
+            plate_region = frame[y:y+h, x:x+w]
+            
+            # OCR e validação
+            plate_text = ocr_service.read_plate(plate_region)
+            
+            # Debounce (evitar duplicatas)
+            if debouncer.should_process(plate_text):
+                # Enviar para API
+                response = api_client.send_access_log(
+                    plate_text, plate_region
+                )
+                
+                # Feedback visual/sonoro
+                draw_detection(frame, x, y, w, h, 
+                             plate_text, response)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 24: Resultados - Métricas -->
+        <section class="slide" data-slide="24">
+            <div class="slide-content">
+                <h2 class="slide-title">Resultados Obtidos</h2>
+                <div class="content-section">
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h3>Precisão de Detecção</h3>
+                            <p class="result-value">Alta</p>
+                            <p class="result-detail">Filtragem por características geométricas reduz falsos positivos</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Precisão de OCR</h3>
+                            <p class="result-value">Muito Alta</p>
+                            <p class="result-detail">EasyOCR com modelos pré-treinados supera métodos tradicionais</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Redução de Duplicatas</h3>
+                            <p class="result-value">~90%</p>
+                            <p class="result-detail">Sistema de debounce elimina processamento redundante</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>Validação de Formatos</h3>
+                            <p class="result-value">100%</p>
+                            <p class="result-detail">Suporte a placas antigas (ABC1234) e Mercosul (ABC1D23)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 25: Evidência - Resultados OCR -->
+        <section class="slide" data-slide="25">
+            <div class="slide-content">
+                <h2 class="slide-title">Evidência: Resultados do Reconhecimento OCR</h2>
+                <div class="content-section">
+                    <div class="evidence-container">
+                        <div class="evidence-image-wrapper">
+                            <img src="assets/images/evidencias-resultados-ocr.png" 
+                                 alt="Evidência de resultados do OCR" 
+                                 class="evidence-image">
+                        </div>
+                        <div class="evidence-description">
+                            <h3>Resultados do Processamento OCR</h3>
+                            <p>Esta imagem apresenta os resultados práticos do sistema de reconhecimento de placas, demonstrando:</p>
+                            <ul class="content-list">
+                                <li>Extração precisa de texto das placas detectadas</li>
+                                <li>Validação automática de formatos brasileiros</li>
+                                <li>Registro completo com timestamp e status</li>
+                                <li>Interface de visualização dos resultados</li>
+                            </ul>
+                            <p class="evidence-note">O sistema processa múltiplas placas simultaneamente, mantendo alta precisão e performance.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 26: Resultados - Impactos -->
+        <section class="slide" data-slide="26">
+            <div class="slide-content">
+                <h2 class="slide-title">Impactos da IA no Projeto</h2>
+                <div class="content-section">
+                    <div class="impacts-grid">
+                        <div class="impact-item positive">
+                            <h3>Melhorias</h3>
+                            <ul>
+                                <li>Automação completa do processo de identificação</li>
+                                <li>Alta precisão mesmo em condições não ideais</li>
+                                <li>Processamento rápido e eficiente</li>
+                                <li>Registro automático de todas as tentativas</li>
+                                <li>Experiência do usuário fluida e sem interrupções</li>
+                                <li>Redução significativa de custos operacionais</li>
+                            </ul>
+                        </div>
+                        <div class="impact-item neutral">
+                            <h3>Limitações</h3>
+                            <ul>
+                                <li>Dependência de qualidade da imagem capturada</li>
+                                <li>Performance reduzida em condições de baixa iluminação</li>
+                                <li>Precisão pode diminuir com placas em ângulos extremos</li>
+                                <li>Requer hardware adequado para processamento em tempo real</li>
+                            </ul>
+                        </div>
+                        <div class="impact-item neutral">
+                            <h3>Desafios</h3>
+                            <ul>
+                                <li>Otimização para diferentes condições ambientais</li>
+                                <li>Balanceamento entre precisão e velocidade</li>
+                                <li>Tratamento de casos extremos (placas sujas, danificadas)</li>
+                                <li>Escalabilidade para múltiplos pontos de acesso simultâneos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 27: Resultados - Melhorias Futuras -->
+        <section class="slide" data-slide="27">
+            <div class="slide-content">
+                <h2 class="slide-title">Melhorias Futuras Propostas</h2>
+                <div class="content-section">
+                    <div class="improvements-list">
+                        <div class="improvement-item">
+                            <h3>1. Modelos Customizados</h3>
+                            <p>Treinar modelo específico para placas brasileiras usando YOLO ou similar</p>
+                        </div>
+                        <div class="improvement-item">
+                            <h3>2. Processamento Paralelo</h3>
+                            <p>Implementar processamento em múltiplas threads para maior throughput</p>
+                        </div>
+                        <div class="improvement-item">
+                            <h3>2. Correção de Erros</h3>
+                            <p>Sistema de correção automática de erros comuns de OCR baseado em contexto</p>
+                        </div>
+                        <div class="improvement-item">
+                            <h3>4. Tracking de Veículos</h3>
+                            <p>Implementar rastreamento de veículos entre frames para melhor precisão</p>
+                        </div>
+                        <div class="improvement-item">
+                            <h3>5. Modo Offline</h3>
+                            <p>Cache local e processamento offline com sincronização posterior</p>
+                        </div>
+                        <div class="improvement-item">
+                            <h3>6. Métricas e Monitoramento</h3>
+                            <p>Dashboard com métricas de detecção, taxa de sucesso e latência</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 28: Conclusão -->
+        <section class="slide slide-conclusion" data-slide="28">
+            <div class="slide-content">
+                <h2 class="slide-title">Conclusão</h2>
+                <div class="content-section">
+                    <div class="conclusion-content">
+                        <p class="conclusion-text">
+                            A aplicação de Inteligência Artificial no reconhecimento de placas veiculares 
+                            transformou o SISCAV em uma solução moderna, eficiente e segura. A combinação 
+                            de técnicas de visão computacional com modelos de Deep Learning permite 
+                            automação completa do controle de acesso, gerando valor significativo através 
+                            de maior segurança, eficiência operacional e experiência do usuário superior.
+                        </p>
+                        <div class="conclusion-highlights">
+                            <h3>Principais Conquistas</h3>
+                            <ul>
+                                <li>Automação completa do processo de identificação</li>
+                                <li>Alta precisão com EasyOCR e processamento otimizado</li>
+                                <li>Arquitetura escalável e manutenível (SOLID, DRY, Componentização)</li>
+                                <li>Base sólida para melhorias futuras e expansão</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Navegação (oculta na impressão) -->
+    <div class="navigation" id="navigation">
+        <button class="nav-button" id="prevBtn">← Anterior</button>
+        <span class="slide-counter">
+            <span id="currentSlide">1</span> / <span id="totalSlides">28</span>
+        </span>
+        <button class="nav-button" id="nextBtn">Próximo →</button>
+        <button class="nav-button nav-button-pdf" id="pdfBtn" title="Exportar para PDF">
+            <i class="fas fa-file-pdf"></i> PDF
+        </button>
+    </div>
+
+    <!-- Componentes JavaScript (SOLID, DRY, Componentização) -->
+    <script src="components/NotificationManager.js"></script>
+    <script src="components/SlideManager.js"></script>
+    <script src="components/PDFExporter.js"></script>
+    <script src="components/PrintManager.js"></script>
+    
+    <!-- Inicialização -->
+    <script src="scripts/app.js"></script>
+</body>
+</html>
+
