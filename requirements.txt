@@ -4,8 +4,8 @@ sqlalchemy
 pydantic
 alembic
 psycopg2-binary
-passlib[bcrypt]
+passlib[argon2]
 python-jose[cryptography]
 slowapi
 email-validator
-
+python-multipart

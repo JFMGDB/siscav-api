@@ -56,6 +56,7 @@ class Settings(BaseModel):
     algorithm: str = os.getenv("ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
     refresh_token_expire_days: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
+    upload_dir: str = os.getenv("UPLOAD_DIR", "uploads")
 
 
 @lru_cache
