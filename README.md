@@ -52,8 +52,36 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e te
 * **ORM e Migrações:** SQLAlchemy, Alembic
 * **Validação de Dados:** Pydantic
 * **Autenticação:** JWT (com `passlib` para hashing)
-* **ALPR (IoT):** `easyocr`
+* **Reconhecimento de Placas (IoT):** EasyOCR, OpenCV
 * **DevOps:** Docker, Docker Compose, GitHub Actions
+
+## Código Fonte de Reconhecimento de Placas
+
+O código relacionado ao reconhecimento automático de placas veiculares (processamento de imagem e OCR) está localizado em:
+
+**`apps/iot-device/`** - Dispositivo IoT completo
+
+### Componentes Principais:
+
+- **`services/ocr.py`**: Serviço de OCR utilizando EasyOCR (Deep Learning) para extração de texto das placas
+- **`services/plate_detector.py`**: Detecção de placas usando visão computacional (OpenCV) com algoritmos de detecção de bordas, operações morfológicas e análise de contornos
+- **`services/camera.py`**: Serviço de captura de imagens da câmera
+- **`services/api_client.py`**: Cliente HTTP para comunicação com a API central
+- **`utils/plate_validator.py`**: Validação de formatos de placas brasileiras (antigo ABC1234 e Mercosul ABC1D23)
+- **`utils/debounce.py`**: Sistema de debounce para evitar processamento duplicado da mesma placa
+- **`main.py`**: Orquestração principal do fluxo de detecção, OCR e envio para API
+
+### Tecnologias Utilizadas:
+
+- **EasyOCR**: Biblioteca de OCR baseada em Deep Learning (CNN + RNN) para reconhecimento de caracteres
+- **OpenCV**: Processamento de imagem para detecção de placas (Canny, morfologia, contornos)
+- **NumPy**: Manipulação de arrays de imagem
+
+### Documentação Relacionada:
+
+- Guia de demonstração: `docs/DEMONSTRACAO_COMPLETA.md`
+- Documentação técnica IoT: `docs/iot/`
+- Apresentação técnica: `docs/presentation/`
 
 ## Estrutura do Projeto
 
@@ -77,7 +105,17 @@ siscav-api/
 │   │       │       └── schemas/    # Modelos Pydantic (Validação)
 │   │       ├── alembic/            # Migrações de banco de dados (Alembic)
 │   │       └── main.py         # Ponto de entrada da aplicação FastAPI
-│   └── (iot-device)        # Planejado (fora deste repo por ora)
+│   └── iot-device/           # Dispositivo IoT para reconhecimento de placas
+│       ├── services/         # Serviços de processamento
+│       │   ├── camera.py     # Captura de imagens da câmera
+│       │   ├── plate_detector.py  # Detecção de placas (visão computacional)
+│       │   ├── ocr.py         # Reconhecimento de texto (EasyOCR)
+│       │   └── api_client.py  # Cliente para comunicação com API
+│       ├── utils/            # Utilitários
+│       │   ├── plate_validator.py  # Validação de formatos de placas brasileiras
+│       │   └── debounce.py    # Sistema de debounce para evitar duplicatas
+│       ├── config.py         # Configurações do dispositivo
+│       └── main.py           # Ponto de entrada do dispositivo IoT
 ├── db/
 │   └── sql/
 │       └── supabase/        # Scripts SQL para migração manual no Supabase
