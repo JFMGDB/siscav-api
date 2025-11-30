@@ -10,9 +10,12 @@
       "root": ".",
       "extraPaths": [
         "apps"
-      ]
+      ],
+      "pythonVersion": "3.13"
     }
-  ]
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": false
 }
 
 

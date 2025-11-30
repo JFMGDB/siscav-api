@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -8,7 +7,7 @@ from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
 
 
-def get(db: Session, id: UUID) -> Optional[AuthorizedPlate]:
+def get(db: Session, id: UUID) -> AuthorizedPlate | None:
     return db.scalar(select(AuthorizedPlate).where(AuthorizedPlate.id == id))
 
 
@@ -28,9 +27,7 @@ def create(db: Session, obj_in: AuthorizedPlateCreate) -> AuthorizedPlate:
     return db_obj
 
 
-def update(
-    db: Session, db_obj: AuthorizedPlate, obj_in: AuthorizedPlateCreate
-) -> AuthorizedPlate:
+def update(db: Session, db_obj: AuthorizedPlate, obj_in: AuthorizedPlateCreate) -> AuthorizedPlate:
     db_obj.plate = obj_in.plate
     db_obj.normalized_plate = obj_in.normalized_plate
     db_obj.description = obj_in.description
@@ -39,7 +36,7 @@ def update(
     return db_obj
 
 
-def remove(db: Session, id: UUID) -> Optional[AuthorizedPlate]:
+def remove(db: Session, id: UUID) -> AuthorizedPlate | None:
     obj = db.scalar(select(AuthorizedPlate).where(AuthorizedPlate.id == id))
     if obj:
         db.delete(obj)

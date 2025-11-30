@@ -3,4 +3,5 @@ pytest
 pytest-cov
 ruff
 httpx
+pyright
 

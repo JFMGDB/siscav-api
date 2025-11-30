@@ -16,13 +16,27 @@ Datas e horas no formato ISO (YYYY-MM-DD HH:MM).
 
 ## [Unreleased]
 ### Added
-- 
+- `tests/conftest.py`: Configuração centralizada de testes com fixtures compartilhadas para banco de dados e cliente FastAPI
+- Fixture `cleanup_uploads`: Limpeza automática da pasta `uploads` antes e depois de cada teste
+- Testes adicionais: `test_access_logs.py` e `test_auth_whitelist.py` para cobertura completa dos endpoints
 
 ### Changed
-- 
+- README.md: Seção de testes expandida com detalhes sobre estrutura, arquitetura e comandos de execução
+- README.md: Estrutura do projeto atualizada para incluir todos os arquivos de teste (`conftest.py`, `test_access_logs.py`, `test_auth_whitelist.py`)
+- Testes: Refatorados para usar fixtures compartilhadas do `conftest.py`, garantindo isolamento e consistência
 
 ### Fixed
-- 
+- Lint (Ruff): Corrigidos erros PT003 (remoção de `scope='function'` implícito em fixtures pytest)
+- Lint (Ruff): Corrigidos erros SIM105 (substituição de `try-except-pass` por `contextlib.suppress()`)
+- Lint (Ruff): Corrigidos erros RET504 (remoção de atribuições desnecessárias antes de `return`)
+- Lint (Ruff): Corrigidos erros B904 (adição de `from e` em exceções dentro de `except`)
+- Lint (Ruff): Corrigidos erros PLC0415 (movimentação de imports para o topo dos arquivos)
+- Lint (Ruff): Corrigidos erros ARG001 (adição de `# noqa: ARG001` para argumentos não usados necessários para dependency injection)
+- Lint (Ruff): Corrigidos erros PTH103, PTH110, PTH123, PTH118 (substituição de `os` por `pathlib.Path`)
+- Lint (Ruff): Corrigidos erros PLR2004 (substituição de números mágicos por constantes nomeadas)
+- Lint (Ruff): Corrigidos erros T201 (remoção de `print` statements)
+- Testes: Isolamento adequado entre testes usando banco de dados SQLite em memória com reset automático
+- Testes: Limpeza automática de arquivos criados na pasta `uploads` durante os testes
 
 ### Deprecated
 - 

@@ -1,13 +1,16 @@
 import shutil
+import uuid
 from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.core.config import get_settings
-from apps.api.src.api.v1.crud import crud_access_log, crud_authorized_plate
+from apps.api.src.api.v1.crud import crud_access_log
 from apps.api.src.api.v1.db.session import get_db
+from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.schemas.access_log import AccessLogRead, AccessStatus
 
 router = APIRouter()
@@ -21,67 +24,46 @@ def create_access_log(
     plate: Annotated[str, Form()],
 ) -> AccessLogRead:
     """
-    Receive access log from IoT device.
-    - Uploads image.
-    - Verifies plate against whitelist.
-    - Logs access attempt.
+    Recebe log de acesso do dispositivo IoT.
+
+    - Faz upload da imagem
+    - Verifica placa contra a whitelist
+    - Registra tentativa de acesso
     """
-    # 1. Normalize plate
-    # Simple normalization: uppercase and remove non-alphanumeric
-    # This should match the logic used in AuthorizedPlate (which is done via DB trigger,
-    # but we need it here for lookup).
-    # Ideally, we should have a shared utility for this. For now, simple python logic.
+    # Normaliza a placa: maiúsculas e remove caracteres não alfanuméricos
     normalized_plate = "".join(c for c in plate if c.isalnum()).upper()
 
-    # 2. Check whitelist
-    # We need a method to get by normalized_plate.
-    # I'll add `get_by_normalized_plate` to crud_authorized_plate later if needed,
-    # or just use a direct query here for now or update crud.
-    # Let's assume we update crud_authorized_plate or query all and filter (inefficient).
-    # Better: Update crud_authorized_plate to have get_by_normalized_plate.
-    
-    # For now, let's implement the lookup logic directly or call a new crud method.
-    # I will update crud_authorized_plate in the next step to support this efficiently.
-    # But wait, I can't leave this broken.
-    # Let's check if I can do it with existing tools.
-    # existing: get, get_multi.
-    # I need `get_by_normalized_plate`.
-    
-    # Let's assume I will add it.
-    from sqlalchemy import select
-    from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
-    
+    # Verifica se a placa está na whitelist
     authorized_plate = db.scalar(
         select(AuthorizedPlate).where(AuthorizedPlate.normalized_plate == normalized_plate)
     )
-    
-    status = AccessStatus.Denied
+
+    # Define status e ID da placa autorizada
+    access_status = AccessStatus.Denied
     authorized_plate_id = None
-    
+
     if authorized_plate:
-        status = AccessStatus.Authorized
+        access_status = AccessStatus.Authorized
         authorized_plate_id = authorized_plate.id
 
-    # 3. Save image
+    # Salva a imagem no diretório de uploads
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Generate a unique filename or use timestamp
-    import uuid
+
+    # Gera nome único para o arquivo
     file_ext = Path(file.filename).suffix if file.filename else ".jpg"
     file_name = f"{uuid.uuid4()}{file_ext}"
     file_path = upload_dir / file_name
-    
+
     with file_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-        
-    # 4. Create Log
+
+    # Cria o log de acesso
     access_log = crud_access_log.create(
         db,
         plate_string_detected=plate,
-        status=status,
+        status=access_status,
         image_storage_key=str(file_path),
         authorized_plate_id=authorized_plate_id,
     )
-    
-    return access_log
+    return AccessLogRead.model_validate(access_log, from_attributes=True)

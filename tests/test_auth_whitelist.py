@@ -1,89 +1,56 @@
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from apps.api.src.api.v1.crud import crud_user
+from apps.api.src.api.v1.schemas.user import UserCreate
 
-from apps.api.src.api.v1.db.base import Base
-from apps.api.src.api.v1.db.session import get_db
-from apps.api.src.main import app
+# Constantes para testes
+TEST_USER_EMAIL = "test@example.com"
+TEST_USER_PASSWORD = "password123"
 
-# Import models to register them with Base
-from apps.api.src.api.v1.models.user import User
-from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
-from apps.api.src.api.v1.models.access_log import AccessLog
 
-# Setup test DB
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def _create_test_user(db_session):
+    """Helper para criar usuário de teste se não existir.
 
-Base.metadata.create_all(bind=engine)
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
-def test_create_user_and_login():
-    db = TestingSessionLocal()
-    from apps.api.src.api.v1.crud import crud_user
-    from apps.api.src.api.v1.schemas.user import UserCreate
-    
-    # Check if user exists
-    user = crud_user.get_by_email(db, "test@example.com")
+    Evita duplicação de código seguindo o princípio DRY.
+    """
+    user = crud_user.get_by_email(db_session, TEST_USER_EMAIL)
     if not user:
-        user_in = UserCreate(email="test@example.com", password="password123")
-        user = crud_user.create(db, user_in)
-    db.close()
-    
-    # Test Login
+        user_in = UserCreate(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD)
+        user = crud_user.create(db_session, user_in)
+    db_session.commit()
+    return user
+
+
+def test_create_user_and_login(client, db_session):
+    """Testa criação de usuário e login."""
+    _create_test_user(db_session)
+
+    # Testa login
     response = client.post(
         "/api/v1/login/access-token",
-        data={"username": "test@example.com", "password": "password123"},
+        data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
     )
     assert response.status_code == 200
     tokens = response.json()
     assert "access_token" in tokens
     assert tokens["token_type"] == "bearer"
-    
-    assert tokens["token_type"] == "bearer"
-    
-    # return tokens["access_token"]  <-- Don't return in test function
-    
-def get_token():
-    # Helper to get token
-    db = TestingSessionLocal()
-    from apps.api.src.api.v1.crud import crud_user
-    from apps.api.src.api.v1.schemas.user import UserCreate
-    
-    # Check if user exists
-    user = crud_user.get_by_email(db, "test@example.com")
-    if not user:
-        user_in = UserCreate(email="test@example.com", password="password123")
-        user = crud_user.create(db, user_in)
-    db.close()
-    
+
+
+def get_token(client, db_session):
+    """Helper para obter token de autenticação."""
+    _create_test_user(db_session)
+
     response = client.post(
         "/api/v1/login/access-token",
-        data={"username": "test@example.com", "password": "password123"},
+        data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
     )
     return response.json()["access_token"]
 
-def test_whitelist_crud():
-    token = get_token()
+
+def test_whitelist_crud(client, db_session):
+    """Testa operações CRUD completas na whitelist."""
+    token = get_token(client, db_session)
     headers = {"Authorization": f"Bearer {token}"}
-    
-    # Create
+
+    # Cria
     response = client.post(
         "/api/v1/whitelist/",
         headers=headers,
@@ -94,18 +61,18 @@ def test_whitelist_crud():
     assert data["plate"] == "ABC-1234"
     assert "id" in data
     plate_id = data["id"]
-    
-    # Read
+
+    # Lê
     response = client.get(f"/api/v1/whitelist/{plate_id}", headers=headers)
     assert response.status_code == 200
     assert response.json()["id"] == plate_id
-    
-    # List
+
+    # Lista
     response = client.get("/api/v1/whitelist/", headers=headers)
     assert response.status_code == 200
     assert len(response.json()) >= 1
-    
-    # Update
+
+    # Atualiza
     response = client.put(
         f"/api/v1/whitelist/{plate_id}",
         headers=headers,
@@ -113,11 +80,11 @@ def test_whitelist_crud():
     )
     assert response.status_code == 200
     assert response.json()["plate"] == "ABC-9999"
-    
-    # Delete
+
+    # Remove
     response = client.delete(f"/api/v1/whitelist/{plate_id}", headers=headers)
     assert response.status_code == 200
-    
-    # Verify Delete
+
+    # Verifica remoção
     response = client.get(f"/api/v1/whitelist/{plate_id}", headers=headers)
     assert response.status_code == 404

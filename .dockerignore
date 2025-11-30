@@ -1,22 +1,66 @@
 # ========================
-# Byte-compiled / cache
+# VCS
+# ========================
+.git
+.gitignore
+
+# ========================
+# OS generated files
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Python: bytecode e caches
 # ========================
 __pycache__/
 *.py[cod]
 *$py.class
-.ruff_cache/
-.ruff_cache
-
-# C extensions
+*.pyo
+*.pyd
 *.so
 
 # ========================
-# Distribution / packaging
+# Virtual environments
 # ========================
-.Python
+.venv/
+venv/
+ENV/
+env/
+venv.bak/
+
+# ========================
+# Secrets / env files
+# ========================
+.env
+.env.*
+secrets.json
+*.key
+*.pem
+
+# ========================
+# Caches e relatórios de ferramentas
+# ========================
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ruff_cache
+.hypothesis/
+.pyre/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+nosetests.xml
+*.cover
+*.py,cover
+
+# ========================
+# Artefatos de build/distribuição
+# ========================
 build/
-develop-eggs/
 dist/
+develop-eggs/
 downloads/
 eggs/
 .eggs/
@@ -32,61 +76,14 @@ wheels/
 pip-wheel-metadata/
 
 # ========================
-# Virtual environments
-# ========================
-env/
-venv/
-ENV/
-.venv/
-.env/
-venv.bak/
-
-# ========================
-# Installer logs
-# ========================
-pip-log.txt
-pip-delete-this-directory.txt
-
-# ========================
-# Unit test / coverage reports
-# ========================
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# ========================
-# Mypy / type checking
-# ========================
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# =Cobre
-.pyre/
-
-# ========================
-# IDEs and editors
+# IDE/Editor
 # ========================
 .vscode/
 .idea/
 *.iml
 *.sublime-workspace
 *.sublime-project
-
-# ========================
-# OS generated files
-# ========================
-.DS_Store
-Thumbs.db
+pyrightconfig.json
 
 # ========================
 # Logs and local runtime files
@@ -107,13 +104,21 @@ uploads/
 !uploads/.gitkeep
 
 # ========================
-# Secrets / env files
+# Documentação (opcional - não precisa na imagem)
 # ========================
-.env
-.env.*
-secrets.json
-*.key
-*.pem
+docs/
+
+# ========================
+# Testes (comentado para Docker dev - pode precisar dos testes)
+# Descomente para builds de produção
+# ========================
+# tests/
+
+# ========================
+# Dados locais/volumes bindados
+# ========================
+data/
+postgres_data/
 
 # ========================
 # Docker
@@ -121,10 +126,8 @@ secrets.json
 docker-compose.override.yml
 
 # ========================
-# Python profiler / coverage
+# Python profiler
 # ========================
 .prof
 prof/
 *.coveragerc
-
-# End

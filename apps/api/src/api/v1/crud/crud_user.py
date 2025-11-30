@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,11 +8,11 @@ from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.user import UserCreate
 
 
-def get(db: Session, id: UUID) -> Optional[User]:
+def get(db: Session, id: UUID) -> User | None:
     return db.scalar(select(User).where(User.id == id))
 
 
-def get_by_email(db: Session, email: str) -> Optional[User]:
+def get_by_email(db: Session, email: str) -> User | None:
     return db.scalar(select(User).where(User.email == email))
 
 
@@ -28,7 +27,7 @@ def create(db: Session, obj_in: UserCreate) -> User:
     return db_obj
 
 
-def authenticate(db: Session, email: str, password: str) -> Optional[User]:
+def authenticate(db: Session, email: str, password: str) -> User | None:
     user = get_by_email(db, email)
     if not user:
         return None

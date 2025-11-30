@@ -23,16 +23,12 @@ def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    user = crud_user.authenticate(
-        db, email=form_data.username, password=form_data.password
-    )
+    user = crud_user.authenticate(db, email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password",
         )
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    access_token = security.create_access_token(
-        user.id, expires_delta=access_token_expires
-    )
+    access_token = security.create_access_token(user.id, expires_delta=access_token_expires)
     return Token(access_token=access_token, token_type="bearer")

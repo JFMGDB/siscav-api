@@ -38,8 +38,9 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e te
 - ✅ Endpoint de health check (`/api/v1/health`)
 - ✅ Pipeline de CI/CD com GitHub Actions
 - ✅ Linting automatizado com Ruff
+- ✅ Type checking com Pyright
 - ✅ Testes unitários com Pytest 
-- ✅ CI com GitHub Actions (lint + testes)
+- ✅ CI com GitHub Actions (lint + type check + testes)
 - ⏳ Autenticação JWT (em desenvolvimento)
 - ⏳ CRUD de placas autorizadas (em desenvolvimento)
 - ⏳ Sistema de logs de acesso (em desenvolvimento)
@@ -63,7 +64,7 @@ A estrutura de diretórios deste repositório segue uma abordagem orientada a do
 siscav-api/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # Pipeline de CI (lint + testes)
+│       └── ci.yml              # Pipeline de CI (lint + type check + testes)
 ├── apps/
 │   ├── api/                # Serviço Backend FastAPI
 │   │   └── src/            # Código-fonte da API
@@ -92,7 +93,10 @@ siscav-api/
 │   └── DB_MIGRATION_SUPABASE.md   # Guia para migração manual no Supabase
 ├── tests/                  # Testes unitários
 │   ├── __init__.py
-│   └── test_main.py        # Testes da API principal
+│   ├── conftest.py         # Configuração compartilhada (fixtures, DB de teste)
+│   ├── test_main.py        # Testes da API principal
+│   ├── test_access_logs.py # Testes de logs de acesso
+│   └── test_auth_whitelist.py # Testes de autenticação e whitelist
 ├── .gitignore
 ├── .dockerignore
 ├── alembic.ini             # Configuração do Alembic
@@ -370,17 +374,123 @@ Motivação:
 
 ## Testes
 
-A suíte de testes está implementada com pytest. Para executá-los localmente:
+A suíte de testes está implementada com pytest e utiliza uma arquitetura centralizada para garantir isolamento e consistência entre testes.
+
+### Estrutura de Testes
+
+- **`conftest.py`**: Configuração compartilhada que fornece:
+  - Banco de dados SQLite em memória para isolamento
+  - Fixtures para reset do banco de dados entre testes
+  - Fixture para limpeza automática da pasta `uploads`
+  - Cliente de teste FastAPI configurado
+- **`test_main.py`**: Testes dos endpoints principais (raiz, health check)
+- **`test_access_logs.py`**: Testes do fluxo de registro de acesso
+- **`test_auth_whitelist.py`**: Testes de autenticação e CRUD de placas autorizadas
+
+### Executando os Testes
 
 ```bash
-# Com ambiente virtual ativado
-pytest
+# IMPORTANTE: Use sempre "python -m pytest" ao invés de "pytest" diretamente
+# Isso evita problemas com caminhos hardcoded em executáveis do venv
 
-# Com verbose e cobertura
-pytest -v --cov=apps --cov-report=term-missing
+# Com venv ativado (recomendado)
+python -m pytest tests/ -v
 
-# Executar testes específicos
-pytest tests/test_main.py
+# Sem venv ativado (Windows)
+.\venv\Scripts\python.exe -m pytest tests/ -v
+
+# Sem venv ativado (Linux/Mac)
+python -m pytest tests/ -v
+
+# Com verbose e cobertura (venv ativado)
+python -m pytest -v --cov=apps --cov-report=term-missing
+
+# Executar testes específicos (venv ativado)
+python -m pytest tests/test_main.py
+python -m pytest tests/test_access_logs.py
+python -m pytest tests/test_auth_whitelist.py
+
+# Executar um teste específico (venv ativado)
+python -m pytest tests/test_access_logs.py::test_access_log_flow -v
+```
+
+**Nota:** Se você encontrar o erro `Fatal error in launcher: Unable to create process`, isso significa que o venv foi movido ou recriado. Use sempre `python -m pytest` ao invés de `pytest` diretamente.
+
+### Características da Suíte de Testes
+
+- **Isolamento**: Cada teste executa em um banco de dados limpo
+- **Limpeza Automática**: Arquivos criados na pasta `uploads` durante os testes são removidos automaticamente
+- **Fixtures Compartilhadas**: Configuração centralizada no `conftest.py` evita duplicação de código
+- **SQLite em Memória**: Testes rápidos sem necessidade de banco de dados externo
+
+## Linting e Formatação
+
+O projeto utiliza **Ruff** para linting e formatação de código, garantindo consistência e qualidade.
+
+### Executando Linting
+
+```bash
+# Com venv ativado (recomendado)
+ruff check --fix .
+ruff format .
+
+# Sem venv ativado (Windows)
+.\venv\Scripts\python.exe -m ruff check --fix .
+.\venv\Scripts\python.exe -m ruff format .
+
+# Apenas verificar (sem corrigir)
+ruff check .
+ruff format --check .
+```
+
+## Type Checking
+
+O projeto utiliza **Pyright** (via Pylance no VS Code) para verificação estática de tipos, garantindo que o código esteja correto em relação aos tipos Python.
+
+### Executando Type Checking
+
+```bash
+# Com venv ativado (recomendado)
+python -m pyright apps/
+
+# Sem venv ativado (Windows)
+.\venv\Scripts\python.exe -m pyright apps/
+
+# Verificar um arquivo específico (venv ativado)
+python -m pyright apps/api/src/api/v1/endpoints/access_logs.py
+
+# Verificar uma pasta específica (venv ativado)
+python -m pyright apps/api/src/api/v1/endpoints/
+
+# Com saída JSON (útil para CI/CD) - venv ativado
+python -m pyright apps/ --outputjson
+```
+
+### Diferença entre Ruff e Pyright
+
+| Ferramenta | Função | Comando (venv ativado) |
+|------------|--------|------------------------|
+| **Ruff** | Linting (estilo, imports, erros de sintaxe) | `ruff check --fix .` |
+| **Ruff** | Formatação de código | `ruff format .` |
+| **Pyright** | Type checking (tipos, compatibilidade) | `python -m pyright apps/` |
+
+- **Ruff**: Verifica estilo de código, imports não utilizados, erros de sintaxe básicos e formata o código
+- **Pyright**: Verifica tipos, compatibilidade entre tipos, resolução de imports
+
+Ambas as ferramentas são executadas no pipeline de CI para garantir qualidade do código.
+
+### Comandos Rápidos (venv ativado)
+
+```bash
+# Linting e formatação
+ruff check --fix .
+ruff format .
+
+# Type checking
+python -m pyright apps/
+
+# Testes
+python -m pytest tests/ -v
 ```
 
 ## Troubleshooting
@@ -397,20 +507,64 @@ pytest tests/test_main.py
     from starlette.testclient import TestClient
     ```
 
-- Editor não resolve imports (e.g., "Import \"fastapi\" could not be resolved")
-  - Selecione o interpretador do projeto no editor:
-    - VS Code: Ctrl+Shift+P → "Python: Select Interpreter" → escolha `./venv` (Python 3.13).
-  - Recarregue a janela do VS Code após ativar o venv e instalar as dependências.
+- Editor não resolve imports (e.g., "Import \"fastapi\" could not be resolved" ou "Import \"cv2\" could not be resolved")
+  - **Selecione o interpretador do projeto no editor:**
+    - VS Code: `Ctrl+Shift+P` → "Python: Select Interpreter" → escolha `./venv/Scripts/python.exe` (Python 3.13).
+    - Ou use o seletor no canto inferior direito do VS Code para escolher o interpretador.
+  - **Recarregue a janela do VS Code:**
+    - `Ctrl+Shift+P` → "Developer: Reload Window"
+  - **Verifique se as dependências estão instaladas:**
+    ```bash
+    .\venv\Scripts\python.exe -m pip list | Select-String -Pattern "opencv|easyocr|numpy"
+    ```
+  - **Se as dependências não estiverem instaladas:**
+    ```bash
+    .\venv\Scripts\python.exe -m pip install -r requirements.txt
+    ```
   - Garanta que o terminal integrado esteja com o venv ativo ao rodar comandos (mostra `(venv)` no prompt).
 
 - CI falhando por erros de Linting ou Formatação
   - Antes de commitar, rode os comandos localmente para corrigir os problemas:
     ```bash
-    # Para corrigir erros de lint (ex: imports não utilizados, etc.)
+    # Com venv ativado (recomendado)
     ruff check --fix .
-
-    # Para corrigir erros de formatação de código (ex: espaçamento, quebras de linha)
     ruff format .
+
+    # Sem venv ativado (Windows)
+    .\venv\Scripts\python.exe -m ruff check --fix .
+    .\venv\Scripts\python.exe -m ruff format .
+    ```
+
+- Erro "Fatal error in launcher" ao executar pytest ou outros comandos
+  - **Causa:** O venv foi movido ou recriado, e os executáveis têm caminhos hardcoded incorretos.
+  - **Solução:** Use sempre `python -m <comando>` ao invés do executável direto:
+    ```bash
+    # ERRADO (pode falhar se o venv foi movido)
+    pytest tests/
+    
+    # CORRETO (sempre funciona - venv ativado)
+    python -m pytest tests/
+    ruff check --fix .
+    ruff format .
+    python -m pyright apps/
+    
+    # CORRETO (sem venv ativado - Windows)
+    .\venv\Scripts\python.exe -m pytest tests/
+    .\venv\Scripts\python.exe -m ruff check --fix .
+    .\venv\Scripts\python.exe -m ruff format .
+    .\venv\Scripts\python.exe -m pyright apps/
+    ```
+  - **Alternativa:** Recriar o venv se necessário:
+    ```bash
+    # Remove o venv antigo
+    Remove-Item -Recurse -Force venv
+    
+    # Cria novo venv
+    python -m venv venv
+    
+    # Ativa e instala dependências
+    .\venv\Scripts\Activate.ps1
+    pip install -r requirements-dev.txt
     ```
 
 ### Por que usar requirements .txt em vez de apenas pyproject.toml?
@@ -426,6 +580,6 @@ pytest tests/test_main.py
 
 ## Integração Contínua (CI) 
 
-Este projeto utiliza **GitHub Actions** para integração contínua. O pipeline está configurado e funcional!
+Este projeto utiliza **GitHub Actions** para integração contínua. O pipeline está configurado e funcional
 
 **Workflow:** `.github/workflows/ci.yml`

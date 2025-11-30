@@ -1,89 +1,109 @@
-import cv2
-import easyocr
-import time
 import csv
-import os
-import numpy as np
+import time
 import warnings
 import winsound
+from pathlib import Path
+
+import cv2
+import easyocr
+import numpy as np
 
 # Silencia avisos do EasyOCR
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # =============== CONFIGURAÇÕES ==================
 CAMERA_USB = 0
-PASTA_PLACAS = "placas_detectadas"
-ARQUIVO_CSV = "numeros.csv"
-TEMPO_MAXIMO = 300  # segundos
+DETECTED_PLATES_DIR = Path("placas_detectadas")
+CSV_FILE = Path("numeros.csv")
+MAX_TIME = 300  # segundos
 
-os.makedirs(PASTA_PLACAS, exist_ok=True)
-reader = easyocr.Reader(['en'], gpu=False)
+# Constantes para detecção de cor de placa
+SATURATION_THRESHOLD_WHITE = 40
+VALUE_THRESHOLD_WHITE = 130
+HUE_MIN_YELLOW = 15
+HUE_MAX_YELLOW = 40
+SATURATION_THRESHOLD_YELLOW = 60
+VALUE_THRESHOLD_GRAY = 120
+BINARY_MAX_VALUE = 255
+
+# Constantes para detecção de contornos
+MIN_WIDTH = 100
+MIN_HEIGHT = 30
+PLATE_LENGTH = 7
+ESC_KEY = 27
+
+DETECTED_PLATES_DIR.mkdir(parents=True, exist_ok=True)
+reader = easyocr.Reader(["en"], gpu=False)
+
 
 # =============== FUNÇÕES ==================
-def detectar_tipo_cor(placa_img):
+def detect_plate_color_type(plate_img):
     """Tenta identificar se a placa é branca (nova), amarela ou cinza (antiga)."""
-    hsv = cv2.cvtColor(placa_img, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(plate_img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
-    media_v, media_h, media_s = np.mean(v), np.mean(h), np.mean(s)
+    mean_v, mean_h, mean_s = np.mean(v), np.mean(h), np.mean(s)
 
-    if media_s < 40 and media_v > 130:
-        return "branca"
-    elif 15 < media_h < 40 and media_s > 60:
-        return "amarela"
-    elif media_v < 120:
-        return "cinza"
-    else:
-        return "desconhecida"
+    if mean_s < SATURATION_THRESHOLD_WHITE and mean_v > VALUE_THRESHOLD_WHITE:
+        return "white"
+    if HUE_MIN_YELLOW < mean_h < HUE_MAX_YELLOW and mean_s > SATURATION_THRESHOLD_YELLOW:
+        return "yellow"
+    if mean_v < VALUE_THRESHOLD_GRAY:
+        return "gray"
+    return "unknown"
 
 
-def preprocess_placa(placa_img, tipo="carro"):
+def preprocess_plate(plate_img, vehicle_type="car"):
     """Pré-processa imagem da placa para OCR (tons de cinza e contraste)."""
-    cor = detectar_tipo_cor(placa_img)
-    gray = cv2.cvtColor(placa_img, cv2.COLOR_BGR2GRAY)
+    color = detect_plate_color_type(plate_img)
+    gray = cv2.cvtColor(plate_img, cv2.COLOR_BGR2GRAY)
 
-    if cor in ["amarela", "cinza"]:
+    if color in ["yellow", "gray"]:
         gray = cv2.equalizeHist(gray)
         gray = cv2.GaussianBlur(gray, (3, 3), 0)
         gray = cv2.addWeighted(gray, 1.5, cv2.GaussianBlur(gray, (0, 0), 3), -0.5, 0)
     else:
         gray = cv2.bilateralFilter(gray, 11, 17, 17)
 
-    if tipo == "moto":
-        altura = 50
-        largura = 7 * 20
-        gray = cv2.resize(gray, (largura, altura), interpolation=cv2.INTER_CUBIC)
+    if vehicle_type == "motorcycle":
+        height = 50
+        width = 7 * 20
+        gray = cv2.resize(gray, (width, height), interpolation=cv2.INTER_CUBIC)
     else:
         gray = cv2.resize(gray, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
 
-    placa_bin = cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 15
+    plate_binary = cv2.adaptiveThreshold(
+        gray, BINARY_MAX_VALUE, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 15
     )
-    if np.sum(placa_bin == 0) > np.sum(placa_bin == 255):
-        placa_bin = cv2.bitwise_not(placa_bin)
+    if np.sum(plate_binary == 0) > np.sum(plate_binary == BINARY_MAX_VALUE):
+        plate_binary = cv2.bitwise_not(plate_binary)
 
-    return placa_bin, cor
+    return plate_binary, color
 
 
-def ler_placa(placa_img):
-    resultado = reader.readtext(placa_img, detail=0, paragraph=True)
-    if not resultado:
+def read_plate(plate_img):
+    """Lê o texto da placa usando OCR."""
+    result = reader.readtext(plate_img, detail=0, paragraph=True)
+    if not result:
         return ""
-    texto = "".join(resultado).replace(" ", "").upper()
-    return "".join([c for c in texto if c.isalnum()])
+    # result é uma lista de strings quando detail=0
+    text = "".join(str(r) for r in result).replace(" ", "").upper()
+    return "".join([c for c in text if c.isalnum()])
 
 
-def salvar_csv(texto, cor):
-    existe = os.path.exists(ARQUIVO_CSV)
-    with open(ARQUIVO_CSV, "a", newline="", encoding="utf-8") as f:
+def save_csv(text, color):
+    """Salva o texto e cor da placa em arquivo CSV."""
+    file_exists = CSV_FILE.exists()
+    with CSV_FILE.open("a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        if not existe:
+        if not file_exists:
             writer.writerow(["Placa", "Tipo", "DataHora"])
-        writer.writerow([texto, cor, time.strftime("%Y-%m-%d %H:%M:%S")])
+        writer.writerow([text, color, time.strftime("%Y-%m-%d %H:%M:%S")])
 
 
-def salvar_imagem(placa_img, texto, cor):
-    caminho = os.path.join(PASTA_PLACAS, f"{texto}{cor}{int(time.time())}.png")
-    cv2.imwrite(caminho, placa_img)
+def save_image(plate_img, text, color):
+    """Salva a imagem da placa processada."""
+    file_path = DETECTED_PLATES_DIR / f"{text}{color}{int(time.time())}.png"
+    cv2.imwrite(str(file_path), plate_img)
 
 
 # =============== CAPTURA DE CÂMERA ==================
@@ -91,54 +111,46 @@ cap = cv2.VideoCapture(CAMERA_USB)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-print("📸 Iniciando captura da câmera colorida...")
-inicio = time.time()
+start_time = time.time()
 
 # ================= LOOP PRINCIPAL =================
 while True:
     ret, frame = cap.read()
     if not ret:
-        print("❌ Erro ao acessar a câmera.")
         break
 
     # Trabalha internamente com tons de cinza, mas exibe colorido
     gray_eq = cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
     edges = cv2.Canny(gray_eq, 100, 200)
-    contornos, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    for c in contornos:
-        x, y, w, h = cv2.boundingRect(c)
-        if w > 100 and h > 30:
-            placa = frame[y:y + h, x:x + w]
-            tipo = "carro" if w > h else "moto"
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        if w > MIN_WIDTH and h > MIN_HEIGHT:
+            plate = frame[y : y + h, x : x + w]
+            vehicle_type = "car" if w > h else "motorcycle"
 
-            placa_final, cor = preprocess_placa(placa, tipo)
-            texto = ler_placa(placa_final)
+            processed_plate, color = preprocess_plate(plate, vehicle_type)
+            text = read_plate(processed_plate)
 
-            if len(texto) == 7:
-                salvar_csv(texto, cor)
-                salvar_imagem(placa_final, texto, cor)
+            if len(text) == PLATE_LENGTH:
+                save_csv(text, color)
+                save_image(processed_plate, text, color)
 
-                if tipo == "moto":
+                if vehicle_type == "motorcycle":
                     winsound.Beep(1000, 300)
-                    print(f"🔊 Moto ({cor}) detectada: {texto}")
-                else:
-                    print(f"🚗 Carro ({cor}) detectado: {texto}")
 
                 # Desenha retângulo colorido na imagem original
-                cor_box = (0, 255, 0) if tipo == "carro" else (0, 255, 255)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), cor_box, 2)
-                cv2.putText(frame, texto, (x, y - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, cor_box, 2)
+                box_color = (0, 255, 0) if vehicle_type == "car" else (0, 255, 255)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), box_color, 2)
+                cv2.putText(frame, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, box_color, 2)
 
     cv2.imshow("Detecção de Placas - Câmera Colorida", frame)
 
-    if cv2.waitKey(1) & 0xFF == 27:
+    if cv2.waitKey(1) & 0xFF == ESC_KEY:
         break
-    if time.time() - inicio > TEMPO_MAXIMO:
-        print("⏱ Tempo máximo atingido.")
+    if time.time() - start_time > MAX_TIME:
         break
 
 cap.release()
 cv2.destroyAllWindows()
-print("✅ Finalizado.")
