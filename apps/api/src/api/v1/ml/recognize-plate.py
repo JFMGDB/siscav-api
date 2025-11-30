@@ -1,3 +1,23 @@
+"""Script standalone para detecção e reconhecimento de placas veiculares.
+
+Este script é uma ferramenta de desenvolvimento/teste que utiliza OpenCV e EasyOCR
+para detectar e reconhecer placas de veículos através de uma câmera USB. Ele não
+faz parte da API FastAPI e deve ser executado independentemente.
+
+Funcionalidades:
+- Captura de vídeo em tempo real via câmera USB
+- Detecção de placas usando processamento de imagem (OpenCV)
+- Reconhecimento de texto usando OCR (EasyOCR)
+- Classificação de tipo de placa (branca, amarela, cinza)
+- Salvamento de imagens e dados em CSV
+
+Uso:
+    python apps/api/src/api/v1/ml/recognize-plate.py
+
+Nota: Este script requer acesso a uma câmera USB e as dependências opencv-python
+e easyocr instaladas.
+"""
+
 import csv
 import platform
 import time
@@ -42,10 +62,29 @@ PLATE_LENGTH = 7
 ESC_KEY = 27
 
 DETECTED_PLATES_DIR.mkdir(parents=True, exist_ok=True)
-reader = easyocr.Reader(["en"], gpu=False)
 
 
 # =============== FUNÇÕES ==================
+# Variável de módulo para armazenar a instância singleton do EasyOCR Reader
+_reader_instance: easyocr.Reader | None = None  # type: ignore[type-arg]
+
+
+def get_reader() -> easyocr.Reader:  # type: ignore[type-arg]
+    """Inicializa e retorna uma instância singleton do EasyOCR Reader.
+
+    Usa lazy initialization para evitar inicialização custosa no import do módulo.
+    A inicialização do EasyOCR pode levar vários segundos, então só é feita quando
+    necessário (quando read_plate() é chamada pela primeira vez).
+
+    Returns:
+        easyocr.Reader: Instância do EasyOCR Reader configurada para inglês.
+    """
+    global _reader_instance  # noqa: PLW0603
+    if _reader_instance is None:
+        _reader_instance = easyocr.Reader(["en"], gpu=False)  # type: ignore[assignment]
+    return _reader_instance
+
+
 def detect_plate_color_type(plate_img):
     """Tenta identificar se a placa é branca (nova), amarela ou cinza (antiga)."""
     hsv = cv2.cvtColor(plate_img, cv2.COLOR_BGR2HSV)
@@ -91,6 +130,7 @@ def preprocess_plate(plate_img, vehicle_type="car"):
 
 def read_plate(plate_img):
     """Lê o texto da placa usando OCR."""
+    reader = get_reader()
     result = reader.readtext(plate_img, detail=0, paragraph=True)
     if not result:
         return ""

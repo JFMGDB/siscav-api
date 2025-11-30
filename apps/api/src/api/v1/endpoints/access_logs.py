@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.core.config import get_settings
+from apps.api.src.api.v1.core.utils import normalize_plate
 from apps.api.src.api.v1.crud import crud_access_log
 from apps.api.src.api.v1.db.session import get_db
 from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
@@ -35,8 +36,8 @@ def create_access_log(
     - Verifica placa contra a whitelist
     - Registra tentativa de acesso
     """
-    # Normaliza a placa: maiúsculas e remove caracteres não alfanuméricos
-    normalized_plate = "".join(c for c in plate if c.isalnum()).upper()
+    # Normaliza a placa usando função utilitária compartilhada
+    normalized_plate = normalize_plate(plate)
 
     # Verifica se a placa está na whitelist
     authorized_plate = db.scalar(

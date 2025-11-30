@@ -11,12 +11,15 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from apps.api.src.api.v1.core.config import get_settings
+from apps.api.src.api.v1.crud import crud_user
 from apps.api.src.api.v1.db.base import Base
 from apps.api.src.api.v1.db.session import get_db
+from apps.api.src.api.v1.models.user import User
+from apps.api.src.api.v1.schemas.user import UserCreate
 from apps.api.src.main import app
 
 # Configuração do banco de dados de testes
@@ -108,3 +111,51 @@ def cleanup_uploads():
             if file_path.is_file() and file_path.name != ".gitkeep":
                 with contextlib.suppress(Exception):
                     file_path.unlink()
+
+
+# Constantes para testes
+TEST_USER_EMAIL = "test@example.com"
+TEST_USER_PASSWORD = "password123"
+
+
+@pytest.fixture
+def test_user(db_session: Session) -> User:
+    """Cria um usuário de teste se não existir.
+
+    Esta fixture garante que um usuário de teste esteja disponível para testes
+    que precisam de autenticação. O usuário é criado uma vez e reutilizado.
+
+    Args:
+        db_session: Sessão do banco de dados de testes.
+
+    Returns:
+        User: Instância do usuário de teste criado ou existente.
+    """
+    user = crud_user.get_by_email(db_session, TEST_USER_EMAIL)
+    if not user:
+        user_in = UserCreate(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD)
+        user = crud_user.create(db_session, user_in)
+    db_session.commit()
+    return user
+
+
+@pytest.fixture
+def auth_token(client: TestClient, test_user: User) -> str:  # noqa: ARG001
+    """Obtém um token de autenticação válido para testes.
+
+    Esta fixture faz login com o usuário de teste e retorna o token de acesso.
+    Útil para testes que precisam de autenticação sem repetir a lógica de login.
+
+    Args:
+        client: Cliente de teste FastAPI.
+        test_user: Usuário de teste (criado pela fixture test_user).
+                   O parâmetro garante que o usuário existe antes do login.
+
+    Returns:
+        str: Token de acesso JWT para uso em headers de autenticação.
+    """
+    response = client.post(
+        "/api/v1/login/access-token",
+        data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
+    )
+    return response.json()["access_token"]

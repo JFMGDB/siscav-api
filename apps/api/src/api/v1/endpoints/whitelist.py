@@ -108,6 +108,5 @@ def delete_authorized_plate(
     """
     get_plate_or_404(db, id)  # Verifica se existe antes de deletar
     removed_plate = crud_authorized_plate.remove(db, id=id)
-    if not removed_plate:
-        raise HTTPException(status_code=404, detail="Plate not found")
+    # removed_plate não será None pois get_plate_or_404 já validou a existência
     return AuthorizedPlateRead.model_validate(removed_plate, from_attributes=True)
