@@ -77,6 +77,9 @@ def get_reader() -> easyocr.Reader:  # type: ignore[type-arg]
     A inicialização do EasyOCR pode levar vários segundos, então só é feita quando
     necessário (quando read_plate() é chamada pela primeira vez).
 
+    Nota: Este padrão singleton não é thread-safe, mas é aceitável pois este script
+    é standalone e não é usado em contexto multi-threaded na API FastAPI.
+
     Returns:
         easyocr.Reader: Instância do EasyOCR Reader configurada para inglês.
     """

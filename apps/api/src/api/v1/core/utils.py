@@ -13,6 +13,9 @@ def normalize_plate(plate: str) -> str:
     Returns:
         String normalizada sem caracteres especiais e em maiúsculas (ex: "ABC1234").
 
+    Raises:
+        ValueError: Se a placa for vazia ou None, ou se resultar em string vazia após normalização.
+
     Examples:
         >>> normalize_plate("ABC-1234")
         'ABC1234'
@@ -21,4 +24,14 @@ def normalize_plate(plate: str) -> str:
         >>> normalize_plate("XYZ.9999")
         'XYZ9999'
     """
-    return "".join(c for c in plate if c.isalnum()).upper()
+    if not plate:
+        error_msg = "Plate cannot be empty"
+        raise ValueError(error_msg)
+
+    normalized = "".join(c for c in plate if c.isalnum()).upper()
+
+    if not normalized:
+        error_msg = "Plate cannot be empty after normalization"
+        raise ValueError(error_msg)
+
+    return normalized

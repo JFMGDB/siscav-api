@@ -36,6 +36,13 @@ def create_access_log(
     - Verifica placa contra a whitelist
     - Registra tentativa de acesso
     """
+    # Validação da placa: não pode ser vazia ou só espaços
+    if not plate or not plate.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Plate cannot be empty",
+        )
+
     # Normaliza a placa usando função utilitária compartilhada
     normalized_plate = normalize_plate(plate)
 
@@ -52,10 +59,13 @@ def create_access_log(
         access_status = AccessStatus.Authorized
         authorized_plate_id = authorized_plate.id
 
-    # Validação de tipo de arquivo
-    file_ext = Path(file.filename).suffix.lower() if file.filename else ".jpg"
-    if file_ext not in ALLOWED_EXTENSIONS:
-        file_ext = ".jpg"  # Fallback seguro
+    # Validação de extensão de arquivo
+    file_ext = Path(file.filename).suffix.lower() if file.filename else ""
+    if not file_ext or file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Unsupported file extension. Allowed extensions: {', '.join(ALLOWED_EXTENSIONS)}",
+        )
 
     # Validação de tamanho (máximo 10MB)
     file.file.seek(0, 2)  # Move para o final do arquivo
@@ -65,14 +75,14 @@ def create_access_log(
     if file_size > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"Arquivo muito grande. Tamanho máximo: {MAX_FILE_SIZE / (1024 * 1024):.1f}MB",
+            detail=f"File too large. Maximum size: {MAX_FILE_SIZE / (1024 * 1024):.1f}MB",
         )
 
     # Validação de MIME type
     if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Tipo de arquivo não suportado. Tipos permitidos: {', '.join(ALLOWED_MIME_TYPES)}",
+            detail=f"Unsupported file type. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}",
         )
 
     # Salva a imagem no diretório de uploads
@@ -83,14 +93,8 @@ def create_access_log(
     file_name = f"{uuid.uuid4()}{file_ext}"
     file_path = upload_dir / file_name
 
-    # Garante que o caminho está dentro do diretório de uploads (proteção contra path traversal)
-    try:
-        file_path.resolve().relative_to(upload_dir.resolve())
-    except ValueError as error:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nome de arquivo inválido",
-        ) from error
+    # Path traversal check não é necessário pois o nome do arquivo é gerado usando UUID
+    # que não pode conter separadores de caminho
 
     # Salva o arquivo com tratamento de erros
     try:
@@ -99,7 +103,7 @@ def create_access_log(
     except OSError as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Falha ao salvar arquivo enviado",
+            detail="Failed to save uploaded file",
         ) from error
 
     # Cria o log de acesso

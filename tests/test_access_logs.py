@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from apps.api.src.api.v1.crud import crud_authorized_plate
 from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
 
@@ -63,7 +65,7 @@ def test_access_log_file_too_large(client):
 
     response = client.post("/api/v1/access_logs/", files=files, data=data)
     assert response.status_code == 413
-    assert "muito grande" in response.json()["detail"].lower()
+    assert "too large" in response.json()["detail"].lower()
 
 
 def test_access_log_invalid_mime_type(client):
@@ -74,4 +76,34 @@ def test_access_log_invalid_mime_type(client):
 
     response = client.post("/api/v1/access_logs/", files=files, data=data)
     assert response.status_code == 415
-    assert "não suportado" in response.json()["detail"].lower()
+    assert "unsupported" in response.json()["detail"].lower()
+
+
+@pytest.mark.parametrize(
+    ("extension", "mime_type"),
+    [
+        (".jpg", "image/jpeg"),
+        (".jpeg", "image/jpeg"),
+        (".png", "image/png"),
+        (".webp", "image/webp"),
+    ],
+)
+def test_access_log_supported_formats(client, db_session, extension, mime_type):
+    """Testa upload com diferentes formatos de imagem suportados."""
+    # Cria uma placa autorizada
+    plate_in = AuthorizedPlateCreate(
+        plate="ABC-1234", normalized_plate="ABC1234", description="Test Car"
+    )
+    crud_authorized_plate.create(db_session, plate_in)
+    db_session.commit()
+
+    # Testa upload com formato específico
+    file_content = b"fake image content"
+    files = {"file": (f"test_image{extension}", file_content, mime_type)}
+    data = {"plate": "ABC-1234"}
+
+    response = client.post("/api/v1/access_logs/", files=files, data=data)
+    assert response.status_code == 200
+    log = response.json()
+    assert log["status"] == "Authorized"
+    assert log["image_storage_key"].endswith(extension)

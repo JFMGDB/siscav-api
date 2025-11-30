@@ -39,7 +39,7 @@ def create(db: Session, obj_in: AuthorizedPlateCreate) -> AuthorizedPlate:
         db.commit()
     except IntegrityError as error:
         db.rollback()
-        error_msg = f"Placa {obj_in.normalized_plate} já está cadastrada"
+        error_msg = f"Plate {obj_in.normalized_plate} is already registered"
         raise ValueError(error_msg) from error
     db.refresh(db_obj)
     return db_obj
@@ -66,7 +66,7 @@ def update(db: Session, db_obj: AuthorizedPlate, obj_in: AuthorizedPlateCreate) 
         db.commit()
     except IntegrityError as error:
         db.rollback()
-        error_msg = f"Placa {obj_in.normalized_plate} já está cadastrada"
+        error_msg = f"Plate {obj_in.normalized_plate} is already registered"
         raise ValueError(error_msg) from error
     db.refresh(db_obj)
     return db_obj

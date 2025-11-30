@@ -145,4 +145,4 @@ def test_create_duplicate_plate(client, auth_token):
         json={"plate": "ABC-1234", "normalized_plate": "ABC1234", "description": "Duplicate"},
     )
     assert response.status_code == 409
-    assert "já está cadastrada" in response.json()["detail"].lower()
+    assert "already registered" in response.json()["detail"].lower()

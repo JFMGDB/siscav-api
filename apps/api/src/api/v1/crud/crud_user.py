@@ -39,7 +39,7 @@ def create(db: Session, obj_in: UserCreate) -> User:
         db.commit()
     except IntegrityError as error:
         db.rollback()
-        error_msg = f"Email {obj_in.email} já está em uso"
+        error_msg = f"Email {obj_in.email} is already in use"
         raise ValueError(error_msg) from error
     db.refresh(db_obj)
     return db_obj
