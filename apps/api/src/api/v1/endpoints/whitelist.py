@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from apps.api.src.api.v1.crud import crud_authorized_plate
 from apps.api.src.api.v1.db.session import get_db
 from apps.api.src.api.v1.deps import get_current_user
+from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.authorized_plate import (
     AuthorizedPlateCreate,
@@ -14,6 +15,17 @@ from apps.api.src.api.v1.schemas.authorized_plate import (
 )
 
 router = APIRouter()
+
+
+def get_plate_or_404(db: Session, id: UUID) -> AuthorizedPlate:
+    """Obtém uma placa autorizada por ID ou retorna 404 se não encontrada.
+
+    Helper para evitar duplicação de código seguindo o princípio DRY.
+    """
+    plate = crud_authorized_plate.get(db, id=id)
+    if not plate:
+        raise HTTPException(status_code=404, detail="Plate not found")
+    return plate
 
 
 @router.get("/", response_model=list[AuthorizedPlateRead])
@@ -60,9 +72,7 @@ def read_authorized_plate(
 
     Retorna os detalhes de uma placa específica da whitelist.
     """
-    plate = crud_authorized_plate.get(db, id=id)
-    if not plate:
-        raise HTTPException(status_code=404, detail="Plate not found")
+    plate = get_plate_or_404(db, id)
     return AuthorizedPlateRead.model_validate(plate, from_attributes=True)
 
 
@@ -79,9 +89,7 @@ def update_authorized_plate(
 
     Modifica os dados de uma placa existente na whitelist.
     """
-    plate = crud_authorized_plate.get(db, id=id)
-    if not plate:
-        raise HTTPException(status_code=404, detail="Plate not found")
+    plate = get_plate_or_404(db, id)
     updated_plate = crud_authorized_plate.update(db, db_obj=plate, obj_in=plate_in)
     return AuthorizedPlateRead.model_validate(updated_plate, from_attributes=True)
 
@@ -98,9 +106,7 @@ def delete_authorized_plate(
 
     Remove uma placa da whitelist de veículos autorizados.
     """
-    plate = crud_authorized_plate.get(db, id=id)
-    if not plate:
-        raise HTTPException(status_code=404, detail="Plate not found")
+    get_plate_or_404(db, id)  # Verifica se existe antes de deletar
     removed_plate = crud_authorized_plate.remove(db, id=id)
     if not removed_plate:
         raise HTTPException(status_code=404, detail="Plate not found")

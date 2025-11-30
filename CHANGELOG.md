@@ -16,9 +16,9 @@ Datas e horas no formato ISO (YYYY-MM-DD HH:MM).
 
 ## [Unreleased]
 ### Added
-- `tests/conftest.py`: Configuração centralizada de testes com fixtures compartilhadas para banco de dados e cliente FastAPI
-- Fixture `cleanup_uploads`: Limpeza automática da pasta `uploads` antes e depois de cada teste
+- `tests/conftest.py`: Configuração centralizada de testes com fixtures compartilhadas (banco de dados, cliente FastAPI, limpeza automática da pasta `uploads` via fixture `cleanup_uploads`)
 - Testes adicionais: `test_access_logs.py` e `test_auth_whitelist.py` para cobertura completa dos endpoints
+- Testes de casos negativos: cobertura de erros de autenticação (credenciais inválidas, token ausente/inválido/malformado) e operações em recursos deletados
 
 ### Changed
 - README.md: Seção de testes expandida com detalhes sobre estrutura, arquitetura e comandos de execução

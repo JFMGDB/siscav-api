@@ -35,6 +35,14 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         ) from error
+
+    # Valida que token_data.sub existe antes de converter para UUID
+    if not token_data.sub:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+
     user = crud_user.get(db, id=UUID(token_data.sub))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
