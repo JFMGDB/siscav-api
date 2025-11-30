@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.crud import crud_authorized_plate
@@ -56,7 +56,13 @@ def create_authorized_plate(
 
     Adiciona uma placa à whitelist de veículos autorizados.
     """
-    plate = crud_authorized_plate.create(db, obj_in=plate_in)
+    try:
+        plate = crud_authorized_plate.create(db, obj_in=plate_in)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
     return AuthorizedPlateRead.model_validate(plate, from_attributes=True)
 
 
@@ -90,7 +96,13 @@ def update_authorized_plate(
     Modifica os dados de uma placa existente na whitelist.
     """
     plate = get_plate_or_404(db, id)
-    updated_plate = crud_authorized_plate.update(db, db_obj=plate, obj_in=plate_in)
+    try:
+        updated_plate = crud_authorized_plate.update(db, db_obj=plate, obj_in=plate_in)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
     return AuthorizedPlateRead.model_validate(updated_plate, from_attributes=True)
 
 
@@ -106,7 +118,9 @@ def delete_authorized_plate(
 
     Remove uma placa da whitelist de veículos autorizados.
     """
-    get_plate_or_404(db, id)  # Verifica se existe antes de deletar
-    removed_plate = crud_authorized_plate.remove(db, id=id)
-    # removed_plate não será None pois get_plate_or_404 já validou a existência
-    return AuthorizedPlateRead.model_validate(removed_plate, from_attributes=True)
+    plate = get_plate_or_404(db, id)
+    # Cria resposta antes de deletar para evitar race condition
+    response = AuthorizedPlateRead.model_validate(plate, from_attributes=True)
+    db.delete(plate)
+    db.commit()
+    return response

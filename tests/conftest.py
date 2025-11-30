@@ -115,7 +115,7 @@ def cleanup_uploads():
 
 # Constantes para testes
 TEST_USER_EMAIL = "test@example.com"
-TEST_USER_PASSWORD = "password123"
+TEST_USER_PASSWORD = "password123"  # Senha simples apenas para testes
 
 
 @pytest.fixture

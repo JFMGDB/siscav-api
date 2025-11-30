@@ -53,3 +53,25 @@ def test_access_log_flow(client, db_session):
     # Nota: A limpeza é feita automaticamente pela fixture cleanup_uploads
     saved_path = Path(log["image_storage_key"])
     assert saved_path.exists()
+
+
+def test_access_log_file_too_large(client):
+    """Testa upload de arquivo que excede o tamanho máximo."""
+    file_content = b"x" * (11 * 1024 * 1024)  # 11MB
+    files = {"file": ("large.jpg", file_content, "image/jpeg")}
+    data = {"plate": "ABC-1234"}
+
+    response = client.post("/api/v1/access_logs/", files=files, data=data)
+    assert response.status_code == 413
+    assert "muito grande" in response.json()["detail"].lower()
+
+
+def test_access_log_invalid_mime_type(client):
+    """Testa upload com tipo MIME inválido."""
+    file_content = b"fake content"
+    files = {"file": ("file.txt", file_content, "text/plain")}
+    data = {"plate": "ABC-1234"}
+
+    response = client.post("/api/v1/access_logs/", files=files, data=data)
+    assert response.status_code == 415
+    assert "não suportado" in response.json()["detail"].lower()

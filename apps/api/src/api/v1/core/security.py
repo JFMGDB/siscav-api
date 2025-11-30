@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from uuid import UUID
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -10,7 +10,7 @@ pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 settings = get_settings()
 
 
-def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+def create_access_token(subject: str | UUID, expires_delta: timedelta | None = None) -> str:
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:

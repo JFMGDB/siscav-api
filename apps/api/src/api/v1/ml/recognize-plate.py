@@ -23,6 +23,7 @@ import platform
 import time
 import warnings
 from pathlib import Path
+from typing import Any
 
 import cv2
 import easyocr
@@ -85,7 +86,7 @@ def get_reader() -> easyocr.Reader:  # type: ignore[type-arg]
     return _reader_instance
 
 
-def detect_plate_color_type(plate_img):
+def detect_plate_color_type(plate_img: Any) -> str:
     """Tenta identificar se a placa é branca (nova), amarela ou cinza (antiga)."""
     hsv = cv2.cvtColor(plate_img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
@@ -100,7 +101,7 @@ def detect_plate_color_type(plate_img):
     return "unknown"
 
 
-def preprocess_plate(plate_img, vehicle_type="car"):
+def preprocess_plate(plate_img: Any, vehicle_type: str = "car") -> tuple[Any, str]:
     """Pré-processa imagem da placa para OCR (tons de cinza e contraste)."""
     color = detect_plate_color_type(plate_img)
     gray = cv2.cvtColor(plate_img, cv2.COLOR_BGR2GRAY)
@@ -128,7 +129,7 @@ def preprocess_plate(plate_img, vehicle_type="car"):
     return plate_binary, color
 
 
-def read_plate(plate_img):
+def read_plate(plate_img: Any) -> str:
     """Lê o texto da placa usando OCR."""
     reader = get_reader()
     result = reader.readtext(plate_img, detail=0, paragraph=True)
@@ -139,7 +140,7 @@ def read_plate(plate_img):
     return "".join([c for c in text if c.isalnum()])
 
 
-def save_csv(text, color):
+def save_csv(text: str, color: str) -> None:
     """Salva o texto e cor da placa em arquivo CSV."""
     file_exists = CSV_FILE.exists()
     with CSV_FILE.open("a", newline="", encoding="utf-8") as f:
@@ -149,7 +150,7 @@ def save_csv(text, color):
         writer.writerow([text, color, time.strftime("%Y-%m-%d %H:%M:%S")])
 
 
-def save_image(plate_img, text, color):
+def save_image(plate_img: Any, text: str, color: str) -> None:
     """Salva a imagem da placa processada."""
     file_path = DETECTED_PLATES_DIR / f"{text}{color}{int(time.time())}.png"
     cv2.imwrite(str(file_path), plate_img)

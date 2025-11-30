@@ -124,3 +124,25 @@ def test_whitelist_crud(client, auth_token):
     # Testa tentativa de deletar placa já deletada (deve retornar 404)
     response = client.delete(f"/api/v1/whitelist/{plate_id}", headers=headers)
     assert response.status_code == 404
+
+
+def test_create_duplicate_plate(client, auth_token):
+    """Testa criação de placa com normalized_plate duplicada."""
+    headers = {"Authorization": f"Bearer {auth_token}"}
+
+    # Cria primeira placa
+    response = client.post(
+        "/api/v1/whitelist/",
+        headers=headers,
+        json={"plate": "ABC-1234", "normalized_plate": "ABC1234", "description": "First"},
+    )
+    assert response.status_code == 200
+
+    # Tenta criar placa com mesmo normalized_plate
+    response = client.post(
+        "/api/v1/whitelist/",
+        headers=headers,
+        json={"plate": "ABC-1234", "normalized_plate": "ABC1234", "description": "Duplicate"},
+    )
+    assert response.status_code == 409
+    assert "já está cadastrada" in response.json()["detail"].lower()
