@@ -40,7 +40,9 @@ jobs:
 
       - name: Type check (pyright)
         run: |
-          python -m pyright apps/ --outputjson
+          # Executa pyright e verifica apenas erros (warnings são aceitáveis)
+          python -m pyright apps/ --outputjson > pyright_output.json || true
+          python -c "import json; f = open('pyright_output.json'); data = json.load(f); f.close(); exit(0 if data['summary']['errorCount'] == 0 else 1)"
 
       - name: Run tests (pytest)
         env:

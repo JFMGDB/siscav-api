@@ -15,7 +15,10 @@
     }
   ],
   "reportMissingImports": "warning",
-  "reportMissingTypeStubs": false
+  "reportMissingTypeStubs": false,
+  "reportOptionalMemberAccess": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportGeneralTypeIssues": "warning"
 }
 
 

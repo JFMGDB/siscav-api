@@ -1,12 +1,21 @@
 import csv
+import platform
 import time
 import warnings
-import winsound
 from pathlib import Path
 
 import cv2
 import easyocr
 import numpy as np
+
+# winsound é específico do Windows, usar import condicional
+if platform.system() == "Windows":
+    try:
+        import winsound  # type: ignore[reportMissingImports]
+    except ImportError:
+        winsound = None  # type: ignore[assignment]
+else:
+    winsound = None  # type: ignore[assignment]
 
 # Silencia avisos do EasyOCR
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -137,7 +146,8 @@ while True:
                 save_csv(text, color)
                 save_image(processed_plate, text, color)
 
-                if vehicle_type == "motorcycle":
+                if vehicle_type == "motorcycle" and winsound is not None:
+                    # pyright: ignore[reportAttributeAccessIssue] - winsound é específico do Windows
                     winsound.Beep(1000, 300)
 
                 # Desenha retângulo colorido na imagem original
