@@ -1,13 +1,13 @@
 {
   "pythonVersion": "3.13",
   "include": [
-    "apps"
+    "app"
   ],
   "executionEnvironments": [
     {
       "root": ".",
       "extraPaths": [
-        "apps"
+        "app"
       ],
       "pythonVersion": "3.13"
     }

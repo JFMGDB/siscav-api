@@ -15,7 +15,7 @@ A arquitetura geral do projeto é dividida em dois repositórios distintos: `sis
 
 Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e tem como núcleo a **API Central**:
 
-1.  **API Central (`apps/api`):** Um serviço backend robusto construído com **FastAPI**. Ele serve como o "cérebro" do sistema, utilizando um banco de dados **PostgreSQL** para:
+1.  **API Central (`app/`):** Um serviço backend robusto construído com **FastAPI**. Ele serve como o "cérebro" do sistema, utilizando um banco de dados **PostgreSQL** para:
     * Autenticar administradores.
     * Validar placas de veículos recebidas contra uma "whitelist".
     * Registrar cada tentativa de acesso (com foto).
@@ -65,20 +65,17 @@ siscav-api/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml              # Pipeline de CI (lint + type check + testes)
-├── apps/
-│   ├── api/                # Serviço Backend FastAPI
-│   │   └── src/            # Código-fonte da API
-│   │       ├── api/
-│   │       │   └── v1/
-│   │       │       ├── endpoints/  # Roteadores (auth.py, whitelist.py...)
-│   │       │       ├── core/       # Config (config.py), Segurança (security.py)
-│   │       │       ├── crud/       # Funções de interação com o DB (CRUD)
-│   │       │       ├── db/         # Sessão e base do SQLAlchemy
-│   │       │       ├── models/     # Modelos SQLAlchemy (Tabelas)
-│   │       │       └── schemas/    # Modelos Pydantic (Validação)
-│   │       ├── alembic/            # Migrações de banco de dados (Alembic)
-│   │       └── main.py         # Ponto de entrada da aplicação FastAPI
-│   └── (iot-device)        # Planejado (fora deste repo por ora)
+├── app/                         # Aplicação FastAPI (padrão de mercado)
+│   ├── api/
+│   │   └── v1/                 # Versionamento da API
+│   │       ├── endpoints/      # Roteadores (auth.py, whitelist.py...)
+│   │       ├── core/           # Config (config.py), Segurança (security.py)
+│   │       ├── crud/           # Funções de interação com o DB (CRUD)
+│   │       ├── db/             # Sessão e base do SQLAlchemy
+│   │       ├── models/         # Modelos SQLAlchemy (Tabelas)
+│   │       └── schemas/        # Modelos Pydantic (Validação)
+│   ├── alembic/                # Migrações de banco de dados (Alembic)
+│   └── main.py                 # Ponto de entrada da aplicação FastAPI
 ├── db/
 │   └── sql/
 │       └── supabase/        # Scripts SQL para migração manual no Supabase
@@ -149,8 +146,9 @@ pip install -r requirements-dev.txt
 4. **Executar a Aplicação**
 
 ```bash
-cd apps/api/src
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# IMPORTANTE: Use sempre "python -m uvicorn" ao invés de "uvicorn" diretamente
+# Isso evita problemas com caminhos hardcoded no venv
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 A API estará acessível em http://localhost:8000.
@@ -306,7 +304,7 @@ Observações sobre variáveis de ambiente e exposição:
 
 ### Como o `DATABASE_URL` é resolvido
 
-A aplicação resolve a URL do banco por prioridade (vide `apps/api/src/api/v1/core/config.py`):
+A aplicação resolve a URL do banco por prioridade (vide `app/api/v1/core/config.py`):
 
 1. Se `DATABASE_URL` estiver definido, usa exatamente esse valor.
    - `.env.supabase`: aponta para o Supabase (com `sslmode=require`).
@@ -451,19 +449,19 @@ O projeto utiliza **Pyright** (via Pylance no VS Code) para verificação estát
 
 ```bash
 # Com venv ativado (recomendado)
-python -m pyright apps/
+python -m pyright app/
 
 # Sem venv ativado (Windows)
-.\venv\Scripts\python.exe -m pyright apps/
+.\venv\Scripts\python.exe -m pyright app/
 
 # Verificar um arquivo específico (venv ativado)
-python -m pyright apps/api/src/api/v1/endpoints/access_logs.py
+python -m pyright app/api/v1/endpoints/access_logs.py
 
 # Verificar uma pasta específica (venv ativado)
-python -m pyright apps/api/src/api/v1/endpoints/
+python -m pyright app/api/v1/endpoints/
 
 # Com saída JSON (útil para CI/CD) - venv ativado
-python -m pyright apps/ --outputjson
+python -m pyright app/ --outputjson
 ```
 
 ### Diferença entre Ruff e Pyright
@@ -472,7 +470,7 @@ python -m pyright apps/ --outputjson
 |------------|--------|------------------------|
 | **Ruff** | Linting (estilo, imports, erros de sintaxe) | `ruff check --fix .` |
 | **Ruff** | Formatação de código | `ruff format .` |
-| **Pyright** | Type checking (tipos, compatibilidade) | `python -m pyright apps/` |
+| **Pyright** | Type checking (tipos, compatibilidade) | `python -m pyright app/` |
 
 - **Ruff**: Verifica estilo de código, imports não utilizados, erros de sintaxe básicos e formata o código
 - **Pyright**: Verifica tipos, compatibilidade entre tipos, resolução de imports
@@ -487,7 +485,7 @@ ruff check --fix .
 ruff format .
 
 # Type checking
-python -m pyright apps/
+python -m pyright app/
 
 # Testes
 python -m pytest tests/ -v
@@ -544,15 +542,17 @@ python -m pytest tests/ -v
     
     # CORRETO (sempre funciona - venv ativado)
     python -m pytest tests/
+    python -m uvicorn app.main:app --reload
     ruff check --fix .
     ruff format .
-    python -m pyright apps/
+    python -m pyright app/
     
     # CORRETO (sem venv ativado - Windows)
     .\venv\Scripts\python.exe -m pytest tests/
+    .\venv\Scripts\python.exe -m uvicorn app.main:app --reload
     .\venv\Scripts\python.exe -m ruff check --fix .
     .\venv\Scripts\python.exe -m ruff format .
-    .\venv\Scripts\python.exe -m pyright apps/
+    .\venv\Scripts\python.exe -m pyright app/
     ```
   - **Alternativa:** Recriar o venv se necessário:
     ```bash

@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from apps.api.src.api.v1.crud import crud_authorized_plate
-from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
+from app.api.v1.core.utils import normalize_plate
+from app.api.v1.crud import crud_access_log, crud_authorized_plate
+from app.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
 
 
 def test_access_log_flow(client, db_session):
@@ -15,10 +16,9 @@ def test_access_log_flow(client, db_session):
     3. Acesso negado (placa não na whitelist)
     """
     # 1. Cria uma placa autorizada
-    plate_in = AuthorizedPlateCreate(
-        plate="ABC-1234", normalized_plate="ABC1234", description="Test Car"
-    )
-    crud_authorized_plate.create(db_session, plate_in)
+    plate_in = AuthorizedPlateCreate(plate="ABC-1234", description="Test Car")
+    normalized = normalize_plate(plate_in.plate)
+    crud_authorized_plate.create(db_session, obj_in=plate_in, normalized_plate=normalized)
     # Garante que a transação é commitada e visível para outras sessões
     db_session.commit()
 
@@ -91,10 +91,9 @@ def test_access_log_invalid_mime_type(client):
 def test_access_log_supported_formats(client, db_session, extension, mime_type):
     """Testa upload com diferentes formatos de imagem suportados."""
     # Cria uma placa autorizada
-    plate_in = AuthorizedPlateCreate(
-        plate="ABC-1234", normalized_plate="ABC1234", description="Test Car"
-    )
-    crud_authorized_plate.create(db_session, plate_in)
+    plate_in = AuthorizedPlateCreate(plate="ABC-1234", description="Test Car")
+    normalized = normalize_plate(plate_in.plate)
+    crud_authorized_plate.create(db_session, obj_in=plate_in, normalized_plate=normalized)
     db_session.commit()
 
     # Testa upload com formato específico
@@ -107,3 +106,111 @@ def test_access_log_supported_formats(client, db_session, extension, mime_type):
     log = response.json()
     assert log["status"] == "Authorized"
     assert log["image_storage_key"].endswith(extension)
+
+
+def test_list_access_logs(client, auth_token, db_session):
+    """Testa listagem de logs de acesso com paginação."""
+    headers = {"Authorization": f"Bearer {auth_token}"}
+
+    # Cria uma placa autorizada
+    plate_in = AuthorizedPlateCreate(plate="ABC-1234", description="Test Car")
+    normalized = normalize_plate(plate_in.plate)
+    authorized_plate = crud_authorized_plate.create(
+        db_session, obj_in=plate_in, normalized_plate=normalized
+    )
+    db_session.commit()
+
+    # Cria alguns logs de acesso
+    for i in range(3):
+        crud_access_log.create(
+            db_session,
+            plate_string_detected=f"ABC-{1000 + i}",
+            status="Authorized" if i % 2 == 0 else "Denied",
+            image_storage_key=f"/uploads/test_{i}.jpg",
+            authorized_plate_id=authorized_plate.id if i % 2 == 0 else None,
+        )
+    db_session.commit()
+
+    # Testa listagem com paginação
+    response = client.get("/api/v1/access_logs/?skip=0&limit=2", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert "items" in data
+    assert "total" in data
+    assert "skip" in data
+    assert "limit" in data
+    assert "has_next" in data
+    assert "has_prev" in data
+    assert len(data["items"]) == 2
+    assert data["total"] >= 3
+    assert data["has_next"] is True
+    assert data["has_prev"] is False
+
+    # Verifica que logs estão ordenados por timestamp descendente (mais recentes primeiro)
+    if len(data["items"]) > 1:
+        timestamps = [item["timestamp"] for item in data["items"]]
+        assert timestamps == sorted(timestamps, reverse=True)
+
+
+def test_list_access_logs_with_status_filter(client, auth_token, db_session):
+    """Testa listagem de logs filtrados por status."""
+    headers = {"Authorization": f"Bearer {auth_token}"}
+
+    # Cria logs com diferentes status
+    crud_access_log.create(
+        db_session,
+        plate_string_detected="ABC-1234",
+        status="Authorized",
+        image_storage_key="/uploads/test1.jpg",
+    )
+    crud_access_log.create(
+        db_session,
+        plate_string_detected="XYZ-9999",
+        status="Denied",
+        image_storage_key="/uploads/test2.jpg",
+    )
+    db_session.commit()
+
+    # Filtra por status Authorized
+    response = client.get("/api/v1/access_logs/?status=Authorized", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert all(item["status"] == "Authorized" for item in data["items"])
+
+    # Filtra por status Denied
+    response = client.get("/api/v1/access_logs/?status=Denied", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert all(item["status"] == "Denied" for item in data["items"])
+
+
+def test_list_access_logs_with_plate_filter(client, auth_token, db_session):
+    """Testa listagem de logs filtrados por placa."""
+    headers = {"Authorization": f"Bearer {auth_token}"}
+
+    # Cria logs com diferentes placas
+    crud_access_log.create(
+        db_session,
+        plate_string_detected="ABC-1234",
+        status="Authorized",
+        image_storage_key="/uploads/test1.jpg",
+    )
+    crud_access_log.create(
+        db_session,
+        plate_string_detected="XYZ-9999",
+        status="Denied",
+        image_storage_key="/uploads/test2.jpg",
+    )
+    db_session.commit()
+
+    # Filtra por placa
+    response = client.get("/api/v1/access_logs/?plate=ABC", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert all("ABC" in item["plate_string_detected"] for item in data["items"])
+
+
+def test_list_access_logs_requires_authentication(client):
+    """Testa que listagem de logs requer autenticação."""
+    response = client.get("/api/v1/access_logs/")
+    assert response.status_code == 401

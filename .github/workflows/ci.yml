@@ -41,7 +41,7 @@ jobs:
       - name: Type check (pyright)
         run: |
           # Executa pyright e verifica apenas erros (warnings são aceitáveis)
-          python -m pyright apps/ --outputjson > pyright_output.json || true
+          python -m pyright app/ --outputjson > pyright_output.json || true
           python -c "
           import json
           import sys
@@ -68,4 +68,4 @@ jobs:
           # Permite fallback para SQLite (sem necessidade de DB) nos testes
           DATABASE_URL: ""
         run: |
-          pytest -v --cov=apps --cov-report=term-missing
+          pytest -v --cov=app --cov-report=term-missing
