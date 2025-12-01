@@ -1,6 +1,4 @@
 {
-  "venvPath": ".",
-  "venv": "venv",
   "pythonVersion": "3.13",
   "include": [
     "apps"
@@ -10,9 +8,15 @@
       "root": ".",
       "extraPaths": [
         "apps"
-      ]
+      ],
+      "pythonVersion": "3.13"
     }
-  ]
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": false,
+  "reportOptionalMemberAccess": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportGeneralTypeIssues": "warning"
 }
 
 

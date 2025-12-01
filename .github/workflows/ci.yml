@@ -38,6 +38,31 @@ jobs:
           ruff check --output-format=github .
           ruff format --check .
 
+      - name: Type check (pyright)
+        run: |
+          # Executa pyright e verifica apenas erros (warnings são aceitáveis)
+          python -m pyright apps/ --outputjson > pyright_output.json || true
+          python -c "
+          import json
+          import sys
+          
+          try:
+              with open('pyright_output.json') as f:
+                  data = json.load(f)
+              
+              error_count = data.get('summary', {}).get('errorCount', 0)
+              
+              if error_count > 0:
+                  print(f'Pyright found {error_count} error(s)')
+                  sys.exit(1)
+              else:
+                  print('Pyright check passed')
+                  sys.exit(0)
+          except Exception as e:
+              print(f'Failed to parse pyright output: {e}')
+              sys.exit(1)
+          "
+
       - name: Run tests (pytest)
         env:
           # Permite fallback para SQLite (sem necessidade de DB) nos testes
