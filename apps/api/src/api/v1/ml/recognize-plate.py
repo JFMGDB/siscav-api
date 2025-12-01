@@ -62,6 +62,10 @@ MIN_HEIGHT = 30
 PLATE_LENGTH = 7
 ESC_KEY = 27
 
+# Constantes para redimensionamento de placas de moto
+MOTORCYCLE_PLATE_HEIGHT = 50
+MOTORCYCLE_PLATE_WIDTH = 140  # 7 * 20
+
 DETECTED_PLATES_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -117,9 +121,9 @@ def preprocess_plate(plate_img: Any, vehicle_type: str = "car") -> tuple[Any, st
         gray = cv2.bilateralFilter(gray, 11, 17, 17)
 
     if vehicle_type == "motorcycle":
-        height = 50
-        width = 7 * 20
-        gray = cv2.resize(gray, (width, height), interpolation=cv2.INTER_CUBIC)
+        gray = cv2.resize(
+            gray, (MOTORCYCLE_PLATE_WIDTH, MOTORCYCLE_PLATE_HEIGHT), interpolation=cv2.INTER_CUBIC
+        )
     else:
         gray = cv2.resize(gray, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
 
@@ -155,7 +159,8 @@ def save_csv(text: str, color: str) -> None:
 
 def save_image(plate_img: Any, text: str, color: str) -> None:
     """Salva a imagem da placa processada."""
-    file_path = DETECTED_PLATES_DIR / f"{text}{color}{int(time.time())}.png"
+    # Usa nanosegundos para evitar colisões de nomes de arquivo
+    file_path = DETECTED_PLATES_DIR / f"{text}{color}{time.time_ns()}.png"
     cv2.imwrite(str(file_path), plate_img)
 
 
@@ -191,8 +196,8 @@ while True:
                 save_image(processed_plate, text, color)
 
                 if vehicle_type == "motorcycle" and winsound is not None:
-                    # pyright: ignore[reportAttributeAccessIssue] - winsound é específico do Windows
-                    winsound.Beep(1000, 300)
+                    # winsound.Beep is safe here - None check on line above
+                    winsound.Beep(1000, 300)  # type: ignore[union-attr]
 
                 # Desenha retângulo colorido na imagem original
                 box_color = (0, 255, 0) if vehicle_type == "car" else (0, 255, 255)

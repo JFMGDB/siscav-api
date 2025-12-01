@@ -22,6 +22,14 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB em bytes
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 
+# Mapeamento MIME type -> extensões válidas para validação de correspondência
+MIME_TO_EXTENSIONS = {
+    "image/jpeg": {".jpg", ".jpeg"},
+    "image/jpg": {".jpg", ".jpeg"},
+    "image/png": {".png"},
+    "image/webp": {".webp"},
+}
+
 
 @router.post("/", response_model=AccessLogRead)
 def create_access_log(
@@ -78,11 +86,19 @@ def create_access_log(
             detail=f"File too large. Maximum size: {MAX_FILE_SIZE / (1024 * 1024):.1f}MB",
         )
 
-    # Validação de MIME type
-    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
+    # Validação de MIME type (rejeita se None ou inválido)
+    if not file.content_type or file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=f"Unsupported file type. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}",
+        )
+
+    # Validação de correspondência entre extensão e MIME type
+    valid_extensions = MIME_TO_EXTENSIONS.get(file.content_type)
+    if valid_extensions and file_ext not in valid_extensions:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"File extension {file_ext} does not match content type {file.content_type}",
         )
 
     # Salva a imagem no diretório de uploads
