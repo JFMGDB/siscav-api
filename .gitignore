@@ -127,4 +127,10 @@ docker-compose.override.yml
 prof/
 *.coveragerc
 
+# Documentação (não versionada)
+docs/arquitetura/
+docs/banco-de-dados/
+docs/requisitos/
+docs/testes/
+
 # End
