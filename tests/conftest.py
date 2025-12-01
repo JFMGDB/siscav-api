@@ -6,6 +6,7 @@ de dados e evitando conflitos entre arquivos de teste.
 """
 
 import contextlib
+import os
 from pathlib import Path
 
 import pytest
@@ -14,13 +15,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from apps.api.src.api.v1.core.config import get_settings
-from apps.api.src.api.v1.crud import crud_user
-from apps.api.src.api.v1.db.base import Base
-from apps.api.src.api.v1.db.session import get_db
-from apps.api.src.api.v1.models.user import User
-from apps.api.src.api.v1.schemas.user import UserCreate
-from apps.api.src.main import app
+# CRÍTICO: Define variável de ambiente ANTES de importar app.main
+# Isso garante que o rate limiting seja desabilitado antes do módulo ser carregado
+os.environ["TESTING"] = "true"
+
+from app.api.v1.core.config import get_settings
+from app.api.v1.crud import crud_user
+from app.api.v1.db.base import Base
+from app.api.v1.db.session import get_db
+from app.api.v1.models.user import User
+from app.api.v1.schemas.user import UserCreate
+from app.main import app
 
 # Configuração do banco de dados de testes
 # Usa SQLite em memória para isolamento e performance
@@ -158,4 +163,7 @@ def auth_token(client: TestClient, test_user: User) -> str:  # noqa: ARG001
         "/api/v1/login/access-token",
         data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
     )
-    return response.json()["access_token"]
+    assert response.status_code == 200, f"Login failed: {response.json()}"
+    tokens = response.json()
+    assert "access_token" in tokens, f"Response missing access_token: {tokens}"
+    return tokens["access_token"]
