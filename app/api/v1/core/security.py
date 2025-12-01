@@ -103,15 +103,15 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         True se a senha corresponder ao hash, False caso contrário.
 
     Raises:
-        ValueError: Se plain_password ou hashed_password forem None ou vazios.
+        ValueError: Se hashed_password for None ou vazio.
     """
-    if not plain_password:
-        error_msg = "Plain password cannot be None or empty"
-        raise ValueError(error_msg)
     if not hashed_password:
         error_msg = "Hashed password cannot be None or empty"
         raise ValueError(error_msg)
 
+    # Passlib lida graciosamente com senhas vazias, retornando False
+    # Não validamos plain_password aqui para evitar 500 errors em fluxos
+    # normais de autenticação (senha incorreta deve retornar False, não exceção)
     return pwd_context.verify(plain_password, hashed_password)
 
 

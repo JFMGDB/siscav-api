@@ -9,8 +9,14 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 # Instância global do limiter
-# Usa MemoryStorage para garantir isolamento em testes
-limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
+# O backend de armazenamento é configurável via variável de ambiente.
+# Por padrão, usa "memory://" (adequado para testes e desenvolvimento).
+# Para produção com múltiplas instâncias, defina RATE_LIMIT_STORAGE_URI
+# (ex: "redis://localhost:6379") para persistência e escalabilidade.
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri=os.getenv("RATE_LIMIT_STORAGE_URI", "memory://"),
+)
 
 
 def _is_testing() -> bool:

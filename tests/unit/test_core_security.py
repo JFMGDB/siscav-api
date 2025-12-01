@@ -107,17 +107,17 @@ class TestAccessToken:
         assert token1 != token2
 
     def test_create_access_token_same_user_same_expiration(self):
-        """Testa que tokens com mesmo payload e expiração são idênticos."""
+        """Testa que tokens com mesmo payload e expiração são sempre diferentes devido ao jti."""
         user_id = uuid4()
         expires_delta = timedelta(minutes=15)
 
-        # Tokens criados com mesmo usuário e mesma expiração podem ser idênticos
-        # se criados no mesmo segundo (comportamento esperado do JWT)
+        # Tokens criados com mesmo usuário e mesma expiração são sempre diferentes
+        # devido ao campo jti (JWT ID) que usa uuid4() para garantir unicidade
         token1 = create_access_token(user_id, expires_delta=expires_delta)
         token2 = create_access_token(user_id, expires_delta=expires_delta)
 
-        # Tokens podem ser iguais se criados no mesmo segundo
-        # O importante é que ambos sejam válidos
+        # Tokens devem ser diferentes devido ao jti único
+        assert token1 != token2
         assert token1 is not None
         assert token2 is not None
         assert isinstance(token1, str)

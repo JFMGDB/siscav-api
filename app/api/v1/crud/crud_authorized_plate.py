@@ -22,12 +22,13 @@ def count(db: Session) -> int:
     return result if result is not None else 0
 
 
-def create(db: Session, obj_in: AuthorizedPlateCreate) -> AuthorizedPlate:
+def create(db: Session, obj_in: AuthorizedPlateCreate, normalized_plate: str) -> AuthorizedPlate:
     """Cria uma nova placa autorizada.
 
     Args:
         db: Sessão do banco de dados.
         obj_in: Dados da placa a ser criada.
+        normalized_plate: Placa normalizada calculada no endpoint.
 
     Returns:
         AuthorizedPlate: Instância da placa criada.
@@ -37,7 +38,7 @@ def create(db: Session, obj_in: AuthorizedPlateCreate) -> AuthorizedPlate:
     """
     db_obj = AuthorizedPlate(
         plate=obj_in.plate,
-        normalized_plate=obj_in.normalized_plate,
+        normalized_plate=normalized_plate,
         description=obj_in.description,
     )
     db.add(db_obj)
@@ -45,19 +46,22 @@ def create(db: Session, obj_in: AuthorizedPlateCreate) -> AuthorizedPlate:
         db.commit()
     except IntegrityError as error:
         db.rollback()
-        error_msg = f"Plate {obj_in.normalized_plate} is already registered"
+        error_msg = f"Plate {normalized_plate} is already registered"
         raise ValueError(error_msg) from error
     db.refresh(db_obj)
     return db_obj
 
 
-def update(db: Session, db_obj: AuthorizedPlate, obj_in: AuthorizedPlateCreate) -> AuthorizedPlate:
+def update(
+    db: Session, db_obj: AuthorizedPlate, obj_in: AuthorizedPlateCreate, normalized_plate: str
+) -> AuthorizedPlate:
     """Atualiza uma placa autorizada existente.
 
     Args:
         db: Sessão do banco de dados.
         db_obj: Instância da placa a ser atualizada.
         obj_in: Novos dados da placa.
+        normalized_plate: Placa normalizada calculada no endpoint.
 
     Returns:
         AuthorizedPlate: Instância da placa atualizada.
@@ -66,13 +70,13 @@ def update(db: Session, db_obj: AuthorizedPlate, obj_in: AuthorizedPlateCreate) 
         ValueError: Se a nova placa normalizada já existe para outra placa.
     """
     db_obj.plate = obj_in.plate
-    db_obj.normalized_plate = obj_in.normalized_plate
+    db_obj.normalized_plate = normalized_plate
     db_obj.description = obj_in.description
     try:
         db.commit()
     except IntegrityError as error:
         db.rollback()
-        error_msg = f"Plate {obj_in.normalized_plate} is already registered"
+        error_msg = f"Plate {normalized_plate} is already registered"
         raise ValueError(error_msg) from error
     db.refresh(db_obj)
     return db_obj

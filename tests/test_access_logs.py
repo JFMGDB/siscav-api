@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from app.api.v1.core.utils import normalize_plate
 from app.api.v1.crud import crud_access_log, crud_authorized_plate
 from app.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
 
@@ -15,10 +16,9 @@ def test_access_log_flow(client, db_session):
     3. Acesso negado (placa não na whitelist)
     """
     # 1. Cria uma placa autorizada
-    plate_in = AuthorizedPlateCreate(
-        plate="ABC-1234", normalized_plate="ABC1234", description="Test Car"
-    )
-    crud_authorized_plate.create(db_session, plate_in)
+    plate_in = AuthorizedPlateCreate(plate="ABC-1234", description="Test Car")
+    normalized = normalize_plate(plate_in.plate)
+    crud_authorized_plate.create(db_session, obj_in=plate_in, normalized_plate=normalized)
     # Garante que a transação é commitada e visível para outras sessões
     db_session.commit()
 
@@ -91,10 +91,9 @@ def test_access_log_invalid_mime_type(client):
 def test_access_log_supported_formats(client, db_session, extension, mime_type):
     """Testa upload com diferentes formatos de imagem suportados."""
     # Cria uma placa autorizada
-    plate_in = AuthorizedPlateCreate(
-        plate="ABC-1234", normalized_plate="ABC1234", description="Test Car"
-    )
-    crud_authorized_plate.create(db_session, plate_in)
+    plate_in = AuthorizedPlateCreate(plate="ABC-1234", description="Test Car")
+    normalized = normalize_plate(plate_in.plate)
+    crud_authorized_plate.create(db_session, obj_in=plate_in, normalized_plate=normalized)
     db_session.commit()
 
     # Testa upload com formato específico
@@ -114,10 +113,11 @@ def test_list_access_logs(client, auth_token, db_session):
     headers = {"Authorization": f"Bearer {auth_token}"}
 
     # Cria uma placa autorizada
-    plate_in = AuthorizedPlateCreate(
-        plate="ABC-1234", normalized_plate="ABC1234", description="Test Car"
+    plate_in = AuthorizedPlateCreate(plate="ABC-1234", description="Test Car")
+    normalized = normalize_plate(plate_in.plate)
+    authorized_plate = crud_authorized_plate.create(
+        db_session, obj_in=plate_in, normalized_plate=normalized
     )
-    authorized_plate = crud_authorized_plate.create(db_session, plate_in)
     db_session.commit()
 
     # Cria alguns logs de acesso

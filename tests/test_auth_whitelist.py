@@ -1,3 +1,4 @@
+from app.api.v1.core.utils import normalize_plate
 from app.api.v1.crud import crud_authorized_plate
 from app.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
 
@@ -44,7 +45,7 @@ def test_access_without_token(client, db_session):  # noqa: ARG001
 
     response = client.post(
         "/api/v1/whitelist/",
-        json={"plate": "ABC-1234", "normalized_plate": "ABC1234", "description": "Test"},
+        json={"plate": "ABC-1234", "description": "Test"},
     )
     assert response.status_code == 401
 
@@ -83,7 +84,7 @@ def test_whitelist_crud(client, auth_token):
     response = client.post(
         "/api/v1/whitelist/",
         headers=headers,
-        json={"plate": "ABC-1234", "normalized_plate": "ABC1234", "description": "Test Car"},
+        json={"plate": "ABC-1234", "description": "Test Car"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -105,7 +106,7 @@ def test_whitelist_crud(client, auth_token):
     response = client.put(
         f"/api/v1/whitelist/{plate_id}",
         headers=headers,
-        json={"plate": "ABC-9999", "normalized_plate": "ABC9999", "description": "Updated"},
+        json={"plate": "ABC-9999", "description": "Updated"},
     )
     assert response.status_code == 200
     assert response.json()["plate"] == "ABC-9999"
@@ -122,7 +123,7 @@ def test_whitelist_crud(client, auth_token):
     response = client.put(
         f"/api/v1/whitelist/{plate_id}",
         headers=headers,
-        json={"plate": "ABC-9999", "normalized_plate": "ABC9999", "description": "Updated"},
+        json={"plate": "ABC-9999", "description": "Updated"},
     )
     assert response.status_code == 404
 
@@ -226,10 +227,10 @@ def test_whitelist_pagination(client, auth_token, db_session):
     for i in range(5):
         plate_in = AuthorizedPlateCreate(
             plate=f"ABC-{1000 + i}",
-            normalized_plate=f"ABC{1000 + i}",
             description=f"Test {i}",
         )
-        crud_authorized_plate.create(db_session, plate_in)
+        normalized = normalize_plate(plate_in.plate)
+        crud_authorized_plate.create(db_session, obj_in=plate_in, normalized_plate=normalized)
     db_session.commit()
 
     # Testa primeira página

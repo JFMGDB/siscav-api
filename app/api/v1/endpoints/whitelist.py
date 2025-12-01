@@ -80,10 +80,8 @@ def create_authorized_plate(
             detail=str(error),
         ) from error
 
-    plate_in.normalized_plate = normalized_plate
-
     try:
-        plate = crud_authorized_plate.create(db, obj_in=plate_in)
+        plate = crud_authorized_plate.create(db, obj_in=plate_in, normalized_plate=normalized_plate)
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -134,10 +132,10 @@ def update_authorized_plate(
             detail=str(error),
         ) from error
 
-    plate_in.normalized_plate = normalized_plate
-
     try:
-        updated_plate = crud_authorized_plate.update(db, db_obj=plate, obj_in=plate_in)
+        updated_plate = crud_authorized_plate.update(
+            db, db_obj=plate, obj_in=plate_in, normalized_plate=normalized_plate
+        )
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

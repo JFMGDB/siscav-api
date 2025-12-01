@@ -34,11 +34,9 @@ class AuthorizedPlateBase(BaseModel):
 class AuthorizedPlateCreate(AuthorizedPlateBase):
     """Schema para criação de placa autorizada.
 
-    O campo normalized_plate é calculado automaticamente no endpoint
-    se não fornecido.
+    O campo normalized_plate é calculado automaticamente no endpoint/CRUD
+    a partir do campo plate. Não deve ser fornecido pelo cliente.
     """
-
-    normalized_plate: str | None = None
 
 
 class AuthorizedPlateRead(AuthorizedPlateBase):
