@@ -100,3 +100,15 @@ if (typeof window !== 'undefined') {
     window.SlideManager = SlideManager;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+

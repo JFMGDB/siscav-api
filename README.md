@@ -1,7 +1,7 @@
 # siscav-api: Backend do Sistema de Controle de Acesso de Veículos
 
 [![CI Pipeline](https://github.com/JFMGDB/siscav-api/actions/workflows/ci.yml/badge.svg)](https://github.com/JFMGDB/siscav-api/actions/workflows/ci.yml)
-[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![License: Academic](https://img.shields.io/badge/license-Academic-green.svg)](https://unicap.br)
 
@@ -34,16 +34,16 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e te
 ### Funcionalidades Implementadas
 
 - ✅ Estrutura básica do projeto FastAPI
+- ✅ Arquitetura MVC com separação de responsabilidades (SOLID, DRY)
 - ✅ Endpoint raiz (`/`)
 - ✅ Endpoint de health check (`/api/v1/health`)
+- ✅ Autenticação JWT com rate limiting
+- ✅ CRUD completo de placas autorizadas (whitelist)
+- ✅ Sistema de logs de acesso com filtros
 - ✅ Pipeline de CI/CD com GitHub Actions
 - ✅ Linting automatizado com Ruff
-- ✅ Testes unitários com Pytest 
-- ✅ CI com GitHub Actions (lint + testes)
-- ⏳ Autenticação JWT (em desenvolvimento)
-- ⏳ CRUD de placas autorizadas (em desenvolvimento)
-- ⏳ Sistema de logs de acesso (em desenvolvimento)
-- ⏳ Integração com dispositivo IoT (em desenvolvimento)
+- ✅ Testes unitários com Pytest
+- ⏳ Integração completa com dispositivo IoT (parcialmente implementado)
 
 ## Stack Tecnológica
 
@@ -53,7 +53,7 @@ Este repositório (`siscav-api`) contém toda a lógica do lado do servidor e te
 * **Validação de Dados:** Pydantic
 * **Autenticação:** JWT (com `passlib` para hashing)
 * **Reconhecimento de Placas (IoT):** EasyOCR, OpenCV
-* **DevOps:** Docker, Docker Compose, GitHub Actions
+* **DevOps:** GitHub Actions
 
 ## Código Fonte de Reconhecimento de Placas
 
@@ -79,9 +79,21 @@ O código relacionado ao reconhecimento automático de placas veiculares (proces
 
 ### Documentação Relacionada:
 
-- Guia de demonstração: `docs/DEMONSTRACAO_COMPLETA.md`
-- Documentação técnica IoT: `docs/iot/`
+- Guias de demonstração: `apps/iot-device/docs/`
+- Documentação técnica IoT: `apps/iot-device/docs/`
+- Documentação da API: `apps/api/docs/`
 - Apresentação técnica: `docs/presentation/`
+
+## Arquitetura
+
+O projeto segue o padrão **MVC (Model-View-Controller)** com separação clara de responsabilidades, aplicando princípios **SOLID** e **DRY**:
+
+- **Models**: Modelos SQLAlchemy definindo a estrutura do banco de dados
+- **Views (Endpoints)**: Camada de roteamento HTTP, responsável apenas por receber requisições e retornar respostas
+- **Controllers**: Camada de lógica de negócio, orquestrando operações e aplicando regras de negócio
+- **Repositories**: Camada de acesso a dados, isolando operações de banco de dados
+
+Para mais detalhes sobre a arquitetura, consulte: `docs/development/coding-standards.md`
 
 ## Estrutura do Projeto
 
@@ -97,9 +109,11 @@ siscav-api/
 │   │   └── src/            # Código-fonte da API
 │   │       ├── api/
 │   │       │   └── v1/
-│   │       │       ├── endpoints/  # Roteadores (auth.py, whitelist.py...)
+│   │       │       ├── endpoints/  # Roteadores HTTP (Views - auth.py, whitelist.py...)
+│   │       │       ├── controllers/ # Lógica de negócio (Service Layer)
+│   │       │       ├── repositories/ # Acesso a dados (Data Access Layer)
 │   │       │       ├── core/       # Config (config.py), Segurança (security.py)
-│   │       │       ├── crud/       # Funções de interação com o DB (CRUD)
+│   │       │       ├── crud/       # DEPRECATED - Use repositories/ e controllers/
 │   │       │       ├── db/         # Sessão e base do SQLAlchemy
 │   │       │       ├── models/     # Modelos SQLAlchemy (Tabelas)
 │   │       │       └── schemas/    # Modelos Pydantic (Validação)
@@ -132,12 +146,9 @@ siscav-api/
 │   ├── __init__.py
 │   └── test_main.py        # Testes da API principal
 ├── .gitignore
-├── .dockerignore
 ├── alembic.ini             # Configuração do Alembic
 ├── pyproject.toml          # Dependências e configuração do projeto
 ├── ruff.toml               # Configuração do linter Ruff
-├── Dockerfile.dev          # Ambiente de desenvolvimento da API
-├── docker-compose.yml      # Orquestração para dev/local/Supabase
 ├── requirements.txt        # Dependências de runtime
 ├── requirements-dev.txt    # Dependências de desenvolvimento/CI
 ├── CHANGELOG.md            # Registro de mudanças
@@ -146,11 +157,9 @@ siscav-api/
 
 ## Guia de Instalação (Getting Started)
 
-> **Nota:** Agora há suporte completo a Docker Compose para desenvolvimento. Você também pode executar localmente com Python, se preferir.
-
 ### Pré-requisitos
 
-* Python 3.13+
+* Python 3.12
 * pip ou uv (gerenciador de pacotes Python)
 
 ### Instalação Local (Desenvolvimento Atual)
@@ -165,6 +174,7 @@ cd siscav-api
 2. **Criar Ambiente Virtual**
 
 ```bash
+# Usando Python 3.12 especificamente
 python -m venv venv
 
 # Windows (PowerShell)
@@ -198,166 +208,11 @@ A API estará acessível em http://localhost:8000.
 
 ---
 
-## Guia de Instalação com Docker (Desenvolvimento)
+## Migração manual para Supabase
 
-Este guia detalha como configurar e executar o ambiente de desenvolvimento local usando Docker e Docker Compose (FND-02).
+Você pode aplicar o schema diretamente no Supabase.
 
-### Pré-requisitos
-
-* Docker
-* Docker Compose
-
-### 1. Clonar o Repositório
-
-```bash
-git clone https://github.com/JFMGDB/siscav-api.git
-cd siscav-api
-```
-
-### 2. Configuração do Ambiente (.env) — escolha UMA opção
-
-Opção A) Local (PostgreSQL no Docker): crie `.env.local` com:
-
-```ini
-# PostgreSQL (serviço local "db")
-POSTGRES_USER=siscav_user
-POSTGRES_PASSWORD=siscav_password
-POSTGRES_DB=siscav_db
-
-# Observação: a aplicação monta automaticamente o DATABASE_URL a partir das variáveis POSTGRES_*
-# (host padrão: db, porta: 5432). Não é necessário definir DATABASE_URL aqui.
-
-# JWT
-SECRET_KEY=change_me_in_production
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=15
-REFRESH_TOKEN_EXPIRE_DAYS=30
-```
-
-Opção B) Remota (Supabase): crie `.env.supabase` com:
-
-```ini
-# SQLAlchemy (string do Supabase com SSL)
-DATABASE_URL=postgresql+psycopg2://<usuario>:<senha>@<host>:5432/<db>?sslmode=require
-
-# JWT (pode diferir por ambiente)
-SECRET_KEY=another_secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-
-# Não é necessário definir POSTGRES_USER/PASSWORD/DB para essa opção
-```
-
-### 3. Executar a Aplicação (Desenvolvimento)
-
-Opção A) Local (sobe API + Postgres com profile "local"):
-
-```bash
-docker compose --env-file .env.local --profile local up -d --build
-```
-
-Opção B) Supabase (sobe apenas a API, sem serviço de DB local):
-
-```bash
-docker compose --env-file .env.supabase up -d --build
-```
-
-A API estará acessível em http://localhost:8000.
-
-#### Escolha explícita do ambiente (.env) e perfis
-
-- O arquivo `docker-compose.yml` define o serviço `db` com `profiles: ["local"]`. Isso significa:
-  - Com `.env.local` + `--profile local`: sobem `api` + `db` (Postgres local).
-  - Com `.env.supabase` (sem `--profile local`): sobe somente `api` (usa o Postgres do Supabase via `DATABASE_URL`).
-
-Exemplos de uso:
-
-```bash
-# Ambiente local (API + Postgres local)
-docker compose --env-file .env.local --profile local up -d --build
-
-# Ambiente Supabase (somente API)
-docker compose --env-file .env.supabase up -d --build
-```
-
-Alternar entre ambientes (recomendado):
-
-```bash
-# Derruba os serviços do ambiente atual (mantém volumes)
-docker compose --env-file .env.local down
-
-# Sobe no outro ambiente
-docker compose --env-file .env.supabase up -d --build
-```
-
-Opcional — reset do banco local:
-
-```bash
-# Cuidado: remove os volumes, apagando os dados do Postgres local
-docker compose --env-file .env.local down -v
-```
-
-### 4. Executar as Migrações (Alembic)
-
-Após iniciar os contêineres, aplique as migrações:
-
-```bash
-# Local
-docker compose --env-file .env.local exec api alembic upgrade head
-
-# Supabase
-docker compose --env-file .env.supabase exec api alembic upgrade head
-```
-
-Para criar novas migrações após alterar os `models.py`:
-
-```bash
-# Local
-docker compose --env-file .env.local exec api alembic revision --autogenerate -m "Descrição da sua migração"
-
-# Supabase
-docker compose --env-file .env.supabase exec api alembic revision --autogenerate -m "Descrição da sua migração"
-```
-
-### 5. Comandos úteis
-
-```bash
-# Ver logs em tempo real (ex.: local)
-docker compose --env-file .env.local logs -f api
-
-# Acessar um shell no contêiner da API
-docker compose --env-file .env.local exec api bash
-
-# Parar e remover serviços (mantendo volumes)
-docker compose --env-file .env.local down
-```
-
-Observações sobre variáveis de ambiente e exposição:
-
-- O `docker-compose.yml` define apenas os nomes das variáveis para “pass-through”. Os valores vêm do arquivo passado via `--env-file`. Assim, nenhum valor sensível fica codificado no compose.
-- Garanta que `.env.local` e `.env.supabase` estão listados no `.gitignore` para evitar commit de segredos.
-- Em ambientes remotos, use `?sslmode=require` no `DATABASE_URL` do Supabase.
-
-### Como o `DATABASE_URL` é resolvido
-
-A aplicação resolve a URL do banco por prioridade (vide `apps/api/src/api/v1/core/config.py`):
-
-1. Se `DATABASE_URL` estiver definido, usa exatamente esse valor.
-   - `.env.supabase`: aponta para o Supabase (com `sslmode=require`).
-   - `.env.local`: pode apontar para o Postgres do Docker (`db:5432`).
-2. Se não houver `DATABASE_URL`, mas existir `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB`,
-   a URL é montada automaticamente usando `POSTGRES_HOST` (default `db`) e `POSTGRES_PORT` (default `5432`).
-3. Caso nada disso exista, fallback para SQLite local: `sqlite:///./siscav_dev.db` (útil para execuções bare sem `.env`).
-
-Isso permite alternar entre Supabase e Postgres local apenas trocando o arquivo `.env` passado ao Docker Compose.
-
----
-
-## Migração manual para Supabase (sem Docker)
-
-Quando houver impedimentos de rede/DNS no Docker, você pode aplicar o schema diretamente no Supabase.
-
-- Guia detalhado: `docs/DB_MIGRATION_SUPABASE.md`
+- Guia detalhado: `apps/api/docs/database/supabase-migration.md`
 - Scripts SQL: `db/sql/supabase/`
   - `01_enable_extensions.sql` (pgcrypto, pg_trgm)
   - `02_types.sql` (ENUM `access_status`)
@@ -394,14 +249,8 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-No Docker:
-
-- `Dockerfile.dev` instala `-r requirements-dev.txt` para oferecer hot-reload e tooling dentro do container de desenvolvimento.
-- Em um futuro `Dockerfile` de produção, instale apenas `-r requirements.txt` para uma imagem menor e mais segura.
-
 Motivação:
 
-- Imagens mais enxutas em produção e builds mais rápidos (camadas de cache) em desenvolvimento.
 - Separação clara entre dependências necessárias para executar a API e ferramentas usadas apenas em dev/CI.
 
 ---
@@ -424,8 +273,8 @@ pytest tests/test_main.py
 ## Troubleshooting
 
 - Import "fastapi.testclient" could not be resolved
-  - Certifique-se de que o seu editor/IDE está usando o interpretador do projeto (Python 3.13 no venv):
-    - VS Code (Pylance): Ctrl+Shift+P → "Python: Select Interpreter" → selecione "Python 3.13.5 ('venv': venv)".
+  - Certifique-se de que o seu editor/IDE está usando o interpretador do projeto (Python 3.12 no venv):
+    - VS Code (Pylance): Ctrl+Shift+P → "Python: Select Interpreter" → selecione "Python 3.12.x ('venv': venv)".
   - Instale as dependências de desenvolvimento no venv ativo:
     ```bash
     pip install -r requirements-dev.txt
@@ -437,7 +286,7 @@ pytest tests/test_main.py
 
 - Editor não resolve imports (e.g., "Import \"fastapi\" could not be resolved")
   - Selecione o interpretador do projeto no editor:
-    - VS Code: Ctrl+Shift+P → "Python: Select Interpreter" → escolha `./venv` (Python 3.13).
+    - VS Code: Ctrl+Shift+P → "Python: Select Interpreter" → escolha `./venv` (Python 3.12).
   - Recarregue a janela do VS Code após ativar o venv e instalar as dependências.
   - Garanta que o terminal integrado esteja com o venv ativo ao rodar comandos (mostra `(venv)` no prompt).
 
@@ -454,12 +303,11 @@ pytest tests/test_main.py
 ### Por que usar requirements .txt em vez de apenas pyproject.toml?
 
 - Este projeto oferece ambos os caminhos:
-  - Rápido/simples com pip: `requirements.txt` (runtime) e `requirements-dev.txt` (dev/CI), ideal para Docker cache e ambientes sem build backend.
+  - Rápido/simples com pip: `requirements.txt` (runtime) e `requirements-dev.txt` (dev/CI).
   - Alternativa via PEP 621: `pip install -e ".[dev]"` (já suportado por `pyproject.toml` em `[project.optional-dependencies].dev`).
-- No Docker/CI usamos os `.txt` por:
-  - Cache eficiente por camadas ao copiar apenas os requirements.
+- Usamos os `.txt` por:
   - Separação clara de deps de produção e de desenvolvimento.
-  - Menor superfície de ferramentas no container de runtime.
+  - Facilidade de uso em ambientes virtuais.
 
 
 ## Integração Contínua (CI) 

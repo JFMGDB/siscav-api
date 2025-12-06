@@ -4,8 +4,6 @@
 
 Esta apresentação demonstra a feature de Inteligência Artificial para identificação automática de placas veiculares no sistema SISCAV. A apresentação foi desenvolvida seguindo princípios de engenharia de software (SOLID, DRY, Componentização) e boas práticas de UI/UX.
 
-**Versão 2.0**: Redesign completo com visual moderno e impactante, mantendo toda funcionalidade e melhorando significativamente a experiência visual.
-
 ## Estrutura do Projeto
 
 ```
@@ -126,11 +124,10 @@ NotificationManager.show('Mensagem', 'success');
 ## Tecnologias Utilizadas
 
 - **HTML5**: Estrutura semântica e acessível
-- **CSS3**: Variáveis CSS, Grid, Flexbox, Media Queries, Gradientes, Glassmorphism
+- **CSS3**: Variáveis CSS, Grid, Flexbox, Media Queries
 - **JavaScript ES6+**: Classes, Arrow Functions, Modules
 - **html2pdf.js**: Biblioteca para exportação PDF
 - **Font Awesome**: Ícones vetoriais
-- **Google Fonts**: Inter (corpo) e Poppins (títulos) para tipografia moderna
 
 ## Metodologias Aplicadas
 
@@ -169,6 +166,18 @@ NotificationManager.show('Mensagem', 'success');
 ### Exportação
 - Botão "PDF" para exportar toda a apresentação
 - Função `exportSlideToPDF(index)` para slide específico
+- Fallback automático para impressão nativa (Ctrl+P) em caso de falha
+
+### Correção de Bug de PDF
+
+O bug que gerava PDF em branco foi corrigido na versão 2.0.0. Veja `CORRECAO_PDF.md` para detalhes completos das correções implementadas.
+
+**Principais melhorias**:
+- Uso do container original em vez de container temporário
+- Aguarda carregamento completo de imagens
+- Configurações otimizadas do html2canvas
+- Fallback para impressão nativa
+- Melhor tratamento de erros
 
 ## Responsividade
 
@@ -218,35 +227,14 @@ Testado e compatível com:
 - Safari
 - Opera
 
-## Design System
-
-### Paleta de Cores
-- **Primário**: Azul vibrante (#0066FF) - Tecnologia e confiança
-- **Secundário**: Roxo (#6366F1) - Sofisticação
-- **Accent**: Ciano (#00D9FF) - Inovação
-- **Sucesso**: Verde (#00C853) - Feedback positivo
-
-### Tipografia
-- **Títulos**: Poppins (Google Fonts) - Impactante e moderna
-- **Corpo**: Inter (Google Fonts) - Legibilidade excelente
-
-### Componentes Visuais
-- Cards com gradientes sutis
-- Sombras profundas e coloridas
-- Bordas arredondadas modernas
-- Animações sutis e funcionais
-- Glassmorphism na navegação
-
-Para mais detalhes sobre decisões de design, consulte `DECISOES_DESIGN.md`.
-
 ## Próximos Passos
 
 ### Melhorias Futuras
 1. **Testes Unitários**: Adicionar testes para componentes
 2. **TypeScript**: Migrar para TypeScript para type safety
 3. **Build Process**: Implementar bundler (Webpack/Vite)
-4. **Modo Apresentação**: Tela cheia com controles simplificados
-5. **Temas**: Sistema de temas (claro/escuro)
+4. **Animações**: Adicionar transições suaves entre slides
+5. **Modo Apresentação**: Tela cheia com controles simplificados
 
 ## Contato e Suporte
 
@@ -258,5 +246,5 @@ Para questões sobre a apresentação:
 ---
 
 **Versão**: 1.0.0  
-**Última Atualização**: Novembro 2025  
+**Última Atualização**: 06 de dezembro de 2025  
 **Desenvolvido seguindo**: SOLID, DRY, Componentização

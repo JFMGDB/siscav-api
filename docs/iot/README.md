@@ -1,22 +1,17 @@
 # Documentação do Dispositivo IoT
 
-Esta pasta contém a documentação relacionada ao dispositivo IoT que realiza o reconhecimento automático de placas.
+**Nota**: A documentação do dispositivo IoT foi reorganizada e movida para `apps/iot-device/docs/`.
 
-## Índice
+Consulte a documentação atualizada em:
+- [Documentação do Dispositivo IoT](../../apps/iot-device/docs/README.md)
 
-1. [Refatoração do Dispositivo IoT](./01-refatoracao-dispositivo-iot.md)
-   - Problemas identificados e corrigidos
-   - Melhorias implementadas
-   - Arquitetura refatorada
-   - Princípios SOLID, DRY e Componentização aplicados
-   - Decisões de design
+## Documentos Movidos
 
-2. [Resumo Executivo - Dispositivo IoT](./02-resumo-dispositivo-iot.md)
-   - Visão geral das melhorias
-   - Métricas de melhoria
-   - Estrutura de arquivos
-   - Fluxo de processamento
-   - Configuração para demonstração
+A documentação foi reorganizada para ficar próxima ao código-fonte:
+
+- Documentação principal: `apps/iot-device/docs/`
+- Hardware/Arduino: `apps/iot-device/docs/hardware/`
+- Documentos arquivados: `apps/iot-device/docs/archive/`
 
 ## Descrição
 
@@ -44,4 +39,16 @@ O dispositivo IoT é responsável por:
 - OpenCV para processamento de imagem
 - EasyOCR para reconhecimento de texto
 - Requests para comunicação HTTP
+
+
+
+
+
+
+
+
+
+
+
+
 

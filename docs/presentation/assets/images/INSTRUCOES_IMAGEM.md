@@ -49,3 +49,15 @@ A imagem será exibida no **Slide 4** da apresentação, logo após a "Proposta 
 
 **Nota**: Se a imagem já existir com outro nome, renomeie para `evidencia-processo-deteccao-tempo-real.png` e coloque na pasta indicada.
 
+
+
+
+
+
+
+
+
+
+
+
+

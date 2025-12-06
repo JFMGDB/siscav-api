@@ -5,7 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reconhecimento de Placas com IA - SISCAV</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Carregar html2canvas separadamente (necessário para acesso direto) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" onerror="console.error('Erro ao carregar html2canvas')"></script>
+    <!-- Carregar jsPDF separadamente para garantir disponibilidade -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer" onerror="console.error('Erro ao carregar jsPDF')"></script>
+    <!-- html2pdf.bundle.min.js inclui html2canvas, mas carregamos separadamente para garantir acesso -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer" onerror="console.error('Erro ao carregar html2pdf.js')"></script>
+    <!-- Garantir que html2canvas esteja disponível globalmente -->
+    <script>
+        // Aguardar html2canvas estar disponível e garantir acesso global
+        (function() {
+            let attempts = 0;
+            const maxAttempts = 20;
+            
+            function ensureHtml2Canvas() {
+                attempts++;
+                
+                // Verificar se html2canvas está disponível
+                if (typeof html2canvas !== 'undefined') {
+                    // Garantir que esteja no window
+                    if (!window.html2canvas) {
+                        window.html2canvas = html2canvas;
+                    }
+                    console.log('✅ html2canvas disponível e configurado');
+                    return true;
+                } else if (window.html2pdf && window.html2pdf.html2canvas) {
+                    // Tentar obter do html2pdf se disponível
+                    window.html2canvas = window.html2pdf.html2canvas;
+                    console.log('✅ html2canvas obtido via html2pdf');
+                    return true;
+                } else if (attempts < maxAttempts) {
+                    setTimeout(ensureHtml2Canvas, 100);
+                    return false;
+                } else {
+                    console.warn('⚠️ html2canvas não foi encontrado após', attempts, 'tentativas');
+                    return false;
+                }
+            }
+            
+            // Iniciar verificação quando DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', ensureHtml2Canvas);
+            } else {
+                setTimeout(ensureHtml2Canvas, 100);
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/slides.css">
 </head>
@@ -86,36 +131,8 @@
             </div>
         </section>
 
-        <!-- Slide 4: Evidência - Processo de Detecção em Tempo Real -->
+        <!-- Slide 4: Justificativa da IA -->
         <section class="slide" data-slide="4">
-            <div class="slide-content">
-                <h2 class="slide-title">Evidência: Processo de Detecção em Tempo Real</h2>
-                <div class="content-section">
-                    <div class="evidence-container">
-                        <div class="evidence-image-wrapper">
-                            <img src="assets/images/evidencia-processo-deteccao-tempo-real.png" 
-                                 alt="Evidência do processo de detecção de placas em tempo real" 
-                                 class="evidence-image">
-                        </div>
-                        <div class="evidence-description">
-                            <h3>Sistema em Funcionamento</h3>
-                            <p>Esta imagem demonstra o sistema SISCAV processando detecção de placas em tempo real, mostrando:</p>
-                            <ul class="content-list">
-                                <li>Frame de vídeo capturado pela câmera</li>
-                                <li>Placa veicular detectada e destacada com retângulo</li>
-                                <li>Texto extraído exibido acima da placa</li>
-                                <li>Status de autorização (Authorized/Denied) em tempo real</li>
-                                <li>Interface visual do sistema IoT funcionando</li>
-                            </ul>
-                            <p class="evidence-note">O sistema processa continuamente os frames de vídeo, detectando e reconhecendo placas automaticamente sem intervenção humana.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Slide 5: Justificativa da IA -->
-        <section class="slide" data-slide="5">
             <div class="slide-content">
                 <h2 class="slide-title">Justificativa da Aplicação de IA</h2>
                 <div class="content-section">
@@ -149,8 +166,8 @@
             </div>
         </section>
 
-        <!-- Slide 6: Aplicação de IA - Técnica -->
-        <section class="slide" data-slide="6">
+        <!-- Slide 5: Aplicação de IA - Técnica -->
+        <section class="slide" data-slide="5">
             <div class="slide-content">
                 <h2 class="slide-title">Aplicação de IA</h2>
                 <div class="content-section">
@@ -170,8 +187,8 @@
             </div>
         </section>
 
-        <!-- Slide 7: Aplicação de IA - Biblioteca -->
-        <section class="slide" data-slide="7">
+        <!-- Slide 6: Aplicação de IA - Biblioteca -->
+        <section class="slide" data-slide="6">
             <div class="slide-content">
                 <h2 class="slide-title">Biblioteca Utilizada: EasyOCR</h2>
                 <div class="content-section">
@@ -220,8 +237,8 @@
             </div>
         </section>
 
-        <!-- Slide 8: Aplicação de IA - Algoritmos -->
-        <section class="slide" data-slide="8">
+        <!-- Slide 7: Aplicação de IA - Algoritmos -->
+        <section class="slide" data-slide="7">
             <div class="slide-content">
                 <h2 class="slide-title">Algoritmos e Modelos Utilizados</h2>
                 <div class="content-section">
@@ -261,8 +278,8 @@
             </div>
         </section>
 
-        <!-- Slide 9: Evidência - Detecção de Placas -->
-        <section class="slide" data-slide="9">
+        <!-- Slide 8: Evidência - Detecção de Placas -->
+        <section class="slide" data-slide="8">
             <div class="slide-content">
                 <h2 class="slide-title">Evidência: Detecção de Placas e Delimitação de Bordas</h2>
                 <div class="content-section">
@@ -288,8 +305,8 @@
             </div>
         </section>
 
-        <!-- Slide 10: Técnica Didática - Detecção de Bordas -->
-        <section class="slide" data-slide="10">
+        <!-- Slide 9: Técnica Didática - Detecção de Bordas -->
+        <section class="slide" data-slide="9">
             <div class="slide-content">
                 <h2 class="slide-title">Técnica: Detecção de Bordas (Canny)</h2>
                 <div class="content-section">
@@ -331,7 +348,7 @@
         </section>
 
         <!-- Slide 11: Técnica Didática - Operações Morfológicas -->
-        <section class="slide" data-slide="11">
+        <section class="slide" data-slide="10">
             <div class="slide-content">
                 <h2 class="slide-title">Técnica: Operações Morfológicas</h2>
                 <div class="content-section">
@@ -379,7 +396,7 @@
         </section>
 
         <!-- Slide 12: Técnica Didática - Deep Learning OCR -->
-        <section class="slide" data-slide="12">
+        <section class="slide" data-slide="11">
             <div class="slide-content">
                 <h2 class="slide-title">Técnica: Deep Learning para OCR</h2>
                 <div class="content-section">
@@ -433,7 +450,7 @@
         </section>
 
         <!-- Slide 13: Visão Computacional Clássica -->
-        <section class="slide" data-slide="13">
+        <section class="slide" data-slide="12">
             <div class="slide-content">
                 <h2 class="slide-title">Visão Computacional Clássica</h2>
                 <div class="content-section">
@@ -506,7 +523,7 @@
         </section>
 
         <!-- Slide 14: Redes Neurais Convolucionais (CNN) -->
-        <section class="slide" data-slide="14">
+        <section class="slide" data-slide="13">
             <div class="slide-content">
                 <h2 class="slide-title">Redes Neurais Convolucionais (CNN)</h2>
                 <div class="content-section">
@@ -578,7 +595,7 @@
         </section>
 
         <!-- Slide 15: Redes Neurais Recorrentes (RNN) -->
-        <section class="slide" data-slide="15">
+        <section class="slide" data-slide="14">
             <div class="slide-content">
                 <h2 class="slide-title">Redes Neurais Recorrentes (RNN)</h2>
                 <div class="content-section">
@@ -646,7 +663,7 @@
         </section>
 
         <!-- Slide 16: Sinergia das Técnicas -->
-        <section class="slide" data-slide="16">
+        <section class="slide" data-slide="15">
             <div class="slide-content">
                 <h2 class="slide-title">Sinergia das Técnicas</h2>
                 <div class="content-section">
@@ -718,7 +735,7 @@
         </section>
 
         <!-- Slide 17: Pipeline Visual Completo -->
-        <section class="slide" data-slide="17">
+        <section class="slide" data-slide="16">
             <div class="slide-content">
                 <h2 class="slide-title">Pipeline Visual: Do Frame ao Texto</h2>
                 <div class="content-section">
@@ -767,7 +784,7 @@
         </section>
 
         <!-- Slide 18: Filtros e Pré-processamento -->
-        <section class="slide" data-slide="18">
+        <section class="slide" data-slide="17">
             <div class="slide-content">
                 <h2 class="slide-title">Técnica: Filtros e Pré-processamento</h2>
                 <div class="content-section">
@@ -820,7 +837,7 @@
         </section>
 
         <!-- Slide 19: Aplicação de IA - Processamento de Dados -->
-        <section class="slide" data-slide="19">
+        <section class="slide" data-slide="18">
             <div class="slide-content">
                 <h2 class="slide-title">Processamento de Dados</h2>
                 <div class="content-section">
@@ -861,7 +878,7 @@
         </section>
 
         <!-- Slide 20: Implementação - Arquitetura -->
-        <section class="slide" data-slide="20">
+        <section class="slide" data-slide="19">
             <div class="slide-content">
                 <h2 class="slide-title">Implementação - Arquitetura</h2>
                 <div class="content-section">
@@ -909,7 +926,7 @@
         </section>
 
         <!-- Slide 21: Implementação - Código Detecção -->
-        <section class="slide" data-slide="21">
+        <section class="slide" data-slide="20">
             <div class="slide-content">
                 <h2 class="slide-title">Implementação - Detecção de Placas</h2>
                 <div class="content-section">
@@ -955,7 +972,7 @@
         </section>
 
         <!-- Slide 22: Implementação - Código OCR -->
-        <section class="slide" data-slide="22">
+        <section class="slide" data-slide="21">
             <div class="slide-content">
                 <h2 class="slide-title">Implementação - OCR e Validação</h2>
                 <div class="content-section">
@@ -994,7 +1011,7 @@
         </section>
 
         <!-- Slide 23: Implementação - Fluxo Principal -->
-        <section class="slide" data-slide="23">
+        <section class="slide" data-slide="22">
             <div class="slide-content">
                 <h2 class="slide-title">Implementação - Fluxo Principal</h2>
                 <div class="content-section">
@@ -1039,7 +1056,7 @@
         </section>
 
         <!-- Slide 24: Resultados - Métricas -->
-        <section class="slide" data-slide="24">
+        <section class="slide" data-slide="23">
             <div class="slide-content">
                 <h2 class="slide-title">Resultados Obtidos</h2>
                 <div class="content-section">
@@ -1070,7 +1087,7 @@
         </section>
 
         <!-- Slide 25: Evidência - Resultados OCR -->
-        <section class="slide" data-slide="25">
+        <section class="slide" data-slide="24">
             <div class="slide-content">
                 <h2 class="slide-title">Evidência: Resultados do Reconhecimento OCR</h2>
                 <div class="content-section">
@@ -1097,7 +1114,7 @@
         </section>
 
         <!-- Slide 26: Resultados - Impactos -->
-        <section class="slide" data-slide="26">
+        <section class="slide" data-slide="25">
             <div class="slide-content">
                 <h2 class="slide-title">Impactos da IA no Projeto</h2>
                 <div class="content-section">
@@ -1137,7 +1154,7 @@
         </section>
 
         <!-- Slide 27: Resultados - Melhorias Futuras -->
-        <section class="slide" data-slide="27">
+        <section class="slide" data-slide="26">
             <div class="slide-content">
                 <h2 class="slide-title">Melhorias Futuras Propostas</h2>
                 <div class="content-section">
@@ -1172,7 +1189,7 @@
         </section>
 
         <!-- Slide 28: Conclusão -->
-        <section class="slide slide-conclusion" data-slide="28">
+        <section class="slide slide-conclusion" data-slide="27">
             <div class="slide-content">
                 <h2 class="slide-title">Conclusão</h2>
                 <div class="content-section">
@@ -1203,7 +1220,7 @@
     <div class="navigation" id="navigation">
         <button class="nav-button" id="prevBtn">← Anterior</button>
         <span class="slide-counter">
-            <span id="currentSlide">1</span> / <span id="totalSlides">28</span>
+            <span id="currentSlide">1</span> / <span id="totalSlides">27</span>
         </span>
         <button class="nav-button" id="nextBtn">Próximo →</button>
         <button class="nav-button nav-button-pdf" id="pdfBtn" title="Exportar para PDF">
@@ -1216,6 +1233,110 @@
     <script src="components/SlideManager.js"></script>
     <script src="components/PDFExporter.js"></script>
     <script src="components/PrintManager.js"></script>
+    
+    <!-- Verificação de dependências antes de inicializar -->
+    <script>
+        // Função para verificar dependências
+        function checkDependencies() {
+            const missing = [];
+            const available = [];
+            
+            // Verificar html2canvas
+            if (typeof html2canvas === 'undefined') {
+                missing.push('html2canvas');
+            } else {
+                available.push('html2canvas');
+            }
+            
+            // Verificar html2pdf
+            if (typeof html2pdf === 'undefined') {
+                missing.push('html2pdf.js');
+            } else {
+                available.push('html2pdf.js');
+            }
+            
+            // Verificar jsPDF (pode estar em diferentes locais)
+            let jsPDFAvailable = false;
+            let jsPDFLocation = null;
+            
+            if (window.jspdf && window.jspdf.jsPDF) {
+                jsPDFAvailable = true;
+                jsPDFLocation = 'window.jspdf.jsPDF';
+            } else if (window.jsPDF) {
+                jsPDFAvailable = true;
+                jsPDFLocation = 'window.jsPDF';
+            } else if (window.html2pdf && window.html2pdf.jsPDF) {
+                jsPDFAvailable = true;
+                jsPDFLocation = 'window.html2pdf.jsPDF';
+            } else if (window.jspdf && typeof window.jspdf === 'function') {
+                jsPDFAvailable = true;
+                jsPDFLocation = 'window.jspdf (função direta)';
+            }
+            
+            if (!jsPDFAvailable) {
+                missing.push('jsPDF');
+            } else {
+                available.push(`jsPDF (${jsPDFLocation})`);
+            }
+            
+            return { missing, available };
+        }
+
+        // Aguardar carregamento completo dos scripts
+        function waitForDependencies(maxAttempts = 30, delay = 200) {
+            let attempts = 0;
+            
+            const check = () => {
+                attempts++;
+                const { missing, available } = checkDependencies();
+                
+                if (missing.length === 0) {
+                    // Todas as dependências carregadas
+                    console.log('✅ Todas as dependências estão carregadas corretamente.');
+                    console.log('Bibliotecas disponíveis:', available);
+                    return true;
+                } else if (attempts < maxAttempts) {
+                    // Ainda faltam dependências, tentar novamente
+                    if (attempts % 5 === 0) {
+                        console.log(`⏳ Aguardando dependências... (tentativa ${attempts}/${maxAttempts})`);
+                        console.log('Faltando:', missing);
+                    }
+                    setTimeout(check, delay);
+                    return false;
+                } else {
+                    // Timeout - algumas dependências não carregaram
+                    console.error('❌ Bibliotecas não carregadas após', attempts, 'tentativas:', missing);
+                    console.warn('Certifique-se de que todos os scripts estão carregados corretamente.');
+                    console.log('Bibliotecas disponíveis:', available);
+                    console.log('Verifique a aba Network no DevTools para erros de carregamento.');
+                    console.log('');
+                    console.log('Diagnóstico:');
+                    console.log('- html2canvas:', typeof html2canvas !== 'undefined' ? '✅' : '❌');
+                    console.log('- html2pdf:', typeof html2pdf !== 'undefined' ? '✅' : '❌');
+                    console.log('- window.jspdf:', window.jspdf ? '✅' : '❌');
+                    console.log('- window.jsPDF:', window.jsPDF ? '✅' : '❌');
+                    if (window.jspdf) {
+                        console.log('- window.jspdf.jsPDF:', window.jspdf.jsPDF ? '✅' : '❌');
+                        console.log('- Tipo de window.jspdf:', typeof window.jspdf);
+                        console.log('- Propriedades de window.jspdf:', Object.keys(window.jspdf || {}));
+                    }
+                    return false;
+                }
+            };
+            
+            // Iniciar verificação após página carregar
+            if (document.readyState === 'complete') {
+                setTimeout(check, 100);
+            } else {
+                window.addEventListener('load', () => {
+                    setTimeout(check, 100);
+                });
+            }
+        }
+
+        // Iniciar verificação
+        waitForDependencies();
+    </script>
     
     <!-- Inicialização -->
     <script src="scripts/app.js"></script>

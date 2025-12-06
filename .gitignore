@@ -120,4 +120,21 @@ docker-compose.override.yml
 prof/
 *.coveragerc
 
+# ========================
+# SISCAV specific
+# ========================
+# Banco de dados SQLite de desenvolvimento
+*.db
+*.sqlite
+*.sqlite3
+siscav_dev.db
+
+# Arquivos de teste e logs
+test_output.txt
+*.log
+logs/
+
+# Uploads de imagens (desenvolvimento)
+uploads/
+
 # End
