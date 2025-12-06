@@ -17,10 +17,8 @@ fallback de desenvolvimento sem alterar código.
 
 import os
 from functools import lru_cache
-from pathlib import Path
 
-from pydantic import model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseModel
 
 
 def _resolve_database_url() -> str:
@@ -46,34 +44,21 @@ def _resolve_database_url() -> str:
     return "sqlite:///./siscav_dev.db"
 
 
-class Settings(BaseSettings):
-    """Configurações da aplicação carregadas de variáveis de ambiente."""
+class Settings(BaseModel):
+    """Configurações da aplicação carregadas de variáveis de ambiente.
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-    )
+    Observação: evitamos propositalmente usar pydantic-settings para manter as
+    dependências de runtime mínimas.
+    """
 
-    database_url: str = ""
-    secret_key: str = "change_me_in_development"
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 15
-    refresh_token_expire_days: int = 30
-    upload_dir: str = str(Path.cwd() / "uploads")
-
-    @model_validator(mode="before")
-    @classmethod
-    def resolve_database_url(cls, data: dict) -> dict:
-        """Resolve DATABASE_URL usando a lógica de prioridades.
-
-        Se DATABASE_URL não estiver definido ou estiver vazio, resolve
-        automaticamente usando a função _resolve_database_url().
-        """
-        if isinstance(data, dict) and not data.get("database_url"):
-            data["database_url"] = _resolve_database_url()
-        return data
+    database_url: str = _resolve_database_url()
+    secret_key: str = os.getenv("SECRET_KEY", "change_me_in_development")
+    algorithm: str = os.getenv("ALGORITHM", "HS256")
+    access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
+    refresh_token_expire_days: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
+    upload_dir: str = os.getenv("UPLOAD_DIR", "uploads")
+    max_file_size_mb: int = int(os.getenv("MAX_FILE_SIZE_MB", "10"))
+    file_chunk_size: int = int(os.getenv("FILE_CHUNK_SIZE", "8192"))
 
 
 @lru_cache

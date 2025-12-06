@@ -1,22 +1,18 @@
 {
-  "pythonVersion": "3.13",
+  "venvPath": ".",
+  "venv": "venv",
+  "pythonVersion": "3.12",
   "include": [
-    "app"
+    "apps"
   ],
   "executionEnvironments": [
     {
       "root": ".",
       "extraPaths": [
-        "app"
-      ],
-      "pythonVersion": "3.13"
+        "apps"
+      ]
     }
-  ],
-  "reportMissingImports": "warning",
-  "reportMissingTypeStubs": false,
-  "reportOptionalMemberAccess": "none",
-  "reportAttributeAccessIssue": "none",
-  "reportGeneralTypeIssues": "warning"
+  ]
 }
 
 

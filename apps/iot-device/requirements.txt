@@ -1,0 +1,10 @@
+# Dependências do dispositivo IoT SISCAV
+# Python 3.12 (recomendado e testado)
+# Python 3.10 e 3.11 também são suportados
+# Python 3.13+ não é recomendado devido a problemas com wheels pré-compilados
+
+numpy>=1.24.0,<2.0.0
+opencv-python>=4.8.0
+easyocr>=1.7.0
+requests>=2.31.0
+pyserial>=3.5

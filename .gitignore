@@ -4,8 +4,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-.ruff_cache/
-.ruff_cache
 
 # C extensions
 *.so
@@ -101,12 +99,6 @@ temp/
 *.log.*
 
 # ========================
-# Uploaded files (test/dev)
-# ========================
-uploads/
-!uploads/.gitkeep
-
-# ========================
 # Secrets / env files
 # ========================
 .env
@@ -119,6 +111,7 @@ secrets.json
 # Docker
 # ========================
 docker-compose.override.yml
+**/.dockerignore
 
 # ========================
 # Python profiler / coverage
@@ -127,10 +120,21 @@ docker-compose.override.yml
 prof/
 *.coveragerc
 
-# Documentação (não versionada)
-docs/arquitetura/
-docs/banco-de-dados/
-docs/requisitos/
-docs/testes/
+# ========================
+# SISCAV specific
+# ========================
+# Banco de dados SQLite de desenvolvimento
+*.db
+*.sqlite
+*.sqlite3
+siscav_dev.db
+
+# Arquivos de teste e logs
+test_output.txt
+*.log
+logs/
+
+# Uploads de imagens (desenvolvimento)
+uploads/
 
 # End

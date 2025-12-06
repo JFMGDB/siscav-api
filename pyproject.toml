@@ -13,7 +13,7 @@ dependencies = [
     "psycopg2-binary",
 
     # Autenticação 
-    "passlib[bcrypt]",     # Para hashing de senhas
+    "passlib[argon2]",     # Para hashing de senhas (Argon2 é mais seguro que bcrypt)
     "python-jose[cryptography]", # Para criação/validação de tokens JWT
     "slowapi",             # Para limitação de taxa (rate limiting) no login 
     "email-validator"      # Necessário para validação robusta de EmailStr do Pydantic
