@@ -36,14 +36,20 @@ client = TestClient(app)
 
 def test_create_user_and_login():
     db = TestingSessionLocal()
-    from apps.api.src.api.v1.crud import crud_user
-    from apps.api.src.api.v1.schemas.user import UserCreate
+    from apps.api.src.api.v1.core.security import get_password_hash
+    from apps.api.src.api.v1.models.user import User
+    from apps.api.src.api.v1.repositories.user_repository import UserRepository
     
     # Check if user exists
-    user = crud_user.get_by_email(db, "test@example.com")
+    user = UserRepository.get_by_email(db, "test@example.com")
     if not user:
-        user_in = UserCreate(email="test@example.com", password="password123")
-        user = crud_user.create(db, user_in)
+        user = User(
+            email="test@example.com",
+            hashed_password=get_password_hash("password123"),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     db.close()
     
     # Test Login
@@ -63,14 +69,20 @@ def test_create_user_and_login():
 def get_token():
     # Helper to get token
     db = TestingSessionLocal()
-    from apps.api.src.api.v1.crud import crud_user
-    from apps.api.src.api.v1.schemas.user import UserCreate
+    from apps.api.src.api.v1.core.security import get_password_hash
+    from apps.api.src.api.v1.models.user import User
+    from apps.api.src.api.v1.repositories.user_repository import UserRepository
     
     # Check if user exists
-    user = crud_user.get_by_email(db, "test@example.com")
+    user = UserRepository.get_by_email(db, "test@example.com")
     if not user:
-        user_in = UserCreate(email="test@example.com", password="password123")
-        user = crud_user.create(db, user_in)
+        user = User(
+            email="test@example.com",
+            hashed_password=get_password_hash("password123"),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     db.close()
     
     response = client.post(

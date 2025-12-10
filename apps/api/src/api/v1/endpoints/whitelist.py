@@ -1,12 +1,12 @@
+"""Endpoints para gerenciamento de placas autorizadas (whitelist)."""
+
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Query
 
-from apps.api.src.api.v1.crud import crud_authorized_plate
-from apps.api.src.api.v1.db.session import get_db
-from apps.api.src.api.v1.deps import get_current_user
+from apps.api.src.api.v1.controllers.plate_controller import PlateController
+from apps.api.src.api.v1.deps import get_current_user, get_plate_controller
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.authorized_plate import (
     AuthorizedPlateCreate,
@@ -18,76 +18,75 @@ router = APIRouter()
 
 @router.get("/", response_model=list[AuthorizedPlateRead])
 def read_authorized_plates(
-    db: Annotated[Session, Depends(get_db)],
+    plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
     current_user: Annotated[User, Depends(get_current_user)],
-    skip: int = 0,
-    limit: int = 100,
+    skip: Annotated[int, Query(ge=0, description="Número de registros a pular")] = 0,
+    limit: Annotated[int, Query(ge=1, le=100, description="Número máximo de registros")] = 100,
 ) -> list[AuthorizedPlateRead]:
     """
-    Retrieve authorized plates.
+    Listar placas autorizadas.
+
+    Retorna uma lista paginada de placas cadastradas na whitelist.
+    
+    **Parâmetros:**
+    - skip: Número de registros para pular (paginação, mínimo 0)
+    - limit: Número máximo de registros a retornar (mínimo 1, máximo 100)
     """
-    return crud_authorized_plate.get_multi(db, skip=skip, limit=limit)
+    return plate_controller.get_all(skip=skip, limit=limit)
 
 
 @router.post("/", response_model=AuthorizedPlateRead)
 def create_authorized_plate(
-    *,
-    db: Annotated[Session, Depends(get_db)],
     plate_in: AuthorizedPlateCreate,
+    plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
-    Create new authorized plate.
+    Cadastrar nova placa autorizada.
+
+    Adiciona uma nova placa à whitelist. A placa será normalizada automaticamente.
     """
-    return crud_authorized_plate.create(db, obj_in=plate_in)
+    return plate_controller.create(plate_in)
 
 
 @router.get("/{id}", response_model=AuthorizedPlateRead)
 def read_authorized_plate(
-    *,
-    db: Annotated[Session, Depends(get_db)],
     id: UUID,
+    plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
-    Get authorized plate by ID.
+    Obter placa autorizada por ID.
+
+    Retorna os detalhes de uma placa específica.
     """
-    plate = crud_authorized_plate.get(db, id=id)
-    if not plate:
-        raise HTTPException(status_code=404, detail="Plate not found")
-    return plate
+    return plate_controller.get_by_id(id)
 
 
 @router.put("/{id}", response_model=AuthorizedPlateRead)
 def update_authorized_plate(
-    *,
-    db: Annotated[Session, Depends(get_db)],
     id: UUID,
     plate_in: AuthorizedPlateCreate,
+    plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
-    Update an authorized plate.
+    Atualizar placa autorizada.
+
+    Atualiza os dados de uma placa existente.
     """
-    plate = crud_authorized_plate.get(db, id=id)
-    if not plate:
-        raise HTTPException(status_code=404, detail="Plate not found")
-    plate = crud_authorized_plate.update(db, db_obj=plate, obj_in=plate_in)
-    return plate
+    return plate_controller.update(id, plate_in)
 
 
 @router.delete("/{id}", response_model=AuthorizedPlateRead)
 def delete_authorized_plate(
-    *,
-    db: Annotated[Session, Depends(get_db)],
     id: UUID,
+    plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
-    Delete an authorized plate.
+    Remover placa autorizada.
+
+    Remove uma placa da whitelist.
     """
-    plate = crud_authorized_plate.get(db, id=id)
-    if not plate:
-        raise HTTPException(status_code=404, detail="Plate not found")
-    plate = crud_authorized_plate.remove(db, id=id)
-    return plate
+    return plate_controller.delete(id)

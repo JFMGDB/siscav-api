@@ -39,12 +39,14 @@ client = TestClient(app)
 
 def test_access_log_flow():
     db = TestingSessionLocal()
-    from apps.api.src.api.v1.crud import crud_authorized_plate
-    from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
+    from apps.api.src.api.v1.repositories.authorized_plate_repository import (
+        AuthorizedPlateRepository,
+    )
     
     # 1. Create an authorized plate
-    plate_in = AuthorizedPlateCreate(plate="ABC-1234", normalized_plate="ABC1234", description="Test Car")
-    crud_authorized_plate.create(db, plate_in)
+    AuthorizedPlateRepository.create(
+        db, plate="ABC-1234", normalized_plate="ABC1234", description="Test Car"
+    )
     db.close()
     
     # 2. Test Authorized Access

@@ -1,87 +1,131 @@
-import shutil
-from pathlib import Path
-from typing import Annotated
+"""Endpoints para gerenciamento de logs de acesso veicular."""
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
-from sqlalchemy.orm import Session
+from datetime import datetime
+from typing import Annotated, Optional
 
-from apps.api.src.api.v1.core.config import get_settings
-from apps.api.src.api.v1.crud import crud_access_log, crud_authorized_plate
-from apps.api.src.api.v1.db.session import get_db
+from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile
+
+from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
+from apps.api.src.api.v1.deps import get_access_log_controller, get_current_user
+from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.access_log import AccessLogRead, AccessStatus
 
 router = APIRouter()
-settings = get_settings()
 
 
 @router.post("/", response_model=AccessLogRead)
 def create_access_log(
-    db: Annotated[Session, Depends(get_db)],
     file: Annotated[UploadFile, File()],
     plate: Annotated[str, Form()],
+    access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
 ) -> AccessLogRead:
     """
-    Receive access log from IoT device.
-    - Uploads image.
-    - Verifies plate against whitelist.
-    - Logs access attempt.
+    Registrar acesso veicular.
+
+    Recebe a imagem e a placa detectada pelo dispositivo IoT.
+    1. Valida o arquivo de imagem.
+    2. Normaliza a placa.
+    3. Verifica se a placa está na whitelist.
+    4. Armazena a imagem.
+    5. Cria um registro de log com o status (Authorized/Denied).
+
+    Args:
+        file: Arquivo de imagem do veículo
+        plate: String da placa detectada pelo OCR
+        access_log_controller: Controller de logs de acesso injetado via dependency injection
+
+    Returns:
+        AccessLogRead: Registro de acesso criado
+
+    Raises:
+        HTTPException: Se o arquivo for inválido ou muito grande
     """
-    # 1. Normalize plate
-    # Simple normalization: uppercase and remove non-alphanumeric
-    # This should match the logic used in AuthorizedPlate (which is done via DB trigger,
-    # but we need it here for lookup).
-    # Ideally, we should have a shared utility for this. For now, simple python logic.
-    normalized_plate = "".join(c for c in plate if c.isalnum()).upper()
+    return access_log_controller.create_access_log(plate=plate, file=file)
 
-    # 2. Check whitelist
-    # We need a method to get by normalized_plate.
-    # I'll add `get_by_normalized_plate` to crud_authorized_plate later if needed,
-    # or just use a direct query here for now or update crud.
-    # Let's assume we update crud_authorized_plate or query all and filter (inefficient).
-    # Better: Update crud_authorized_plate to have get_by_normalized_plate.
-    
-    # For now, let's implement the lookup logic directly or call a new crud method.
-    # I will update crud_authorized_plate in the next step to support this efficiently.
-    # But wait, I can't leave this broken.
-    # Let's check if I can do it with existing tools.
-    # existing: get, get_multi.
-    # I need `get_by_normalized_plate`.
-    
-    # Let's assume I will add it.
-    from sqlalchemy import select
-    from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
-    
-    authorized_plate = db.scalar(
-        select(AuthorizedPlate).where(AuthorizedPlate.normalized_plate == normalized_plate)
+
+@router.get("/images/{image_filename}")
+def get_access_log_image(
+    image_filename: str,
+    access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    """
+    Servir imagem de acesso veicular.
+
+    Este endpoint serve as imagens capturadas pelos dispositivos IoT.
+    O acesso é restrito apenas para administradores autenticados.
+
+    Args:
+        image_filename: Nome do arquivo de imagem
+        access_log_controller: Controller de logs de acesso injetado via dependency injection
+        current_user: Usuário autenticado
+
+    Returns:
+        Response: Arquivo de imagem com Content-Type apropriado
+
+    Raises:
+        HTTPException: Se a imagem não for encontrada ou acesso negado
+    """
+    image_path = access_log_controller.get_image_path(image_filename)
+
+    # Determinar Content-Type baseado na extensão
+    content_type_map = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }
+    content_type = content_type_map.get(
+        image_path.suffix.lower(), "application/octet-stream"
     )
-    
-    status = AccessStatus.Denied
-    authorized_plate_id = None
-    
-    if authorized_plate:
-        status = AccessStatus.Authorized
-        authorized_plate_id = authorized_plate.id
 
-    # 3. Save image
-    upload_dir = Path(settings.upload_dir)
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    # Ler e retornar o arquivo
+    with image_path.open("rb") as f:
+        image_data = f.read()
+
+    return Response(content=image_data, media_type=content_type)
+
+
+@router.get("/", response_model=list[AccessLogRead])
+def list_access_logs(
+    access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    skip: Annotated[int, Query(ge=0, description="Número de registros a pular")] = 0,
+    limit: Annotated[int, Query(ge=1, le=100, description="Número máximo de registros")] = 100,
+    plate: Annotated[Optional[str], Query(description="Filtrar por placa (busca parcial)")] = None,
+    status: Annotated[Optional[AccessStatus], Query(description="Filtrar por status")] = None,
+    start_date: Annotated[Optional[datetime], Query(description="Data inicial (ISO 8601)")] = None,
+    end_date: Annotated[Optional[datetime], Query(description="Data final (ISO 8601)")] = None,
+) -> list[AccessLogRead]:
+    """
+    Lista registros de acesso veicular com filtros opcionais.
     
-    # Generate a unique filename or use timestamp
-    import uuid
-    file_ext = Path(file.filename).suffix if file.filename else ".jpg"
-    file_name = f"{uuid.uuid4()}{file_ext}"
-    file_path = upload_dir / file_name
+    Este endpoint permite visualizar todos os logs de acesso registrados,
+    incluindo o conteúdo extraído da placa pelo OCR. Útil para análise
+    e demonstração do sistema.
     
-    with file_path.open("wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    Args:
+        access_log_controller: Controller de logs de acesso injetado via dependency injection
+        current_user: Usuário autenticado (requerido)
+        skip: Número de registros a pular para paginação
+        limit: Número máximo de registros a retornar (máximo 100)
+        plate: Filtrar por placa (busca parcial, case-insensitive)
+        status: Filtrar por status de acesso (Authorized/Denied)
+        start_date: Data inicial para filtrar (formato ISO 8601)
+        end_date: Data final para filtrar (formato ISO 8601)
         
-    # 4. Create Log
-    access_log = crud_access_log.create(
-        db,
-        plate_string_detected=plate,
-        status=status,
-        image_storage_key=str(file_path),
-        authorized_plate_id=authorized_plate_id,
+    Returns:
+        Lista de registros de acesso ordenados por timestamp (mais recente primeiro)
+        
+    Example:
+        GET /api/v1/access_logs/?limit=10&status=Authorized
+        GET /api/v1/access_logs/?plate=ABC1234
+    """
+    return access_log_controller.get_all(
+        skip=skip,
+        limit=limit,
+        plate_filter=plate,
+        status_filter=status,
+        start_date=start_date,
+        end_date=end_date,
     )
-    
-    return access_log
