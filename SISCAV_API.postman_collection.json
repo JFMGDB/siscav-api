@@ -1,0 +1,705 @@
+{
+	"info": {
+		"_postman_id": "siscav-api-collection",
+		"name": "SISCAV API - Sistema de Controle de Acesso Veicular",
+		"description": "Coleção completa para testar a API do Sistema de Controle de Acesso Veicular (SISCAV).\n\n**Instruções:**\n1. Configure a variável `base_url` no ambiente (padrão: http://localhost:8000)\n2. Execute o endpoint de Login para obter o token\n3. O token será automaticamente salvo na variável `access_token`\n4. Todos os endpoints protegidos usarão automaticamente o token",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "siscav-api"
+	},
+	"item": [
+		{
+			"name": "Health & Status",
+			"item": [
+				{
+					"name": "Root - API Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": ["{{base_url}}"],
+							"path": [""]
+						},
+						"description": "Endpoint raiz da API. Retorna mensagem de confirmação de que o servidor está online."
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "health"]
+						},
+						"description": "Verificação de saúde da API. Retorna o status operacional do servidor."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para verificação de status e saúde da API"
+		},
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "Login - Obter Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"    console.log(\"Token salvo: \" + jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "test@example.com",
+									"type": "text",
+									"description": "Email do usuário"
+								},
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "text",
+									"description": "Senha do usuário"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/login/access-token",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "login", "access-token"]
+						},
+						"description": "Login OAuth2 para obter token de acesso.\n\n**Rate Limiting:** Máximo de 5 tentativas por minuto por IP.\n\n**Nota:** O token será automaticamente salvo na variável `access_token` após o login bem-sucedido."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticação"
+		},
+		{
+			"name": "Whitelist - Placas Autorizadas",
+			"item": [
+				{
+					"name": "Listar Placas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/whitelist/?skip=0&limit=100",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "whitelist", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Número de registros a pular (paginação)"
+								},
+								{
+									"key": "limit",
+									"value": "100",
+									"description": "Número máximo de registros (máximo 100)"
+								}
+							]
+						},
+						"description": "Lista todas as placas autorizadas com paginação."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Placa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"plate_id\", jsonData.id);",
+									"    console.log(\"Placa criada com ID: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"plate\": \"ABC-1234\",\n    \"normalized_plate\": \"ABC1234\",\n    \"description\": \"Veículo do Diretor\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/whitelist/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "whitelist", ""]
+						},
+						"description": "Cadastra uma nova placa autorizada na whitelist.\n\n**Formatos aceitos:**\n- Antigo: ABC1234 (3 letras + 4 dígitos)\n- Mercosul: ABC1D23 (3 letras + 1 dígito + 1 letra + 2 dígitos)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Placa por ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/whitelist/{{plate_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "whitelist", "{{plate_id}}"]
+						},
+						"description": "Obtém os detalhes de uma placa específica por ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Placa",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"plate\": \"XYZ-5678\",\n    \"normalized_plate\": \"XYZ5678\",\n    \"description\": \"Veículo atualizado\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/whitelist/{{plate_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "whitelist", "{{plate_id}}"]
+						},
+						"description": "Atualiza os dados de uma placa existente."
+					},
+					"response": []
+				},
+				{
+					"name": "Remover Placa",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/whitelist/{{plate_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "whitelist", "{{plate_id}}"]
+						},
+						"description": "Remove uma placa da whitelist."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de placas autorizadas (whitelist)"
+		},
+		{
+			"name": "Access Logs - Logs de Acesso",
+			"item": [
+				{
+					"name": "Registrar Acesso (IoT)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"access_log_id\", jsonData.id);",
+									"    pm.environment.set(\"image_filename\", jsonData.image_storage_key.split('/').pop());",
+									"    console.log(\"Log criado com ID: \" + jsonData.id);",
+									"    console.log(\"Status: \" + jsonData.status);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Arquivo de imagem do veículo (JPG, PNG, etc.)"
+								},
+								{
+									"key": "plate",
+									"value": "ABC-1234",
+									"type": "text",
+									"description": "String da placa detectada pelo OCR"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/access_logs/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "access_logs", ""]
+						},
+						"description": "Registra um novo acesso veicular.\n\n**Fluxo:**\n1. Valida o arquivo de imagem\n2. Normaliza a placa\n3. Verifica se a placa está na whitelist\n4. Armazena a imagem\n5. Cria um registro de log com o status (Authorized/Denied)\n\n**Nota:** Este endpoint não requer autenticação, pois é usado pelos dispositivos IoT."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Logs de Acesso",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/access_logs/?skip=0&limit=100",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "access_logs", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Número de registros a pular"
+								},
+								{
+									"key": "limit",
+									"value": "100",
+									"description": "Número máximo de registros (máximo 100)"
+								},
+								{
+									"key": "plate",
+									"value": "",
+									"description": "Filtrar por placa (busca parcial)",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Filtrar por status (Authorized/Denied)",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "",
+									"description": "Data inicial (ISO 8601)",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "",
+									"description": "Data final (ISO 8601)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lista registros de acesso veicular com filtros opcionais.\n\n**Filtros disponíveis:**\n- `plate`: Busca parcial por placa\n- `status`: Authorized ou Denied\n- `start_date`: Data inicial (formato ISO 8601)\n- `end_date`: Data final (formato ISO 8601)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Logs - Apenas Autorizados",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/access_logs/?status=Authorized&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "access_logs", ""],
+							"query": [
+								{
+									"key": "status",
+									"value": "Authorized"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista apenas os logs de acesso autorizados."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Logs - Filtrar por Placa",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/access_logs/?plate=ABC1234",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "access_logs", ""],
+							"query": [
+								{
+									"key": "plate",
+									"value": "ABC1234"
+								}
+							]
+						},
+						"description": "Lista logs filtrando por placa específica."
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Imagem do Log",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/access_logs/images/{{image_filename}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "access_logs", "images", "{{image_filename}}"]
+						},
+						"description": "Obtém a imagem capturada de um log de acesso específico.\n\n**Nota:** O nome do arquivo é salvo automaticamente após criar um log de acesso."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de logs de acesso veicular"
+		},
+		{
+			"name": "Gate Control - Controle de Portão",
+			"item": [
+				{
+					"name": "Acionar Portão",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/gate_control/trigger",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "gate_control", "trigger"]
+						},
+						"description": "Aciona o portão remotamente através do módulo relé.\n\n**Nota:** Em produção, este endpoint se comunica com o dispositivo IoT para acionar o módulo relé físico."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para controle remoto do portão"
+		},
+		{
+			"name": "Devices - Dispositivos IoT",
+			"item": [
+				{
+					"name": "Escanear Dispositivos Bluetooth",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/devices/scan",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "devices", "scan"]
+						},
+						"description": "Escaneia dispositivos Bluetooth disponíveis.\n\n**Nota:** Esta é uma simulação. Em produção, seria integrado com a API Web Bluetooth do navegador."
+					},
+					"response": []
+				},
+				{
+					"name": "Conectar Dispositivo Bluetooth",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"connected_device_id\", jsonData.device_id);",
+									"    console.log(\"Dispositivo conectado: \" + jsonData.device_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"device_id\": \"mock_device_1\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/devices/connect",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "devices", "connect"]
+						},
+						"description": "Conecta a um dispositivo Bluetooth.\n\n**Nota:** A conexão Bluetooth real deve ser gerenciada pelo navegador via Web Bluetooth API."
+					},
+					"response": []
+				},
+				{
+					"name": "Status da Conexão",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/devices/status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "devices", "status"]
+						},
+						"description": "Verifica o status da conexão Bluetooth atual."
+					},
+					"response": []
+				},
+				{
+					"name": "Desconectar Dispositivo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/devices/disconnect",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "devices", "disconnect"]
+						},
+						"description": "Desconecta o dispositivo Bluetooth atual."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de dispositivos IoT"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "plate_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "access_log_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "image_filename",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "connected_device_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
