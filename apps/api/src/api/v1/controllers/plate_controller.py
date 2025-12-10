@@ -91,7 +91,7 @@ class PlateController:
 
         # Normalizar placa
         normalized = (
-            plate_data.normalized_plate or normalize_plate(plate_data.plate)
+            getattr(plate_data, "normalized_plate", None) or normalize_plate(plate_data.plate)
         )
 
         # Verificar se já existe
@@ -150,7 +150,7 @@ class PlateController:
 
         # Normalizar placa
         normalized = (
-            plate_data.normalized_plate or normalize_plate(plate_data.plate)
+            getattr(plate_data, "normalized_plate", None) or normalize_plate(plate_data.plate)
         )
 
         # Verificar se a nova placa normalizada já existe em outro registro

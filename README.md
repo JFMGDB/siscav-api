@@ -157,6 +157,8 @@ siscav-api/
 
 ## Guia de Instalação (Getting Started)
 
+> **📖 Guia Completo**: Para uma instalação detalhada com todas as opções de configuração (Supabase, PostgreSQL local, SQLite), configuração do dispositivo IoT, troubleshooting e explicações das decisões arquiteturais, consulte **[INSTALLATION.md](./INSTALLATION.md)**.
+
 ### Pré-requisitos
 
 * Python 3.12

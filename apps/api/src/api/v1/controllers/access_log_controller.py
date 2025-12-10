@@ -106,7 +106,7 @@ class AccessLogController:
             authorized_plate_id=authorized_plate_id,
         )
 
-        return AccessLogRead.model_validate(access_log)
+        return AccessLogRead.model_validate(access_log, from_attributes=True)
 
     def get_image_path(self, image_filename: str) -> Path:
         """
