@@ -121,6 +121,8 @@ sisvac-api/
 
 ## 2.2. Componentes Centrais do Serviço
 
+> **Nota**: Esta seção descreve a estrutura inicial do projeto. A arquitetura foi posteriormente reorganizada seguindo o padrão MVC com Repositories e Controllers. Para a estrutura atual, consulte `../development/coding-standards.md` ou `../architecture/executive-summary.md`.
+
 ```
 ● main.py: O ponto de entrada.
 ● api/v1/endpoints/: Cada arquivo aqui é um APIRouter para um domínio específico,
@@ -129,7 +131,7 @@ contendo as operações de rota (ex: @router.post("/login")).^
 serialização da resposta e são a fonte para o Swagger/OpenAPI.^
 ● models/: Contém as definições das tabelas do banco de dados SQLAlchemy.
 ● crud/: Contém funções que interagem diretamente com a sessão e os modelos do banco
-de dados (ex: get_user_by_email, create_plate).
+de dados (ex: get_user_by_email, create_plate). [DEPRECATED - Use repositories/ e controllers/]
 ● core/: Para preocupações de toda a aplicação, como carregamento de configuração de
 variáveis de ambiente (config.py) e funções de segurança (security.py) para hashing de
 senhas e criação/validação de tokens JWT.

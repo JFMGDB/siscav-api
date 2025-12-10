@@ -515,7 +515,7 @@ melhoria.
 **5.4 Fase 4: Entrega Final e Documentação**
 ● **Duração:** a definir futuramente a partir de novo cronograma
 ● **Objetivo:** Finalizar o produto com base no feedback da fase piloto, realizar a
-implantação final e entregar toda a documentação de suporte necessária.
+implantações final e entregar toda a documentação de suporte necessária.
 **● Entregáveis:**
 ○ A versão de produção do sistema SCAVA, estável e com os bugs
 
@@ -528,5 +528,16 @@ whitelist e interpretar os logs de acesso.
 Requisitos de Software finalizada, diagramas de arquitetura e um guia
 básico de instalação e manutenção para a equipe de desenvolvimento.
 ○ Implementação das funcionalidades adicionais e incrementais
+
+
+
+
+
+
+
+
+
+
+
 
 
