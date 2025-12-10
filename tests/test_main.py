@@ -21,8 +21,8 @@ def test_health_check():
 
 def test_api_title():
     """Testa se a API tem o título correto"""
-    assert app.title == "Sistema de Controle de Acesso Veicular API"
-    assert app.version == "0.1.0"
+    assert app.title == "Sistema de Controle de Acesso Veicular (SISCAV) API"
+    assert app.version == "1.0.0"
 
 
 def test_invalid_endpoint():

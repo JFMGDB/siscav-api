@@ -81,7 +81,7 @@ class AccessLogController:
         )
 
         # Determinar status
-        access_status = AccessStatus.AUTHORIZED if authorized_plate else AccessStatus.DENIED
+        access_status = AccessStatus.Authorized if authorized_plate else AccessStatus.Denied
         authorized_plate_id = authorized_plate.id if authorized_plate else None
 
         # Salvar arquivo

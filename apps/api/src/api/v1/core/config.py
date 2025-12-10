@@ -57,6 +57,7 @@ class Settings(BaseModel):
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
     refresh_token_expire_days: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
     upload_dir: str = os.getenv("UPLOAD_DIR", "uploads")
+    max_file_size_mb: int = int(os.getenv("MAX_FILE_SIZE_MB", "10"))
 
 
 @lru_cache
