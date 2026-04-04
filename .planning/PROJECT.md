@@ -16,8 +16,8 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - ✓ **User registration and JWT access/refresh** — existing (`apps/api/src/api/v1/endpoints/auth.py`, `core/security.py`)
 - ✓ **Authorized plate whitelist CRUD** — existing (`endpoints/whitelist.py`, `PlateController`, `AuthorizedPlateRepository`)
 - ✓ **Access log ingestion and listing** (multipart image + plate, persisted metadata) — existing (`endpoints/access_logs.py`, `AccessLogController`)
-- ✓ **Gate trigger HTTP surface** — existing endpoint (controller currently simulated success; see `.planning/codebase/CONCERNS.md`)
-- ✓ **Device discovery mock API** (documented as non-production) — existing (`endpoints/devices.py`)
+- ✓ **Gate trigger honesty (Phase 3)** — `integration` simulated vs optional HTTP `GATE_ACTUATOR_URL` (`gate_controller.py`, `schemas/gate_control.py`)
+- ✓ **Device demo API honesty (Phase 3)** — `IOT_DEVICE_DEMO_API`, `demo` on responses, 501 when disabled (`devices` router, `schemas/device.py`)
 - ✓ **Health check** — existing (`endpoints/health.py`)
 - ✓ **Database migrations (Alembic)** — existing (`alembic.ini`, `apps/api/src/alembic/versions/`)
 - ✓ **Automated tests (pytest unit + integration)** — existing (`tests/`)
@@ -26,7 +26,7 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 ### Active
 
 - [ ] **Harden production security** (remaining): refresh rate limits, fail-fast weak `SECRET_KEY`, and any SEC/AUTH items not yet closed in Phase 1
-- [ ] **Real gate / device integration**: replace stub gate controller with a channel that matches deployment (HTTP/MQTT/etc.) and verifiable outcomes
+- [ ] **Deeper actuator / edge integration** (beyond optional HTTP POST): MQTT, signed commands, per-site routing — future phases
 - [ ] **Operational quality**: remove debug/agent log regions, prefer Alembic over ad hoc SQLite `create_all`, pin dependencies, address deprecated `crud/` package
 - [ ] **Alignment with RF goals** in `docs/requirements/project-specification.md` for everything the **central server** must guarantee (RF-004, RF-006, dashboard/auth aspects that land in this API)
 
@@ -75,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 — Phase 2 executed (whitelist + access log docs/tests)*
+*Last updated: 2026-04-04 — Phase 3 executed (gate + device API honesty)*

@@ -1,6 +1,6 @@
 """Schemas para dispositivos IoT."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class BluetoothDevice(BaseModel):
@@ -10,6 +10,10 @@ class BluetoothDevice(BaseModel):
     name: str
     type: str
     signal_strength: int
+    demo: bool = Field(
+        True,
+        description="True = dados de demonstração; não representa hardware real no servidor.",
+    )
 
 
 class ConnectionRequest(BaseModel):
@@ -25,6 +29,10 @@ class ConnectionResponse(BaseModel):
     device_id: str
     message: str
     camera_index: int
+    demo: bool = Field(
+        True,
+        description="True = resposta simulada pela API de demonstração.",
+    )
 
 
 class ConnectionStatus(BaseModel):
@@ -34,6 +42,10 @@ class ConnectionStatus(BaseModel):
     device_id: str | None = None
     device_name: str | None = None
     message: str
+    demo: bool = Field(
+        True,
+        description="True = resposta simulada pela API de demonstração.",
+    )
 
 
 class DisconnectResponse(BaseModel):
@@ -41,4 +53,9 @@ class DisconnectResponse(BaseModel):
 
     status: str
     message: str
+    demo: bool = Field(
+        True,
+        description="True = resposta simulada pela API de demonstração.",
+    )
+
 

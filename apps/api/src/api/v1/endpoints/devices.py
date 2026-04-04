@@ -5,7 +5,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from apps.api.src.api.v1.controllers.device_controller import DeviceController
-from apps.api.src.api.v1.deps import get_current_user, get_device_controller
+from apps.api.src.api.v1.deps import (
+    get_current_user,
+    get_device_controller,
+    verify_device_demo_api_enabled,
+)
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.device import (
     BluetoothDevice,
@@ -15,7 +19,10 @@ from apps.api.src.api.v1.schemas.device import (
     DisconnectResponse,
 )
 
-router = APIRouter(tags=["devices"])
+router = APIRouter(
+    tags=["devices"],
+    dependencies=[Depends(verify_device_demo_api_enabled)],
+)
 
 
 @router.get("/scan", response_model=list[BluetoothDevice])

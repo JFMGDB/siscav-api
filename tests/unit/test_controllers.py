@@ -51,6 +51,7 @@ def sample_user(db_session):
     user = User(
         email="test@example.com",
         hashed_password=get_password_hash("password123"),
+        is_admin=False,
     )
     db_session.add(user)
     db_session.commit()
@@ -133,9 +134,9 @@ class TestPlateController:
         assert plate.normalized_plate == "ABC1234"
 
     def test_create_plate_invalid_format(self, db_session):
-        """Testa criação de placa com formato inválido."""
+        """Testa criação de placa com formato inválido (validação no controller)."""
         controller = PlateController(db_session)
-        plate_data = AuthorizedPlateCreate(
+        plate_data = AuthorizedPlateCreate.model_construct(
             plate="INVALID", normalized_plate="INVALID", description="Test"
         )
         with pytest.raises(HTTPException) as exc_info:
@@ -290,7 +291,6 @@ class TestAccessLogController:
             file=BytesIO(large_content),
             headers={"content-type": "image/jpeg"},
         )
-        file.content_type = "image/jpeg"
 
         with patch(
             "apps.api.src.api.v1.controllers.access_log_controller.get_settings"
@@ -345,11 +345,16 @@ class TestGateController:
     """Testes para GateController."""
 
     def test_trigger_gate(self):
-        """Testa acionamento do portão."""
-        controller = GateController()
+        """Testa acionamento do portão (modo simulado sem URL)."""
+        from unittest.mock import MagicMock
+
+        settings = MagicMock()
+        settings.gate_actuator_url = None
+        settings.gate_actuator_timeout_seconds = 5
+        controller = GateController(settings)
         result = controller.trigger_gate()
-        assert result["status"] == "success"
-        assert "message" in result
+        assert result.integration == "simulated"
+        assert len(result.message) > 0
 
 
 class TestDeviceController:

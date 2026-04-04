@@ -34,11 +34,10 @@
 - Impact: Open registration remains cheap to abuse at high volume compared to login’s `5/minute`.
 - Fix approach: Lower the limit for production and keep a higher limit only under a test profile or env flag.
 
-**IoT / gate / device features are stubs or mocks:**
-- Issue: `GateController.trigger_gate()` always returns success without contacting hardware. `DeviceController` returns hard-coded Bluetooth mock data; docstrings state production must use Web Bluetooth in the browser.
-- Files: `apps/api/src/api/v1/controllers/gate_controller.py`, `apps/api/src/api/v1/controllers/device_controller.py`, `apps/api/src/api/v1/endpoints/gate_control.py`
-- Impact: Operators may assume the portão was opened; demos diverge from real behavior. Project management doc still tracks IoT relay work (`docs/project-management/backend-tasks-trello-status.md`).
-- Fix approach: Integrate real device channel (HTTP/MQTT/WebSocket) and fail closed when the device does not acknowledge; feature-flag or clearly label responses as simulated until then.
+**IoT / gate / device integration (post Phase 3):**
+- Current behavior: `GateController` returns `integration: "simulated"` when `GATE_ACTUATOR_URL` is unset, or performs HTTP POST to that URL and maps failures to 502/503. Device routes expose `demo: true` on responses when `IOT_DEVICE_DEMO_API` is enabled (default off in production → **501**).
+- Files: `gate_controller.py`, `device` schemas/endpoints, `config.py`, `deps.py` (`verify_device_demo_api_enabled`).
+- Remaining gap: no MQTT/WebSocket actuator channel; Bluetooth remains client-side (Web Bluetooth). See roadmap Phase 4+ for ops hygiene.
 
 ## Known Bugs / Documentation Mismatches
 

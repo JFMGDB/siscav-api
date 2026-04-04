@@ -55,6 +55,21 @@ Base path: **`/api/v1/whitelist/`**. Todas as operações exigem **`Authorizatio
 | Listar registros (`GET /api/v1/access_logs/`) | **`Authorization: Bearer`** — qualquer utilizador autenticado |
 | Obter imagem (`GET /api/v1/access_logs/images/{filename}`) | **`Authorization: Bearer`** de utilizador com **`is_admin`**; caso contrário **403** |
 
+## Gate control
+
+`POST /api/v1/gate_control/trigger` — **`Authorization: Bearer`** de administrador (`is_admin`).
+
+- **`GATE_ACTUATOR_URL`:** se **não** definido, a resposta tem **`integration: "simulated"`** — nenhum comando é enviado a hardware; é apenas o modo honesto da API.
+- Se definido, a API faz **POST** com corpo `{"action": "open"}` e só considera sucesso com **HTTP 2xx** do atuador (`integration: "live"`). Falhas de rede ou HTTP de erro → **502**/**503** com `detail` explícito.
+- **`GATE_ACTUATOR_TIMEOUT_SECONDS`** (opcional, padrão 5): timeout em segundos.
+
+## Dispositivos (Bluetooth) — demonstração
+
+Rotas sob **`/api/v1/devices/`** (scan, connect, status, disconnect) são **simulação** para demos: cada resposta inclui **`demo: true`**.
+
+- **`IOT_DEVICE_DEMO_API`:** em **`ENVIRONMENT=production`** / **`prod`** o valor predefinido é **desligado** → respostas **501** (API desativada; Bluetooth real é no **navegador** via Web Bluetooth, não neste servidor).
+- Para ligar explicitamente: `IOT_DEVICE_DEMO_API=true` (ou omitir em development, onde o padrão é ligado).
+
 ## Princípios Aplicados
 
 - **SOLID**: Separação de responsabilidades em camadas (Routers, CRUD, Schemas, Models)
