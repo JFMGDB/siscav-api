@@ -20,17 +20,29 @@ router = APIRouter()
 def read_authorized_plates(
     plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
     current_user: Annotated[User, Depends(get_current_user)],
-    skip: Annotated[int, Query(ge=0, description="Número de registros a pular")] = 0,
-    limit: Annotated[int, Query(ge=1, le=100, description="Número máximo de registros")] = 100,
+    skip: Annotated[
+        int,
+        Query(
+            ge=0,
+            description="Registros a pular (paginação). Padrão 0; mínimo 0.",
+        ),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(
+            ge=1,
+            le=100,
+            description="Máximo de registros retornados. Padrão 100; entre 1 e 100.",
+        ),
+    ] = 100,
 ) -> list[AuthorizedPlateRead]:
     """
     Listar placas autorizadas.
 
+    Requer `Authorization: Bearer` com JWT de utilizador autenticado.
+
     Retorna uma lista paginada de placas cadastradas na whitelist.
-    
-    **Parâmetros:**
-    - skip: Número de registros para pular (paginação, mínimo 0)
-    - limit: Número máximo de registros a retornar (mínimo 1, máximo 100)
+    **Paginação:** `skip` ≥ 0 (padrão 0), `limit` entre 1 e 100 (padrão 100).
     """
     return plate_controller.get_all(skip=skip, limit=limit)
 
@@ -44,7 +56,14 @@ def create_authorized_plate(
     """
     Cadastrar nova placa autorizada.
 
-    Adiciona uma nova placa à whitelist. A placa será normalizada automaticamente.
+    Requer `Authorization: Bearer` com JWT de utilizador autenticado.
+
+    O corpo segue **`AuthorizedPlateCreate`**: validação com `validate_brazilian_plate`
+    (Mercosul, ex. `ABC1D23`, e legado três letras + quatro dígitos, ex. `ABC-1234`).
+    A placa é normalizada para `normalized_plate` (única na whitelist).
+
+    Se já existir outro registo com o mesmo `normalized_plate`, a API responde **409 Conflict**
+    com detalhe **`Plate already exists in whitelist`**.
     """
     return plate_controller.create(plate_in)
 
@@ -73,7 +92,11 @@ def update_authorized_plate(
     """
     Atualizar placa autorizada.
 
-    Atualiza os dados de uma placa existente.
+    Requer `Authorization: Bearer` com JWT de utilizador autenticado.
+
+    Mesma validação que **POST /** (`AuthorizedPlateCreate`, Mercosul ou legado).
+    Se a nova placa normalizada colidir com **outro** ID, resposta **409 Conflict** com
+    **`Plate already exists in whitelist`**. ID inexistente → **404**.
     """
     return plate_controller.update(id, plate_in)
 

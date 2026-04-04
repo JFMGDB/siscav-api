@@ -21,10 +21,11 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - ✓ **Health check** — existing (`endpoints/health.py`)
 - ✓ **Database migrations (Alembic)** — existing (`alembic.ini`, `apps/api/src/alembic/versions/`)
 - ✓ **Automated tests (pytest unit + integration)** — existing (`tests/`)
+- ✓ **Whitelist + access-log behavior (Phase 2)** — WL-01 / LOG-01–LOG-03: CRUD whitelist documented and tested; audit list filters/order and ingest fields covered; operator docs and OpenAPI describe device-key ingest, JWT list, admin-only image download (`docs/api/README.md`, `main.py`, integration tests)
 
 ### Active
 
-- [ ] **Harden production security**: authenticated or keyed ingest for `POST /access_logs`, refresh rate limits, fail-fast weak `SECRET_KEY`, align docs with actual authorization (no false “admin-only” without roles)
+- [ ] **Harden production security** (remaining): refresh rate limits, fail-fast weak `SECRET_KEY`, and any SEC/AUTH items not yet closed in Phase 1
 - [ ] **Real gate / device integration**: replace stub gate controller with a channel that matches deployment (HTTP/MQTT/etc.) and verifiable outcomes
 - [ ] **Operational quality**: remove debug/agent log regions, prefer Alembic over ad hoc SQLite `create_all`, pin dependencies, address deprecated `crud/` package
 - [ ] **Alignment with RF goals** in `docs/requirements/project-specification.md` for everything the **central server** must guarantee (RF-004, RF-006, dashboard/auth aspects that land in this API)
@@ -74,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after initialization (brownfield inference from codebase map + product specification)*
+*Last updated: 2026-04-04 — Phase 2 executed (whitelist + access log docs/tests)*

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.models.access_log import AccessLog
@@ -99,11 +99,17 @@ class AccessLogRepository:
         Returns:
             AccessLog criado
         """
+        from datetime import timezone
+        
+        # Definir timestamp manualmente (necessário para SQLite)
+        now = datetime.now(timezone.utc)
+        
         db_log = AccessLog(
             plate_string_detected=plate_string_detected,
             status=status,
             image_storage_key=image_storage_key,
             authorized_plate_id=authorized_plate_id,
+            timestamp=now,
         )
         db.add(db_log)
         try:
@@ -113,4 +119,47 @@ class AccessLogRepository:
             db.rollback()
             raise
         return db_log
+
+    @staticmethod
+    def count(
+        db: Session,
+        plate_filter: Optional[str] = None,
+        status_filter: Optional[AccessStatus] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ) -> int:
+        """
+        Conta o total de registros de acesso com filtros opcionais.
+
+        Args:
+            db: Sessão do banco de dados
+            plate_filter: Filtrar por placa (busca parcial, case-insensitive)
+            status_filter: Filtrar por status de acesso
+            start_date: Data inicial para filtrar (inclusive)
+            end_date: Data final para filtrar (inclusive)
+
+        Returns:
+            Número total de registros que correspondem aos filtros
+        """
+        query = select(func.count(AccessLog.id))
+
+        # Aplicar filtros
+        conditions = []
+
+        if plate_filter:
+            conditions.append(AccessLog.plate_string_detected.ilike(f"%{plate_filter}%"))
+
+        if status_filter:
+            conditions.append(AccessLog.status == status_filter)
+
+        if start_date:
+            conditions.append(AccessLog.timestamp >= start_date)
+
+        if end_date:
+            conditions.append(AccessLog.timestamp <= end_date)
+
+        if conditions:
+            query = query.where(and_(*conditions))
+
+        return db.scalar(query) or 0
 

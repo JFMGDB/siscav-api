@@ -6,7 +6,12 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile
 
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
-from apps.api.src.api.v1.deps import get_access_log_controller, get_current_user
+from apps.api.src.api.v1.deps import (
+    get_access_log_controller,
+    get_current_admin_user,
+    get_current_user,
+    verify_device_ingest_key,
+)
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.access_log import AccessLogRead, AccessStatus
 
@@ -18,9 +23,13 @@ def create_access_log(
     file: Annotated[UploadFile, File()],
     plate: Annotated[str, Form()],
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
+    _device_auth: Annotated[None, Depends(verify_device_ingest_key)],
 ) -> AccessLogRead:
     """
     Registrar acesso veicular.
+
+    Requer cabeçalho **`X-Device-Key`** com o valor de `DEVICE_INGEST_KEY` quando esta
+    variável está definida (ingestão apenas de dispositivos confiáveis).
 
     Recebe a imagem e a placa detectada pelo dispositivo IoT.
     1. Valida o arquivo de imagem.
@@ -35,7 +44,8 @@ def create_access_log(
         access_log_controller: Controller de logs de acesso injetado via dependency injection
 
     Returns:
-        AccessLogRead: Registro de acesso criado
+        Corpo JSON alinhado com **`AccessLogRead`**: `id`, `timestamp`,
+        `plate_string_detected`, `status`, `image_storage_key`, `authorized_plate_id`.
 
     Raises:
         HTTPException: Se o arquivo for inválido ou muito grande
@@ -47,18 +57,20 @@ def create_access_log(
 def get_access_log_image(
     image_filename: str,
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_admin_user)],
 ) -> Response:
     """
     Servir imagem de acesso veicular.
 
+    **Apenas administradores** (`is_admin` no JWT). Utilizador autenticado sem privilégio
+    de administrador recebe **403 Forbidden**.
+
     Este endpoint serve as imagens capturadas pelos dispositivos IoT.
-    O acesso é restrito apenas para administradores autenticados.
 
     Args:
         image_filename: Nome do arquivo de imagem
         access_log_controller: Controller de logs de acesso injetado via dependency injection
-        current_user: Usuário autenticado
+        current_user: Administrador autenticado
 
     Returns:
         Response: Arquivo de imagem com Content-Type apropriado
@@ -90,19 +102,48 @@ def get_access_log_image(
 def list_access_logs(
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
     current_user: Annotated[User, Depends(get_current_user)],
-    skip: Annotated[int, Query(ge=0, description="Número de registros a pular")] = 0,
-    limit: Annotated[int, Query(ge=1, le=100, description="Número máximo de registros")] = 100,
-    plate: Annotated[Optional[str], Query(description="Filtrar por placa (busca parcial)")] = None,
-    status: Annotated[Optional[AccessStatus], Query(description="Filtrar por status")] = None,
-    start_date: Annotated[Optional[datetime], Query(description="Data inicial (ISO 8601)")] = None,
-    end_date: Annotated[Optional[datetime], Query(description="Data final (ISO 8601)")] = None,
+    skip: Annotated[int, Query(ge=0, description="Registros a pular (paginação).")] = 0,
+    limit: Annotated[int, Query(ge=1, le=100, description="Máximo de registros (1–100).")] = 100,
+    plate: Annotated[
+        Optional[str],
+        Query(
+            description=(
+                "Filtro parcial e case-insensitive sobre `plate_string_detected` "
+                "(corresponde a `ILIKE %valor%` no repositório)."
+            ),
+        ),
+    ] = None,
+    status: Annotated[
+        Optional[AccessStatus],
+        Query(description="Filtrar por status de acesso (Authorized / Denied)."),
+    ] = None,
+    start_date: Annotated[
+        Optional[datetime],
+        Query(
+            description=(
+                "Limite inferior **inclusivo** do `timestamp` do registro (ISO 8601, timezone-aware recomendado)."
+            ),
+        ),
+    ] = None,
+    end_date: Annotated[
+        Optional[datetime],
+        Query(
+            description=(
+                "Limite superior **inclusivo** do `timestamp` do registro (ISO 8601, timezone-aware recomendado)."
+            ),
+        ),
+    ] = None,
 ) -> list[AccessLogRead]:
     """
     Lista registros de acesso veicular com filtros opcionais.
-    
+
+    Requer JWT de **utilizador autenticado** (não é necessário ser administrador).
+
     Este endpoint permite visualizar todos os logs de acesso registrados,
     incluindo o conteúdo extraído da placa pelo OCR. Útil para análise
     e demonstração do sistema.
+
+    **Ordenação padrão:** mais recente primeiro (`timestamp DESC`).
     
     Args:
         access_log_controller: Controller de logs de acesso injetado via dependency injection
