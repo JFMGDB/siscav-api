@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: Ready to plan
+stopped_at: Phase 2 planned (`/gsd-plan-phase 2`)
+last_updated: "2026-04-04T23:39:37.587Z"
+progress:
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 3
+---
+
 # Project state: SISCAV API
 
 ## Project reference
@@ -7,6 +21,8 @@
 
 ## Current position
 
+Phase: 3
+Plan: Not started
 | Field | Value |
 |-------|--------|
 | **Phase** | 2 — Whitelist & access log behavior |
