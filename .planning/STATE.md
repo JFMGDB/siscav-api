@@ -11,9 +11,11 @@
 |-------|--------|
 | **Phase** | 1 — Security & authentication correctness |
 | **Plan** | Not started (see ROADMAP.md plan IDs 01-01 …) |
-| **Status** | Roadmap ready; awaiting `/gsd-plan-phase 1` |
+| **Status** | Context gathered — ready for `/gsd-plan-phase 1` |
 
 **Focus:** Harden access-log ingest auth, align refresh/login limits and `SECRET_KEY` policy, and make OpenAPI plus privileged-route behavior match reality.
+
+**Resume:** [.planning/phases/01-security-authentication-correctness/01-CONTEXT.md](phases/01-security-authentication-correctness/01-CONTEXT.md)
 
 ## Performance metrics
 
