@@ -9,15 +9,15 @@
 
 | Field | Value |
 |-------|--------|
-| **Phase** | 1 — Security & authentication correctness |
-| **Plan** | Not started (see ROADMAP.md plan IDs 01-01 …) |
-| **Status** | Plans ready — run `/gsd-execute-phase 1` |
+| **Phase** | 2 — Whitelist & access log behavior |
+| **Plan** | Not started (see ROADMAP.md plan IDs 02-01 …) |
+| **Status** | Context gathered — run `/gsd-plan-phase 2` |
 
-**Focus:** Harden access-log ingest auth, align refresh/login limits and `SECRET_KEY` policy, and make OpenAPI plus privileged-route behavior match reality.
+**Focus:** Whitelist CRUD + audit list contract (WL-01, LOG-01–03); list JSON for any authenticated user; images admin-only (Phase 1); freeze query params and strict plate rules.
 
-**Resume:** [.planning/phases/01-security-authentication-correctness/01-CONTEXT.md](phases/01-security-authentication-correctness/01-CONTEXT.md)
+**Resume:** [.planning/phases/02-whitelist-access-log-behavior/02-CONTEXT.md](phases/02-whitelist-access-log-behavior/02-CONTEXT.md)
 
-**Plans:** `01-01-PLAN.md` (ingest key), `01-02-PLAN.md` (refresh limit + prod secret), `01-03-PLAN.md` (is_admin + privileged routes) — wave 1 parallel 01-01 + 01-02, then wave 2 01-03.
+**Plans:** `02-01`–`02-03` — TBD in plan-phase (placeholder IDs in ROADMAP).
 
 ## Performance metrics
 
@@ -31,4 +31,6 @@ _(Updated as phases complete.)_
 ## Session continuity
 
 - **Last roadmap update:** 2026-04-04
-- **Next action:** Plan Phase 1 → execute plans 01-01 through 01-03 per ROADMAP.md
+- **Stopped at:** Phase 2 context gathered (`defaults`)
+- **Resume file:** [.planning/phases/02-whitelist-access-log-behavior/02-CONTEXT.md](phases/02-whitelist-access-log-behavior/02-CONTEXT.md)
+- **Next action:** `/gsd-plan-phase 2` → then `/gsd-execute-phase 2` when plans exist
