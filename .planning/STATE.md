@@ -10,14 +10,14 @@
 | Field | Value |
 |-------|--------|
 | **Phase** | 2 — Whitelist & access log behavior |
-| **Plan** | Not started (see ROADMAP.md plan IDs 02-01 …) |
-| **Status** | Context gathered — run `/gsd-plan-phase 2` |
+| **Plan** | 02-01 … 02-03 (executable PLAN.md files present) |
+| **Status** | Planned — run `/gsd-execute-phase 2` |
 
 **Focus:** Whitelist CRUD + audit list contract (WL-01, LOG-01–03); list JSON for any authenticated user; images admin-only (Phase 1); freeze query params and strict plate rules.
 
 **Resume:** [.planning/phases/02-whitelist-access-log-behavior/02-CONTEXT.md](phases/02-whitelist-access-log-behavior/02-CONTEXT.md)
 
-**Plans:** `02-01`–`02-03` — TBD in plan-phase (placeholder IDs in ROADMAP).
+**Plans:** [02-01-PLAN.md](phases/02-whitelist-access-log-behavior/02-01-PLAN.md), [02-02-PLAN.md](phases/02-whitelist-access-log-behavior/02-02-PLAN.md), [02-03-PLAN.md](phases/02-whitelist-access-log-behavior/02-03-PLAN.md) (wave 1: 02-01 + 02-02 in parallel; wave 2: 02-03 after both).
 
 ## Performance metrics
 
@@ -31,6 +31,6 @@ _(Updated as phases complete.)_
 ## Session continuity
 
 - **Last roadmap update:** 2026-04-04
-- **Stopped at:** Phase 2 context gathered (`defaults`)
+- **Stopped at:** Phase 2 planned (`/gsd-plan-phase 2`)
 - **Resume file:** [.planning/phases/02-whitelist-access-log-behavior/02-CONTEXT.md](phases/02-whitelist-access-log-behavior/02-CONTEXT.md)
-- **Next action:** `/gsd-plan-phase 2` → then `/gsd-execute-phase 2` when plans exist
+- **Next action:** `/gsd-execute-phase 2`

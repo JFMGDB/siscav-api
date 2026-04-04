@@ -16,7 +16,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Security & authentication correctness | 0/3 | Not started | - |
-| 2. Whitelist & access log behavior | 0/3 | Not started | - |
+| 2. Whitelist & access log behavior | 3/3 | Planned | - |
 | 3. Gate & device integration honesty | 0/2 | Not started | - |
 | 4. Operations & dependency hygiene | 0/3 | Not started | - |
 
@@ -54,9 +54,9 @@
 4. An authenticated user can retrieve stored images for a log entry when policy allows.
 
 **Plans**:
-- 02-01 — TBD
-- 02-02 — TBD
-- 02-03 — TBD
+- 02-01 — Whitelist CRUD contract: OpenAPI, README, integration tests ([02-01-PLAN.md](phases/02-whitelist-access-log-behavior/02-01-PLAN.md))
+- 02-02 — Access log ingest + list: repository hygiene, filters/order, tests ([02-02-PLAN.md](phases/02-whitelist-access-log-behavior/02-02-PLAN.md))
+- 02-03 — LOG-03 docs honesty: main OpenAPI, README matrix, admin image test ([02-03-PLAN.md](phases/02-whitelist-access-log-behavior/02-03-PLAN.md))
 
 ### Phase 3: Gate & device integration honesty
 **Goal**: Gate triggers and device-related APIs reflect real integration or explicit simulation so operators are never misled by silent success or mock data presented as live hardware.
