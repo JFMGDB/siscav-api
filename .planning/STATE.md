@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Phase 2 planned (`/gsd-plan-phase 2`)
+stopped_at: Phase 2 complete (`/gsd-execute-phase 2`)
 last_updated: "2026-04-04T23:39:37.587Z"
 progress:
   total_phases: 4
@@ -25,15 +25,15 @@ Phase: 3
 Plan: Not started
 | Field | Value |
 |-------|--------|
-| **Phase** | 2 — Whitelist & access log behavior |
-| **Plan** | 02-01 … 02-03 (executable PLAN.md files present) |
-| **Status** | Planned — run `/gsd-execute-phase 2` |
+| **Phase** | 3 — Gate & device integration honesty |
+| **Plan** | Not started (see ROADMAP) |
+| **Status** | Phase 2 complete — plan or discuss Phase 3 next |
 
-**Focus:** Whitelist CRUD + audit list contract (WL-01, LOG-01–03); list JSON for any authenticated user; images admin-only (Phase 1); freeze query params and strict plate rules.
+**Focus:** GATE-01, DEV-01 — gate trigger honesty and device endpoints production-ready or explicitly disabled.
 
-**Resume:** [.planning/phases/02-whitelist-access-log-behavior/02-CONTEXT.md](phases/02-whitelist-access-log-behavior/02-CONTEXT.md)
+**Resume:** [.planning/ROADMAP.md](ROADMAP.md) (Phase 3 section)
 
-**Plans:** [02-01-PLAN.md](phases/02-whitelist-access-log-behavior/02-01-PLAN.md), [02-02-PLAN.md](phases/02-whitelist-access-log-behavior/02-02-PLAN.md), [02-03-PLAN.md](phases/02-whitelist-access-log-behavior/02-03-PLAN.md) (wave 1: 02-01 + 02-02 in parallel; wave 2: 02-03 after both).
+**Phase 2 artifacts:** [02-VERIFICATION.md](phases/02-whitelist-access-log-behavior/02-VERIFICATION.md), summaries `02-01`–`02-03`.
 
 ## Performance metrics
 
@@ -47,6 +47,5 @@ _(Updated as phases complete.)_
 ## Session continuity
 
 - **Last roadmap update:** 2026-04-04
-- **Stopped at:** Phase 2 planned (`/gsd-plan-phase 2`)
-- **Resume file:** [.planning/phases/02-whitelist-access-log-behavior/02-CONTEXT.md](phases/02-whitelist-access-log-behavior/02-CONTEXT.md)
-- **Next action:** `/gsd-execute-phase 2`
+- **Stopped at:** Phase 2 complete (`/gsd-execute-phase 2`)
+- **Next action:** `/gsd-discuss-phase 3` or `/gsd-plan-phase 3`
