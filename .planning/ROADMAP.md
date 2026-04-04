@@ -7,7 +7,8 @@
 ## Phases
 
 - [ ] **Phase 1: Security & authentication correctness** — Protected ingest, token/rate-limit hygiene, docs aligned with real authorization; auth flows remain usable.
-- [x] **Phase 2: Whitelist & access log behavior** — Normalized whitelist CRUD and full audit trail submit/list/image behavior for authenticated clients. (completed 2026-04-04)
+- [x] **Phase 2: Whitelist & access log behavior** — Normalized whitelist CRUD and full audit trail submit/list/image behavior for authenticated clients.
+ (completed 2026-04-04)
 - [ ] **Phase 3: Gate & device integration honesty** — Real integration path or explicit simulation; device endpoints production-ready or clearly disabled.
 - [ ] **Phase 4: Operations & dependency hygiene** — Debug noise removed or gated, migration discipline, pinned deps, deprecated `crud/` path resolved.
 
@@ -17,7 +18,7 @@
 |-------|----------------|--------|-----------|
 | 1. Security & authentication correctness | 0/3 | Not started | - |
 | 2. Whitelist & access log behavior | 3/3 | Complete    | 2026-04-04 |
-| 3. Gate & device integration honesty | 0/2 | Not started | - |
+| 3. Gate & device integration honesty | 2/2 | Planned | - |
 | 4. Operations & dependency hygiene | 0/3 | Not started | - |
 
 ## Phase Details
@@ -70,8 +71,8 @@
 2. Device-related endpoints are production-ready for discovery/control, or are feature-flagged/disabled such that operators cannot treat mocks as live hardware.
 
 **Plans**:
-- 03-01 — TBD
-- 03-02 — TBD
+- 03-01 — GATE-01: actuator env, `GateTriggerResponse`, simulated vs HTTP live, tests, README gate ([03-01-PLAN.md](phases/03-gate-device-integration-honesty/03-01-PLAN.md))
+- 03-02 — DEV-01: `IOT_DEVICE_DEMO_API`, 501 when off, `demo` on schemas, OpenAPI/README, tests ([03-02-PLAN.md](phases/03-gate-device-integration-honesty/03-02-PLAN.md))
 
 ### Phase 4: Operations & dependency hygiene
 **Goal**: The codebase and runtime are suitable for shared and production-like environments: no accidental debug paths, reproducible installs, and a single maintained data-access story.

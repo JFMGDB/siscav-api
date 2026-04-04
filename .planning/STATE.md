@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Phase 3 context gathered
+stopped_at: Phase 3 planned (`/gsd-plan-phase 3`)
 last_updated: "2026-04-04T23:44:01.206Z"
 progress:
   total_phases: 4
@@ -26,14 +26,14 @@ Plan: Not started
 | Field | Value |
 |-------|--------|
 | **Phase** | 3 — Gate & device integration honesty |
-| **Plan** | Not started (see ROADMAP) |
-| **Status** | Phase 2 complete — plan or discuss Phase 3 next |
+| **Plan** | 03-01 … 03-02 (executable PLAN.md files present) |
+| **Status** | Planned — run `/gsd-execute-phase 3` |
 
 **Focus:** GATE-01, DEV-01 — gate trigger honesty and device endpoints production-ready or explicitly disabled.
 
-**Resume:** [.planning/ROADMAP.md](ROADMAP.md) (Phase 3 section)
+**Resume:** [.planning/phases/03-gate-device-integration-honesty/03-CONTEXT.md](phases/03-gate-device-integration-honesty/03-CONTEXT.md)
 
-**Phase 2 artifacts:** [02-VERIFICATION.md](phases/02-whitelist-access-log-behavior/02-VERIFICATION.md), summaries `02-01`–`02-03`.
+**Plans:** [03-01-PLAN.md](phases/03-gate-device-integration-honesty/03-01-PLAN.md) (wave 1), [03-02-PLAN.md](phases/03-gate-device-integration-honesty/03-02-PLAN.md) (wave 2, after 03-01).
 
 ## Performance metrics
 
@@ -47,5 +47,5 @@ _(Updated as phases complete.)_
 ## Session continuity
 
 - **Last roadmap update:** 2026-04-04
-- **Stopped at:** Phase 3 context gathered
-- **Next action:** `/gsd-discuss-phase 3` or `/gsd-plan-phase 3`
+- **Stopped at:** Phase 3 planned (`/gsd-plan-phase 3`)
+- **Next action:** `/gsd-execute-phase 3`
