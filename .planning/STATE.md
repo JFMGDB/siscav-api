@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Phase 3 planned (`/gsd-plan-phase 3`)
-last_updated: "2026-04-04T23:44:01.206Z"
+stopped_at: Phase 3 complete (`/gsd-execute-phase 3`)
+last_updated: "2026-04-04T23:58:37.349Z"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 5
 ---
 
 # Project state: SISCAV API
@@ -21,19 +21,19 @@ progress:
 
 ## Current position
 
-Phase: 3
+Phase: 4
 Plan: Not started
 | Field | Value |
 |-------|--------|
-| **Phase** | 3 — Gate & device integration honesty |
-| **Plan** | 03-01 … 03-02 (executable PLAN.md files present) |
-| **Status** | Planned — run `/gsd-execute-phase 3` |
+| **Phase** | 4 — Operations & dependency hygiene |
+| **Plan** | Not started (see ROADMAP) |
+| **Status** | Phase 3 complete — plan or discuss Phase 4 next |
 
-**Focus:** GATE-01, DEV-01 — gate trigger honesty and device endpoints production-ready or explicitly disabled.
+**Focus:** OPS-01, OPS-02, OPS-03 — debug gating, migrations/pins, `crud/` deprecation.
 
-**Resume:** [.planning/phases/03-gate-device-integration-honesty/03-CONTEXT.md](phases/03-gate-device-integration-honesty/03-CONTEXT.md)
+**Resume:** [.planning/ROADMAP.md](ROADMAP.md) (Phase 4 section)
 
-**Plans:** [03-01-PLAN.md](phases/03-gate-device-integration-honesty/03-01-PLAN.md) (wave 1), [03-02-PLAN.md](phases/03-gate-device-integration-honesty/03-02-PLAN.md) (wave 2, after 03-01).
+**Phase 3 artifacts:** [03-VERIFICATION.md](phases/03-gate-device-integration-honesty/03-VERIFICATION.md), summaries `03-01`–`03-02`.
 
 ## Performance metrics
 
@@ -47,5 +47,5 @@ _(Updated as phases complete.)_
 ## Session continuity
 
 - **Last roadmap update:** 2026-04-04
-- **Stopped at:** Phase 3 planned (`/gsd-plan-phase 3`)
-- **Next action:** `/gsd-execute-phase 3`
+- **Stopped at:** Phase 3 complete (`/gsd-execute-phase 3`)
+- **Next action:** `/gsd-discuss-phase 4` or `/gsd-plan-phase 4`
