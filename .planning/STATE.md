@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: Milestone v1.0 roadmap complete
-stopped_at: Phase 1 executed — SEC/AUTH verified
-last_updated: "2026-04-05T12:00:00.000Z"
+milestone_name: API brownfield hardening
+status: v1.0 shipped — awaiting next milestone definition
+stopped_at: Milestone complete (archived 2026-04-05)
+last_updated: "2026-04-05T00:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,31 +18,24 @@ progress:
 
 - **Core value:** Trustworthy plate-based access decisions and an auditable log of every attempt, with a path to secure devices and real gate integration.
 - **Source of truth:** [.planning/PROJECT.md](PROJECT.md)
+- **Shipped v1.0:** [.planning/MILESTONES.md](MILESTONES.md) · [audit](milestones/v1.0-MILESTONE-AUDIT.md)
 
 ## Current position
 
-**Roadmap:** Phases **1–4** are **complete** (2026-04-05).
+**Milestone v1.0** está **fechado e arquivado** (2026-04-05). Não há fases numeradas ativas; o **backlog 999.1** (UI / câmara) permanece no [ROADMAP](ROADMAP.md).
 
-| Phase | Verification |
-|-------|----------------|
-| 1 — Security & auth | [01-VERIFICATION.md](phases/01-security-authentication-correctness/01-VERIFICATION.md) |
-| 4 — Ops hygiene | [04-VERIFICATION.md](phases/04-operations-dependency-hygiene/04-VERIFICATION.md) |
-
-**Last execute:** Phase 1 — verification pass + **`test_register_then_login_returns_token_pair`** (AUTH-01). **209** pytest tests green.
-
-**Next (GSD routing):** Milestone v1.0 com todas as fases fechadas e **[`v1.0-MILESTONE-AUDIT.md`](v1.0-MILESTONE-AUDIT.md) passed** → **`/gsd-complete-milestone`**. Backlog UI/câmara: **[999.1](ROADMAP.md#backlog)**.
+**Next:** **`/gsd-new-milestone`** para definir o próximo ciclo (novo `REQUIREMENTS.md` + fases). Opcional: **`/gsd-review-backlog`** para promover 999.1.
 
 ## Performance metrics
 
-_(Updated as phases complete.)_
+_(Atualizar no próximo milestone.)_
 
 ## Accumulated context
 
-- **Decisions:** See PROJECT.md Key Decisions.
-- **Blockers:** None recorded.
+- **Decisions:** Ver PROJECT.md — Key decisions.
+- **Blockers:** Nenhum.
 
 ## Session continuity
 
-- **Last roadmap update:** 2026-04-05
-- **Stopped at:** Phase 1 executed — SEC/AUTH verified
-- **Next action:** Milestone wrap-up or backlog promotion as needed
+- **Last planning action:** complete-milestone v1.0
+- **Next action:** new milestone definition or backlog promotion
