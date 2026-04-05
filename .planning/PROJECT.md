@@ -33,7 +33,7 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 ### Out of Scope
 
 - **On-device ALPR pipeline** (RF-001–RF-003 as implemented on edge hardware) — tracked as a separate deliverable unless reintroduced in-repo; API assumes a client sends plate + image.
-- **Full web dashboard UI** — not in this repository; API supports future SPA consumers (CORS already partially configured for local dev ports).
+- **Full web dashboard UI** — not in this repository; API supports future SPA consumers (CORS already partially configured for local dev ports). *Backlog [.planning/ROADMAP.md](ROADMAP.md): fase **999.1** — ligar câmara por Wi‑Fi ou USB e pré-visualização em tempo real na UI de operador.*
 
 ## Context
 

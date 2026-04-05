@@ -30,7 +30,7 @@ progress:
 
 **Last execute:** Phase 1 — verification pass + **`test_register_then_login_returns_token_pair`** (AUTH-01). **209** pytest tests green.
 
-**Next:** Close or extend the milestone (e.g. `/gsd-complete-milestone`, new requirements, or `/gsd-verify-work` spot-checks).
+**Next (GSD routing):** Milestone v1.0 com todas as fases fechadas → **`/gsd-complete-milestone`** (recomendado: **`/gsd-audit-milestone`** primeiro — ainda não existe `v1.0-MILESTONE-AUDIT.md`). Requisito de interface (câmara Wi‑Fi/USB + live preview) capturado em **backlog [999.1](ROADMAP.md#backlog)**.
 
 ## Performance metrics
 

@@ -113,5 +113,19 @@
 | OPS-02 | 4 |
 | OPS-03 | 4 |
 
+## Backlog
+
+### Phase 999.1: Interface — câmara Wi‑Fi/USB e pré-visualização em tempo real (BACKLOG)
+
+**Goal:** O utilizador, através da interface, liga a câmara por Wi‑Fi ou USB e vê o vídeo em tempo real (pré-visualização), como requisito de produto para um cliente web ou app de operador — fora do âmbito do milestone API v1.0 concluído.
+
+**Requirements:** TBD (provável frontend ou app de borda + permissões de media; esta repo permanece API-first).
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (promover com `/gsd-review-backlog` quando houver repo UI ou arquitetura escolhida)
+
 ---
 *Roadmap created: 2026-04-04*
