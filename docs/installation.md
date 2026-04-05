@@ -184,8 +184,10 @@ pip install -r requirements.txt
 ```
 
 **Diferença entre os arquivos:**
-- `requirements.txt`: Dependências mínimas para executar a API
-- `requirements-dev.txt`: Inclui `requirements.txt` + ferramentas de desenvolvimento (pytest, ruff, httpx, pyright)
+- `requirements.txt`: Dependências de execução da API com versões fixas (`==`) para instalações reproduzíveis
+- `requirements-dev.txt`: Inclui `requirements.txt` + ferramentas de desenvolvimento (pytest, pytest-cov, ruff, httpx), também pinadas
+
+O pipeline de CI (`.github/workflows/ci.yml`) usa **Python 3.13** e `pip install -r requirements-dev.txt` antes de `ruff` e `pytest`.
 
 ### 4. Configurar Variáveis de Ambiente
 

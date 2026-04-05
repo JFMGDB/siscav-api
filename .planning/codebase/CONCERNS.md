@@ -18,11 +18,8 @@
 - Impact: Confusion for contributors, dead code surface; grep shows no imports of these modules from application code beyond self-reference.
 - Fix approach: Delete the `crud/` package after confirming no external consumers, or re-export thin wrappers if backward compatibility is required.
 
-**Unpinned runtime dependencies:**
-- Issue: `requirements.txt` lists packages without version pins (e.g. `fastapi`, `sqlalchemy`, `python-jose[cryptography]`).
-- Files: `requirements.txt`
-- Impact: Reproducible builds and security patches are harder to reason about; CI and production can drift silently.
-- Fix approach: Pin versions or adopt a lockfile workflow (e.g. `pip-tools`, `uv lock`).
+**Unpinned runtime dependencies (resolved in Phase 4):**
+- **Status:** Runtime and dev direct dependencies use `==` pins in `requirements.txt`, `requirements-dev.txt`, and `pyproject.toml`. CI installs via `pip install -r requirements-dev.txt` (Python 3.13 on GitHub Actions).
 
 **Register rate limit marked temporary:**
 - Issue: `register` uses `@limiter.limit("100/minute")` with comment "Temporariamente aumentado para testes".
