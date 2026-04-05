@@ -56,10 +56,6 @@
 - **Configuration:** `apps/api/src/api/v1/core/config.py` — `get_settings()` (cached) resolves DB URL from env with documented fallback order (including SQLite dev fallback).
 - **Migrations:** Root `alembic.ini` points `script_location` to `apps/api/src/alembic`; revision scripts live under `apps/api/src/alembic/versions/`.
 
-**Legacy / deprecated:**
-- Purpose: Older CRUD-style modules marked deprecated; **no current imports** from `crud/` under `apps/api` (prefer repositories + controllers).
-- Location: `apps/api/src/api/v1/crud/` (`crud_user.py`, `crud_authorized_plate.py`, `crud_access_log.py`).
-
 **Utilities:**
 - Purpose: Pure helpers (e.g. plate normalization/validation).
 - Location: `apps/api/src/api/v1/utils/plate.py`.

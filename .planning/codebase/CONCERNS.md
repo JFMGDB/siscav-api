@@ -12,11 +12,8 @@
 - Previously: `session.py` could call `Base.metadata.create_all` for empty SQLite DBs.
 - **Status:** Removed. Schema is applied only via **Alembic** (`alembic upgrade head` from `apps/api`); see `docs/installation.md` and `docs/setup_database_guide.md` for SQLite primeiro arranque.
 
-**Deprecated CRUD modules retained:**
-- Issue: `apps/api/src/api/v1/crud/crud_user.py`, `crud_access_log.py`, and `crud_authorized_plate.py` emit `DeprecationWarning` and state removal in a future version; they duplicate repository/controller patterns.
-- Files: `apps/api/src/api/v1/crud/crud_user.py` (and sibling crud files)
-- Impact: Confusion for contributors, dead code surface; grep shows no imports of these modules from application code beyond self-reference.
-- Fix approach: Delete the `crud/` package after confirming no external consumers, or re-export thin wrappers if backward compatibility is required.
+**Deprecated CRUD modules (removed in Phase 4):**
+- **Status:** The `apps/api/src/api/v1/crud/` package was deleted after confirming no imports. Use **repositories** + **controllers** only.
 
 **Unpinned runtime dependencies (resolved in Phase 4):**
 - **Status:** Runtime and dev direct dependencies use `==` pins in `requirements.txt`, `requirements-dev.txt`, and `pyproject.toml`. CI installs via `pip install -r requirements-dev.txt` (Python 3.13 on GitHub Actions).

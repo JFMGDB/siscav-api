@@ -262,33 +262,18 @@ def validate_image_file(self, file: UploadFile) -> None:
 - Validações centralizadas evitam inconsistências.
 - Padrão claro para novos desenvolvedores.
 
-## Migração de Código Antigo
+## Acesso a dados (repositórios)
 
-### Módulos CRUD Obsoletos
+Os antigos módulos `crud_*` foram **removidos** (Fase 4 / ops hygiene). Todo acesso a dados passa por **repositories** (e regras de negócio em **controllers**).
 
-Os seguintes módulos estão **depreciados** e serão removidos em versão futura:
-
-- `apps/api/src/api/v1/crud/crud_user.py`
-- `apps/api/src/api/v1/crud/crud_authorized_plate.py`
-- `apps/api/src/api/v1/crud/crud_access_log.py`
-
-### Como Migrar
-
-**Antes**:
-```python
-from apps.api.src.api.v1.crud import crud_user
-
-user = crud_user.get_by_email(db, email)
-```
-
-**Depois**:
+**Exemplo — buscar usuário por e-mail:**
 ```python
 from apps.api.src.api.v1.repositories.user_repository import UserRepository
 
 user = UserRepository.get_by_email(db, email)
 ```
 
-**Para Lógica de Negócio**:
+**Para lógica de negócio**:
 ```python
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 

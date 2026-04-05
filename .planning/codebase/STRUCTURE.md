@@ -19,7 +19,6 @@ siscav-api/
 │                   ├── api.py    # Aggregates v1 routers
 │                   ├── deps.py   # FastAPI DI: db, user, controllers
 │                   ├── controllers/
-│                   ├── crud/     # Deprecated CRUD modules (avoid new code)
 │                   ├── core/     # config, security, limiter
 │                   ├── db/       # Base, session, engine
 │                   ├── endpoints/
