@@ -38,9 +38,39 @@ Foco no **backend deste repositório** (`apps/api/src/`). Cliente ALPR/IoT em pr
 
 ---
 
-## Migração `is_admin` / erro em rotas admin
+## `no such column: users.is_admin` (SQLite)
 
-O modelo `User` inclui `is_admin`. Se o banco foi criado antes dessa coluna, aplique migrações até a revisão mais recente em `apps/api/src/alembic/versions/`.
+### Sintoma
+
+A API responde com erro ao consultar utilizadores, por exemplo: `sqlite3.OperationalError: no such column: users.is_admin`.
+
+### Causa
+
+O ficheiro SQLite (ex. `siscav_dev.db` na raiz) foi criado com um schema antigo, mas a revisão **`20260404_0002`** (coluna `is_admin`) não foi aplicada.
+
+### Solução normal
+
+Na **raiz** do repositório:
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path   # Linux/macOS: export PYTHONPATH=.
+python -m alembic upgrade head
+```
+
+### Se `upgrade head` falhar com “table users already exists”
+
+Isto acontece quando a tabela `alembic_version` existe mas está **vazia**: o Alembic assume que nenhuma migração correu e tenta criar de novo as tabelas da revisão inicial.
+
+1. Confirme que o schema corresponde à revisão **`20251102_0001`** (tabelas `users`, `authorized_plates`, `access_logs` sem `users.is_admin`).
+2. Marque essa revisão como aplicada e aplique só as seguintes:
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+python -m alembic stamp 20251102_0001
+python -m alembic upgrade head
+```
+
+Depois reinicie o Uvicorn e volte a testar o registo/login.
 
 ---
 
