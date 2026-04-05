@@ -9,6 +9,7 @@ settings = get_settings()
 
 # Engine e fábrica de sessões para o SQLAlchemy.
 engine = create_engine(settings.database_url, pool_pre_ping=True)
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=Session)
 
 

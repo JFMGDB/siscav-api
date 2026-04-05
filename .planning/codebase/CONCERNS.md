@@ -4,17 +4,13 @@
 
 ## Tech Debt
 
-**Debug / agent instrumentation left in production paths:**
-- Issue: `_resolve_database_url()` in `apps/api/src/api/v1/core/config.py` contains `#region agent log` blocks that append JSON lines to `debug-0c9557.log` under the repo root (via `Path(__file__).resolve().parents[6]`). Similar blocks exist in `apps/api/src/api/v1/db/session.py` at engine initialization.
-- Files: `apps/api/src/api/v1/core/config.py`, `apps/api/src/api/v1/db/session.py`
-- Impact: Unnecessary I/O, possible log file growth, confusing behavior in deployed environments; path depth `parents[6]` is fragile if the package layout moves.
-- Fix approach: Remove the `#region agent log` blocks entirely or gate behind an explicit debug env flag; use structured logging if diagnostics are still needed.
+**Debug / agent instrumentation (resolved in Phase 4):**
+- Previously: ad hoc JSON append to `debug-0c9557.log` from `session.py` at engine init.
+- **Status:** Removed from `apps/api/src/api/v1/db/session.py`. `config.py` had no remaining `#region agent log` in the tree at time of fix; use structured `logging` if new diagnostics are needed.
 
-**SQLite bootstrap via `create_all` at import time:**
-- Issue: In `session.py`, when the engine URL is SQLite and `sqlite_master` shows no tables, the code imports models and calls `Base.metadata.create_all(bind=engine)` inside a try block tied to debug logging.
-- Files: `apps/api/src/api/v1/db/session.py`
-- Impact: Schema is created outside Alembic for that path; diverges from migration-only workflows in `apps/api/src/alembic/` and can mask migration problems locally.
-- Fix approach: Rely on Alembic for all environments, or document SQLite as dev-only and use `alembic upgrade head` explicitly.
+**SQLite bootstrap via `create_all` at import time (resolved in Phase 4):**
+- Previously: `session.py` could call `Base.metadata.create_all` for empty SQLite DBs.
+- **Status:** Removed. Schema is applied only via **Alembic** (`alembic upgrade head` from `apps/api`); see `docs/installation.md` and `docs/setup_database_guide.md` for SQLite primeiro arranque.
 
 **Deprecated CRUD modules retained:**
 - Issue: `apps/api/src/api/v1/crud/crud_user.py`, `crud_access_log.py`, and `crud_authorized_plate.py` emit `DeprecationWarning` and state removal in a future version; they duplicate repository/controller patterns.
