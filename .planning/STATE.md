@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 4 context gathered
-last_updated: "2026-04-05T00:08:15.970Z"
+status: Phase 04 complete
+stopped_at: Phase 4 complete — OPS-01–03
+last_updated: "2026-04-05T00:23:05.175Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 5
+  completed_phases: 3
+  total_plans: 11
+  completed_plans: 8
 ---
 
 # Project state: SISCAV API
@@ -21,19 +21,16 @@ progress:
 
 ## Current position
 
-Phase: 4
-Plan: Not started
+Phase: **04 — Operations & dependency hygiene** — **complete** (2026-04-05)
+
 | Field | Value |
 |-------|--------|
-| **Phase** | 4 — Operations & dependency hygiene |
-| **Plan** | Not started (see ROADMAP) |
-| **Status** | Phase 3 complete — plan or discuss Phase 4 next |
+| **Plans** | 3/3 executed (`04-01`–`04-03`) |
+| **Verification** | [04-VERIFICATION.md](phases/04-operations-dependency-hygiene/04-VERIFICATION.md) |
 
-**Focus:** OPS-01, OPS-02, OPS-03 — debug gating, migrations/pins, `crud/` deprecation.
+**Delivered:** OPS-01 (`session.py` + docs + CONCERNS), OPS-02 (pinned deps), OPS-03 (`crud/` removed, docs aligned).
 
-**Resume:** [.planning/ROADMAP.md](ROADMAP.md) (Phase 4 section)
-
-**Phase 3 artifacts:** [03-VERIFICATION.md](phases/03-gate-device-integration-honesty/03-VERIFICATION.md), summaries `03-01`–`03-02`.
+**Next:** Phase 1 remains open on the roadmap — `/gsd-discuss-phase 1` or `/gsd-plan-phase 1` when ready.
 
 ## Performance metrics
 
@@ -46,6 +43,6 @@ _(Updated as phases complete.)_
 
 ## Session continuity
 
-- **Last roadmap update:** 2026-04-04
-- **Stopped at:** Phase 4 context gathered
-- **Next action:** `/gsd-discuss-phase 4` or `/gsd-plan-phase 4`
+- **Last roadmap update:** 2026-04-05
+- **Stopped at:** Phase 4 complete — OPS-01–03
+- **Next action:** `/gsd-plan-phase 1` or `/gsd-discuss-phase 1` (Phase 1 security/auth)

@@ -38,9 +38,9 @@ Backend/API capabilities targeted by the current planning cycle (brownfield hard
 
 ### Operations & quality
 
-- [ ] **OPS-01**: Debug/agent log instrumentation is removed or strictly gated; SQLite bootstrap does not silently bypass migration discipline in shared environments.
-- [ ] **OPS-02**: Runtime dependencies are pinned or lockfile-managed for reproducible installs.
-- [ ] **OPS-03**: Deprecated `crud/` modules are removed or formally deprecated with no duplicate maintenance path.
+- [x] **OPS-01**: Debug/agent log instrumentation is removed or strictly gated; SQLite bootstrap does not silently bypass migration discipline in shared environments.
+- [x] **OPS-02**: Runtime dependencies are pinned or lockfile-managed for reproducible installs.
+- [x] **OPS-03**: Deprecated `crud/` modules are removed or formally deprecated with no duplicate maintenance path.
 
 ## v2 Requirements
 
@@ -80,9 +80,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOG-03 | 2 | Pending |
 | GATE-01 | 3 | Pending |
 | DEV-01 | 3 | Pending |
-| OPS-01 | 4 | Pending |
-| OPS-02 | 4 | Pending |
-| OPS-03 | 4 | Pending |
+| OPS-01 | 4 | Complete |
+| OPS-02 | 4 | Complete |
+| OPS-03 | 4 | Complete |
 
 **Coverage:**
 

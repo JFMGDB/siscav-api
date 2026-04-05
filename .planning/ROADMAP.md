@@ -11,7 +11,7 @@
  (completed 2026-04-04)
 - [x] **Phase 3: Gate & device integration honesty** — Real integration path or explicit simulation; device endpoints production-ready or clearly disabled.
  (completed 2026-04-04)
-- [ ] **Phase 4: Operations & dependency hygiene** — Debug noise removed or gated, migration discipline, pinned deps, deprecated `crud/` path resolved.
+- [x] **Phase 4: Operations & dependency hygiene** — Debug noise removed or gated, migration discipline, pinned deps, deprecated `crud/` path resolved. (completed 2026-04-05)
 
 ## Progress
 
@@ -20,7 +20,7 @@
 | 1. Security & authentication correctness | 0/3 | Not started | - |
 | 2. Whitelist & access log behavior | 3/3 | Complete    | 2026-04-04 |
 | 3. Gate & device integration honesty | 2/2 | Complete    | 2026-04-04 |
-| 4. Operations & dependency hygiene | 0/3 | Planned     | - |
+| 4. Operations & dependency hygiene | 3/3 | Complete   | 2026-04-05 |
 
 ## Phase Details
 
