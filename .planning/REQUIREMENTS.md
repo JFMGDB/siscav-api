@@ -20,21 +20,21 @@ Backend/API capabilities targeted by the current planning cycle (brownfield hard
 
 ### Whitelist (authorized plates)
 
-- [ ] **WL-01**: Authenticated user can list, create, update, and delete authorized plates with normalized plate matching (case/format insensitive per existing rules).
+- [x] **WL-01**: Authenticated user can list, create, update, and delete authorized plates with normalized plate matching (case/format insensitive per existing rules).
 
 ### Access logs (audit)
 
-- [ ] **LOG-01**: Client can submit an access attempt with plate text and optional image; server persists plate, timestamp, outcome, and image path per existing schema.
-- [ ] **LOG-02**: Authenticated user can list access logs with filtering/pagination as exposed by the API.
-- [ ] **LOG-03**: Authenticated user can retrieve stored images for a log entry when permitted by policy.
+- [x] **LOG-01**: Client can submit an access attempt with plate text and optional image; server persists plate, timestamp, outcome, and image path per existing schema.
+- [x] **LOG-02**: Authenticated user can list access logs with filtering/pagination as exposed by the API.
+- [x] **LOG-03**: Authenticated user can retrieve stored images for a log entry when permitted by policy.
 
 ### Gate control
 
-- [ ] **GATE-01**: Gate trigger endpoint performs a real integration path (or returns explicit “simulated” in response) and surfaces failure when the downstream actuator does not acknowledge.
+- [x] **GATE-01**: Gate trigger endpoint performs a real integration path (or returns explicit “simulated” in response) and surfaces failure when the downstream actuator does not acknowledge.
 
 ### Devices
 
-- [ ] **DEV-01**: Device-related endpoints are either production-ready (real discovery/control) or clearly feature-flagged/disabled so operators cannot mistake mocks for live hardware.
+- [x] **DEV-01**: Device-related endpoints are either production-ready (real discovery/control) or clearly feature-flagged/disabled so operators cannot mistake mocks for live hardware.
 
 ### Operations & quality
 
@@ -74,12 +74,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-03 | 1 | Complete |
 | AUTH-01 | 1 | Complete |
 | AUTH-02 | 1 | Complete |
-| WL-01 | 2 | Pending |
-| LOG-01 | 2 | Pending |
-| LOG-02 | 2 | Pending |
-| LOG-03 | 2 | Pending |
-| GATE-01 | 3 | Pending |
-| DEV-01 | 3 | Pending |
+| WL-01 | 2 | Complete |
+| LOG-01 | 2 | Complete |
+| LOG-02 | 2 | Complete |
+| LOG-03 | 2 | Complete |
+| GATE-01 | 3 | Complete |
+| DEV-01 | 3 | Complete |
 | OPS-01 | 4 | Complete |
 | OPS-02 | 4 | Complete |
 | OPS-03 | 4 | Complete |
@@ -92,4 +92,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-04-04*  
-*Last updated: 2026-04-04 after roadmap traceability*
+*Last updated: 2026-04-05 — milestone v1.0 audit: checkboxes/traceability aligned with phase VERIFICATION.md*
