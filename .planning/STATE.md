@@ -22,9 +22,9 @@ progress:
 
 ## Current position
 
-**Milestone v1.0** está **fechado e arquivado** (2026-04-05). Não há fases numeradas ativas; o **backlog 999.1** (UI / câmara) permanece no [ROADMAP](ROADMAP.md).
+**Milestone v1.0** está **fechado e arquivado** (2026-04-05). **Backlog 999.1** (UI câmara Wi‑Fi/USB + preview): contexto em [phases/999.1-ui-camera-wifi-usb-live-preview/999.1-CONTEXT.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-CONTEXT.md) (2026-04-05).
 
-**Next:** **`/gsd-new-milestone`** para definir o próximo ciclo (novo `REQUIREMENTS.md` + fases). Opcional: **`/gsd-review-backlog`** para promover 999.1.
+**Next:** **`/gsd-plan-phase 999.1`** (e opcional **`/gsd-ui-phase 999.1`** antes, se quiseres UI-SPEC). Para ciclo com `REQUIREMENTS.md` novo: **`/gsd-new-milestone`** ou **`/gsd-review-backlog`** para promover 999.1.
 
 ## Performance metrics
 
@@ -37,5 +37,5 @@ _(Atualizar no próximo milestone.)_
 
 ## Session continuity
 
-- **Last planning action:** complete-milestone v1.0
-- **Next action:** new milestone definition or backlog promotion
+- **Last planning action:** discuss-phase 999.1 (CONTEXT + DISCUSSION-LOG)
+- **Next action:** plan-phase 999.1 or new milestone / backlog promotion
