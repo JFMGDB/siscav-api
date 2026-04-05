@@ -11,13 +11,14 @@
  (completed 2026-04-04)
 - [x] **Phase 3: Gate & device integration honesty** — Real integration path or explicit simulation; device endpoints production-ready or clearly disabled.
  (completed 2026-04-04)
-- [x] **Phase 4: Operations & dependency hygiene** — Debug noise removed or gated, migration discipline, pinned deps, deprecated `crud/` path resolved. (completed 2026-04-05)
+- [x] **Phase 4: Operations & dependency hygiene** — Debug noise removed or gated, migration discipline, pinned deps, deprecated `crud/` path resolved.
+ (completed 2026-04-05)
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Security & authentication correctness | 0/3 | Not started | - |
+| 1. Security & authentication correctness | 0/3 | Planned     | - |
 | 2. Whitelist & access log behavior | 3/3 | Complete    | 2026-04-04 |
 | 3. Gate & device integration honesty | 2/2 | Complete    | 2026-04-04 |
 | 4. Operations & dependency hygiene | 3/3 | Complete   | 2026-04-05 |
@@ -38,9 +39,9 @@
 4. A user can still register with email/password and use login plus refresh to obtain new access tokens (no regression of core auth).
 
 **Plans**:
-- 01-01 — TBD
-- 01-02 — TBD
-- 01-03 — TBD
+- 01-01 — SEC-01: `X-Device-Key` ingest, OpenAPI, tests ([01-01-PLAN.md](phases/01-security-authentication-correctness/01-01-PLAN.md))
+- 01-02 — SEC-02 + AUTH: refresh rate limit, production `SECRET_KEY` guard, auth tests ([01-02-PLAN.md](phases/01-security-authentication-correctness/01-02-PLAN.md))
+- 01-03 — SEC-03: `is_admin`, admin deps, gate_control + image routes, docs ([01-03-PLAN.md](phases/01-security-authentication-correctness/01-03-PLAN.md))
 
 ### Phase 2: Whitelist & access log behavior
 **Goal**: Authorized users can manage the plate whitelist and consume a trustworthy audit trail (submit, list, images) through the API.
