@@ -1,336 +1,83 @@
-# Troubleshooting - Problemas de Instalação
+# Troubleshooting — API SISCAV e ambiente
 
-Este documento aborda problemas comuns durante a instalação das dependências do dispositivo IoT.
+Foco no **backend deste repositório** (`apps/api/src/`). Cliente ALPR/IoT em projeto separado: veja [`docs/iot/README.md`](../iot/README.md).
 
-## Erro: Compilação do NumPy Falha (Windows)
+---
 
-### Sintoma
+## Não consigo importar `apps` / erro ao subir o Uvicorn
 
-```
-fatal error C1083: Não é possível abrir arquivo incluir: 'stdalign.h': No such file or directory
-error: metadata-generation-failed
-```
+### Sintomas
 
-**Solução Rápida:** Execute o script de correção:
-```powershell
-cd apps/iot-device
-.\scripts\fix_numpy_install.ps1
-```
-
-### Causa
-
-O NumPy está tentando compilar do código-fonte, mas há incompatibilidade com:
-- Python 3.13 ou 3.14 (muito recentes, podem não ter wheels pré-compilados)
-- Compilador C/C++ desatualizado ou mal configurado
-- Falta de Visual Studio Build Tools
+- `ModuleNotFoundError: No module named 'apps'`
+- `Could not import module 'main'`
 
 ### Soluções
 
-#### Solução 1: Usar Python 3.10, 3.11 ou 3.12 (Recomendado)
+1. Na **raiz** do repositório (onde está `alembic.ini`):
+   - Linux/macOS: `export PYTHONPATH=.`
+   - PowerShell: `$env:PYTHONPATH = (Get-Location).Path`
+   - Depois: `uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8000`
 
-Python 3.13 e 3.14 são muito recentes e podem não ter suporte completo de todas as bibliotecas.
+2. Ou entre em `apps/api/src` e use: `uvicorn main:app --reload --host 0.0.0.0 --port 8000`
 
-```powershell
-# Verificar versão do Python
-python --version
-
-# Se for 3.13 ou 3.14, instalar Python 3.12 ou 3.11
-# Download: https://www.python.org/downloads/
-
-# Criar novo ambiente virtual com Python 3.12
-py -3.12 -m venv venv
-venv\Scripts\activate
-
-# Ou usar Python 3.11
-py -3.11 -m venv venv
-venv\Scripts\activate
-```
-
-#### Solução 2: Instalar Wheel Pré-compilado
-
-Forçar instalação de wheel pré-compilado em vez de compilar:
-
-```powershell
-# Atualizar pip
-python -m pip install --upgrade pip
-
-# Instalar NumPy usando wheel pré-compilado
-pip install --only-binary :all: numpy
-
-# Ou especificar versão específica
-pip install numpy==1.26.4 --only-binary :all:
-```
-
-#### Solução 3: Instalar Visual Studio Build Tools
-
-Se precisar compilar (não recomendado):
-
-```powershell
-# Baixar e instalar Visual Studio Build Tools
-# https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022
-
-# Instalar "Desktop development with C++" workload
-# Reiniciar terminal após instalação
-```
-
-#### Solução 4: Usar Conda (Alternativa)
-
-Conda gerencia melhor dependências binárias:
-
-```powershell
-# Instalar Miniconda: https://docs.conda.io/en/latest/miniconda.html
-
-# Criar ambiente
-conda create -n siscav python=3.12
-conda activate siscav
-
-# Instalar dependências
-conda install numpy opencv requests
-pip install easyocr
-```
-
-### Verificação
-
-Após aplicar uma solução, verificar:
-
-```powershell
-python -c "import numpy; print(numpy.__version__)"
-python -c "import cv2; print(cv2.__version__)"
-```
+3. Windows: na raiz, `.\scripts\start_server.ps1` (define `PYTHONPATH` e chama o Uvicorn).
 
 ---
 
-## Erro: EasyOCR Não Instala
+## Banco de dados / Alembic
 
 ### Sintoma
 
-```
-ERROR: Could not find a version that satisfies the requirement easyocr
-```
+`sqlalchemy.exc.OperationalError` ou tabelas inexistentes.
 
-### Solução
+### Soluções
 
-```powershell
-# Atualizar pip
-python -m pip install --upgrade pip
-
-# Instalar EasyOCR
-pip install easyocr
-
-# Se falhar, instalar dependências manualmente
-pip install torch torchvision torchaudio
-pip install opencv-python-headless
-pip install easyocr
-```
+- Com SQLite ou Postgres configurado, na raiz com `PYTHONPATH` se necessário: `alembic upgrade head`
+- Confira `DATABASE_URL` ou `POSTGRES_*` em `apps/api/src/api/v1/core/config.py` e variáveis de ambiente
+- Guia longo: [`docs/installation.md`](../installation.md)
 
 ---
 
-## Erro: OpenCV Não Encontrado
+## Migração `is_admin` / erro em rotas admin
 
-### Sintoma
-
-```
-ModuleNotFoundError: No module named 'cv2'
-```
-
-### Solução
-
-```powershell
-# Instalar OpenCV
-pip install opencv-python
-
-# Ou versão headless (sem GUI, para servidores)
-pip install opencv-python-headless
-```
+O modelo `User` inclui `is_admin`. Se o banco foi criado antes dessa coluna, aplique migrações até a revisão mais recente em `apps/api/src/alembic/versions/`.
 
 ---
 
-## Erro: Permissão Negada no Windows
+## JWT / 401 / 403
 
-### Sintoma
-
-```
-PermissionError: [WinError 5] Access is denied
-```
-
-### Solução
-
-```powershell
-# Executar PowerShell como Administrador
-# Ou usar --user flag
-pip install --user -r requirements.txt
-
-# Ou usar ambiente virtual
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
+- Login: `POST /api/v1/login/access-token` (form `username` = email, `password`)
+- Header: `Authorization: Bearer <access_token>`
+- Access token expira (padrão em `ACCESS_TOKEN_EXPIRE_MINUTES`); use refresh conforme [`docs/api/FRONTEND_INTEGRATION.md`](../api/FRONTEND_INTEGRATION.md)
 
 ---
 
-## Erro: Câmera Não Detectada
+## Ingestão `POST /api/v1/access_logs/` retorna 401
 
-### Sintoma
-
-```
-RuntimeError: Failed to read from camera
-```
-
-### Solução
-
-```powershell
-# Verificar câmeras disponíveis
-python -c "import cv2; [print(f'Camera {i}: {cv2.VideoCapture(i).isOpened()}') for i in range(5)]"
-
-# Testar diferentes IDs
-$env:CAMERA_ID=0
-python main.py
-
-# Se não funcionar, tentar ID 1, 2, etc.
-$env:CAMERA_ID=1
-python main.py
-```
+Se `DEVICE_INGEST_KEY` estiver definido no servidor (ambiente não-development), o cliente deve enviar `X-Device-Key` com o mesmo valor. Ver `apps/api/src/api/v1/deps.py`.
 
 ---
 
-## Instalação Completa - Passo a Passo (Windows)
+## Rate limit no login
 
-### Método 1: Usar Script de Instalação Automática (Recomendado)
-
-```powershell
-cd apps/iot-device
-.\scripts\install_dependencies.ps1
-```
-
-O script detecta automaticamente problemas e oferece soluções.
-
-### Método 2: Python 3.12 com pip (Manual)
-
-```powershell
-# 1. Verificar Python
-py -3.12 --version
-
-# 2. Criar ambiente virtual
-py -3.12 -m venv venv
-
-# 3. Ativar ambiente
-venv\Scripts\activate
-
-# 4. Atualizar pip
-python -m pip install --upgrade pip
-
-# 5. Instalar NumPy (forçar wheel)
-pip install --only-binary :all: numpy
-
-# 6. Instalar outras dependências
-pip install opencv-python requests
-
-# 7. Instalar EasyOCR
-pip install easyocr
-
-# 8. Verificar instalação
-python -c "import numpy, cv2, easyocr; print('OK')"
-```
-
-### Método 2: Usando Conda
-
-```powershell
-# 1. Instalar Miniconda
-# https://docs.conda.io/en/latest/miniconda.html
-
-# 2. Criar ambiente
-conda create -n siscav python=3.12 -y
-conda activate siscav
-
-# 3. Instalar dependências via conda
-conda install numpy opencv requests -y
-
-# 4. Instalar EasyOCR via pip
-pip install easyocr
-
-# 5. Verificar
-python -c "import numpy, cv2, easyocr; print('OK')"
-```
+Mensagem do tipo `Rate limit exceeded`. Aguarde a janela ou ajuste limites em desenvolvimento (`apps/api/src/api/v1/core/limiter.py`, `endpoints/auth.py`).
 
 ---
 
-## Verificação de Instalação
+## Anexo: NumPy / OpenCV / EasyOCR (projeto de borda **separado**)
 
-Script de verificação:
+Se você mantém um **outro** repositório com ALPR em Python e encontrar falha de compilação do NumPy no Windows:
 
-```powershell
-# Criar arquivo: check_installation.ps1
-python -c "
-import sys
-print(f'Python: {sys.version}')
+- Prefira Python 3.11 ou 3.12 com wheels pré-compilados: `pip install --only-binary :all: numpy`
+- Atualize pip: `python -m pip install --upgrade pip`
+- Ferramentas de build C++ (Visual Studio Build Tools) só se realmente precisar compilar da fonte
 
-try:
-    import numpy
-    print(f'NumPy: {numpy.__version__} - OK')
-except ImportError as e:
-    print(f'NumPy: FALHOU - {e}')
-
-try:
-    import cv2
-    print(f'OpenCV: {cv2.__version__} - OK')
-except ImportError as e:
-    print(f'OpenCV: FALHOU - {e}')
-
-try:
-    import easyocr
-    print('EasyOCR: OK')
-except ImportError as e:
-    print(f'EasyOCR: FALHOU - {e}')
-
-try:
-    import requests
-    print(f'Requests: {requests.__version__} - OK')
-except ImportError as e:
-    print(f'Requests: FALHOU - {e}')
-"
-```
-
-Executar:
-```powershell
-.\check_installation.ps1
-```
+**Não** existe mais `apps/iot-device/scripts/` neste repositório; adapte os caminhos ao seu projeto.
 
 ---
 
-## Requisitos Mínimos do Sistema
+## Links
 
-### Windows
-
-- **Python:** 3.10, 3.11 ou 3.12 (evitar 3.13 e 3.14 por enquanto)
-- **RAM:** 4GB mínimo, 8GB recomendado
-- **Espaço:** 5GB livres
-- **Câmera:** USB 2.0 ou superior
-
-### Dependências Python
-
-- NumPy >= 1.24.0
-- OpenCV >= 4.8.0
-- EasyOCR >= 1.7.0
-- Requests >= 2.31.0
-
----
-
-## Links Úteis
-
-- Python Downloads: https://www.python.org/downloads/
-- NumPy Wheels: https://pypi.org/project/numpy/#files
-- Visual Studio Build Tools: https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022
-- Miniconda: https://docs.conda.io/en/latest/miniconda.html
-
----
-
-## Suporte Adicional
-
-Se nenhuma solução funcionar:
-
-1. Verificar logs completos do erro
-2. Verificar versão exata do Python: `python --version`
-3. Verificar arquitetura: `python -c "import platform; print(platform.machine())"`
-4. Coletar informações do sistema
-5. Abrir issue no repositório do projeto
-
+- [Iniciar servidor](../init-server-guide.md)
+- [Instalação completa](../installation.md)
+- [Índice da documentação](../README.md)

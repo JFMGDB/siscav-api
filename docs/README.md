@@ -1,175 +1,110 @@
-# Documentação do Projeto SISCAV
+# Documentação do projeto SISCAV
 
-Bem-vindo à documentação completa do Sistema de Controle de Acesso Veicular (SISCAV). Esta documentação fornece informações técnicas, operacionais e de desenvolvimento para todos os aspectos do sistema.
+Documentação técnica e operacional do **SISCAV API** — backend FastAPI para controle de acesso veicular baseado em placas, com registro auditável e integração opcional com atuador de portão.
 
-## Visão Geral
+**Última revisão estrutural:** 2026-04-05 (alinhada ao repositório atual: sem `apps/iot-device/` no tree).
 
-O SISCAV é uma solução completa que integra IoT, Inteligência Artificial e automação para controle de acesso veicular totalmente automatizado. O sistema utiliza reconhecimento automático de placas (ALPR) para identificar veículos e controlar o acesso através de portões automatizados.
+## Visão geral
 
-## Estrutura da Documentação
+O produto deste repositório é a **API central**: autenticação (JWT + refresh), CRUD de placas autorizadas, ingestão de logs de acesso (multipart: imagem + placa), listagens com filtros, e endpoint administrativo para acionar portão (simulado ou HTTP externo). Reconhecimento de placa em câmera (OpenCV/EasyOCR) **não** faz parte do código da API; um cliente de borda pode chamar a API documentada em [`docs/api/`](api/) e [`docs/iot/README.md`](iot/README.md).
 
-A documentação está organizada em seções temáticas para facilitar a navegação:
+## Estrutura da documentação
 
-### [Getting Started](./getting-started/)
-Guias de início rápido para configurar e executar o sistema pela primeira vez.
-- [Guia de Instalação](./getting-started/installation-guide.md)
-- [Troubleshooting](./getting-started/troubleshooting.md)
+### [Getting started](./getting-started/)
 
-### [Architecture](./architecture/)
-Documentação arquitetural do sistema, decisões de design e estrutura do projeto.
-- [Resumo Executivo](./architecture/executive-summary.md)
-- [Critérios de Aceite e DevOps](./architecture/acceptance-criteria-devops.md)
-**Nota**: Documentos históricos sobre estrutura antiga foram arquivados. Consulte [Development - Padrões de Código](./development/coding-standards.md) para a arquitetura atual.
+- [README — primeiro passos (API)](./getting-started/README.md)
+- [Troubleshooting (API e ambiente)](./getting-started/troubleshooting.md)
+- **Instalação completa:** [Guia de instalação](./installation.md) (raiz de `docs/`)
 
-### [Requirements](./requirements/)
-Especificações funcionais e não funcionais do sistema.
-- [Especificação de Projeto](./requirements/project-specification.md)
+### [Instalação (guia longo)](./installation.md)
+
+Instalação da API, banco (PostgreSQL / Supabase / SQLite), Alembic, variáveis de ambiente e verificação.
+
+### [Iniciar o servidor](./init-server-guide.md)
+
+Uvicorn, health check, Swagger e script PowerShell em `scripts/start_server.ps1`.
 
 ### [API](./api/)
-Documentação técnica da API REST.
-- [Documentação Técnica da API](../apps/api/docs/technical-documentation.md) (movido para `apps/api/docs/`)
+
+- [README da pasta API](./api/README.md)
+- [Integração frontend](./api/FRONTEND_INTEGRATION.md) — tokens, refresh, CORS
+- Documentação técnica detalhada: [`../apps/api/docs/technical-documentation.md`](../apps/api/docs/technical-documentation.md)
+- **Postman:** [`SISCAV_API.postman_collection.json`](SISCAV_API.postman_collection.json), [`SISCAV_API.postman_environment.json`](SISCAV_API.postman_environment.json)
+- [Guia de testes com curl](./api_curl_tests_guide.md)
 
 ### [Database](./database/)
-Documentação do modelo de dados e migrações.
-- [Modelo de Dados](../apps/api/docs/database/data-model.md) (movido para `apps/api/docs/database/`)
-- [Migração para Supabase](../apps/api/docs/database/supabase-migration.md) (movido para `apps/api/docs/database/`)
 
-### [IoT](./iot/)
-Documentação do dispositivo IoT e reconhecimento de placas.
-**Nota**: A documentação do dispositivo IoT foi reorganizada e movida para `apps/iot-device/docs/`.
-- Consulte [Documentação do Dispositivo IoT](../apps/iot-device/docs/README.md)
+Visão geral; detalhes de modelo em [`../apps/api/docs/database/data-model.md`](../apps/api/docs/database/data-model.md) e Supabase em [`../apps/api/docs/database/supabase-migration.md`](../apps/api/docs/database/supabase-migration.md).
 
-### [Hardware](./hardware/)
-Documentação relacionada ao firmware e hardware do Arduino.
-**Nota**: A documentação de hardware foi movida para `apps/iot-device/docs/hardware/`.
-- Consulte [Documentação de Hardware](../apps/iot-device/docs/hardware/)
+### [IoT / cliente de borda](./iot/README.md)
 
-### [Operations](./operations/)
-Guias operacionais, demonstração e troubleshooting.
-**Nota**: A documentação operacional do dispositivo IoT foi movida para `apps/iot-device/docs/`.
-- Consulte [Documentação do Dispositivo IoT](../apps/iot-device/docs/README.md)
+Contrato HTTP com a API para dispositivos que enviam placas e imagens. **Não** há mais aplicação IoT em `apps/iot-device/` neste repositório.
+
+### [Hardware](./hardware/README.md)
+
+Referência histórica; firmware Arduino que existia em `arduino/` não está mais no tree atual.
+
+### [Operations](./operations/README.md)
+
+Operação da API (logs, Postman, ambiente), sem dependência de pasta `apps/iot-device/`.
 
 ### [Development](./development/)
-Guias para desenvolvedores, padrões de código e convenções.
-- [Padrões de Código e Arquitetura](./development/coding-standards.md)
 
-### [Project Management](./project-management/)
-Documentação relacionada ao gerenciamento de projeto e rastreamento de tarefas.
-- [Status das Tarefas](./project-management/backend-tasks-trello-status.md)
-- [Formato de Cards do Trello](./project-management/trello-cards-format.md)
+- [Padrões de código e arquitetura](./development/coding-standards.md)
+
+### [Architecture](./architecture/)
+
+- [Resumo executivo](./architecture/executive-summary.md)
+- [Critérios de aceite / DevOps](./architecture/acceptance-criteria-devops.md)
+
+### [Requirements](./requirements/)
+
+- [Especificação de projeto](./requirements/project-specification.md)
+
+### [Project management](./project-management/)
+
+Status e cards Trello podem citar caminhos antigos (`apps/iot-device/`); tratar como histórico.
 
 ### [Presentation](./presentation/)
-Materiais de apresentação do projeto.
-- [README](./presentation/README.md)
 
-### [Assets](./assets/)
-Recursos visuais e evidências do projeto.
-- Imagens de demonstração e resultados
+Materiais de apresentação.
 
-## Guias Rápidos por Perfil
+### [Archive](./archive/)
 
-### Para Desenvolvedores
+Documentos arquivados e decisões antigas.
 
-1. **Iniciando no projeto**: 
-   - Leia [Getting Started - Instalação do Dispositivo IoT](./getting-started/README.md)
-   - Consulte [Architecture - Resumo Executivo](./architecture/executive-summary.md)
-   - Revise [Development - Padrões de Código](./development/coding-standards.md)
+## Guias por perfil
 
-2. **Desenvolvendo API**: 
-   - Consulte [API - Documentação Técnica](../apps/api/docs/technical-documentation.md)
-   - Revise [Database - Modelo de Dados](../apps/api/docs/database/data-model.md)
-   - Veja [Development - Padrões de Código](./development/coding-standards.md)
+### Desenvolvedor backend
 
-3. **Trabalhando com IoT**: 
-   - Veja [Documentação do Dispositivo IoT](../apps/iot-device/docs/README.md)
-   - Consulte [Troubleshooting](../apps/iot-device/docs/troubleshooting.md)
+1. [installation.md](./installation.md) e [init-server-guide.md](./init-server-guide.md)
+2. [apps/api/docs/technical-documentation.md](../apps/api/docs/technical-documentation.md)
+3. [development/coding-standards.md](./development/coding-standards.md)
+4. Testes: `pytest` na raiz (ver [`.planning/codebase/TESTING.md`](../.planning/codebase/TESTING.md) se usar o mapa GSD)
 
-### Para Operadores
+### Frontend
 
-1. **Configuração inicial**: 
-   - Siga [Guia de Instalação do Dispositivo IoT](../apps/iot-device/docs/installation.md)
-   - Consulte [Guia de Demonstração](../apps/iot-device/docs/demo-guide.md)
+1. [api/FRONTEND_INTEGRATION.md](./api/FRONTEND_INTEGRATION.md)
+2. OpenAPI em `/docs` com a API rodando
 
-2. **Resolução de problemas**: 
-   - Veja [Getting Started - Troubleshooting](./getting-started/troubleshooting.md)
-   - Consulte [Troubleshooting do Dispositivo IoT](../apps/iot-device/docs/troubleshooting.md)
+### Integração de dispositivo / parceiro
 
-3. **Avaliação de desempenho**: 
-   - Siga [Guia de Demonstração e Avaliação](../apps/iot-device/docs/demo-evaluation-guide.md)
+1. [iot/README.md](./iot/README.md)
+2. [api_curl_tests_guide.md](./api_curl_tests_guide.md) e coleção Postman em `docs/`
 
-### Para Gestores
+### Gestor / produto
 
-1. **Visão geral**: 
-   - Leia [Requirements - Especificação de Projeto](./requirements/project-specification.md)
-   - Consulte [Architecture - Resumo Executivo](./architecture/executive-summary.md)
+1. [requirements/project-specification.md](./requirements/project-specification.md)
+2. [architecture/executive-summary.md](./architecture/executive-summary.md)
 
-2. **Critérios de aceitação**: 
-   - Veja [Architecture - Critérios de Aceite](./architecture/acceptance-criteria-devops.md)
+## Stack (referência rápida)
 
-3. **Status do projeto**: 
-   - Consulte [Project Management - Status das Tarefas](./project-management/backend-tasks-trello-status.md)
+Valores pinados em [`pyproject.toml`](../pyproject.toml) na raiz — exemplos: FastAPI, Uvicorn, SQLAlchemy 2.x, Alembic, Pydantic, Argon2, JWT (`python-jose`), SlowAPI. CI em [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) usa Python 3.13 com `requirements-dev.txt`.
 
-4. **Apresentação**: 
-   - Veja [Presentation - README](./presentation/README.md)
+## Manutenção
 
-## Arquitetura do Sistema
-
-O SISCAV segue uma arquitetura de três camadas:
-
-1. **Camada de Borda (IoT)**: Dispositivos com câmera e processamento local de reconhecimento de placas
-2. **Camada de Servidor (Backend)**: API FastAPI centralizada com padrão MVC
-3. **Camada de Cliente (Frontend)**: Painel de administração web (repositório separado)
-
-## Stack Tecnológica
-
-- **Backend**: Python, FastAPI
-- **Banco de Dados**: PostgreSQL
-- **ORM e Migrações**: SQLAlchemy, Alembic
-- **Validação de Dados**: Pydantic
-- **Autenticação**: JWT (com `passlib` para hashing)
-- **Reconhecimento de Placas (IoT)**: EasyOCR, OpenCV
-- **DevOps**: GitHub Actions
-
-## Princípios Aplicados
-
-A documentação e o código seguem os mesmos princípios:
-
-- **SOLID**: Separação de responsabilidades em camadas
-- **DRY**: Reutilização e eliminação de duplicação
-- **Componentização**: Estrutura modular e extensível
-- **MVC**: Separação clara entre Models, Views (Endpoints) e Controllers
-
-## Referências Rápidas
-
-- **Swagger/OpenAPI**: Disponível em `http://localhost:8000/docs` quando a API estiver rodando
-- **Scripts SQL**: Localizados em `db/sql/supabase/`
-- **Código-fonte**: Estrutura documentada em [Development - Padrões de Código](./development/coding-standards.md)
-
-## Manutenção da Documentação
-
-### Adicionando Nova Documentação
-
-1. Identifique a seção apropriada
-2. Use o padrão de nomenclatura consistente
-3. Atualize este README com a referência ao novo documento
-4. Mantenha a estrutura hierárquica
-
-### Atualizando Documentação Existente
-
-1. Mantenha a estrutura e formatação consistente
-2. Atualize a data de modificação se relevante
-3. Documente decisões importantes e suas justificativas
-4. Remova informações obsoletas
+Ao alterar endpoints ou env vars, atualize: `apps/api/docs/`, `docs/installation.md`, `docs/init-server-guide.md` e, se aplicável, Postman em `docs/`.
 
 ## Contribuindo
 
-Para contribuir com a documentação:
-
-1. Siga a estrutura existente
-2. Mantenha o tom profissional e técnico
-3. Inclua exemplos práticos quando relevante
-4. Atualize os índices e referências cruzadas
-
-## Contato
-
-Para dúvidas sobre a documentação ou sugestões de melhoria, consulte a equipe de desenvolvimento do projeto.
+Mantenha links relativos ao repositório atual; evite referências a `apps/iot-device/` ou `app/` como prefixo da API (o pacote é `apps.api.src`).

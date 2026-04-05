@@ -1,53 +1,58 @@
-# Getting Started
+# Getting started — SISCAV API
 
-Esta seção contém guias de início rápido para configurar e executar o sistema SISCAV.
+Esta seção cobre o **primeiro contato com o backend** deste repositório (API FastAPI em `apps/api/src/`).
 
-## Documentos Disponíveis
+## Documentos recomendados
 
-### [Guia de Instalação do Dispositivo IoT](../../apps/iot-device/docs/installation.md)
-Guia completo passo a passo para instalação e configuração inicial do dispositivo IoT, incluindo:
-- Pré-requisitos de hardware e software
-- Instalação de dependências
-- Configuração do ambiente
-- Verificação da instalação
+1. **[Guia de instalação](../installation.md)** — dependências, ambiente, PostgreSQL/Supabase/SQLite, Alembic.
+2. **[Como iniciar o servidor](../init-server-guide.md)** — Uvicorn, URLs úteis, script `scripts/start_server.ps1`.
+3. **[Troubleshooting](./troubleshooting.md)** — problemas comuns da API e do ambiente Python.
 
-**Nota**: O guia de instalação foi movido para `apps/iot-device/docs/installation.md` para ficar próximo ao código-fonte.
+## Início rápido (resumo)
 
-### [Troubleshooting do Dispositivo IoT](../../apps/iot-device/docs/troubleshooting.md)
-Soluções para problemas comuns durante a instalação do dispositivo IoT:
-- Erros de compilação do NumPy
-- Problemas com EasyOCR
-- Problemas com OpenCV
-- Problemas de permissão
-- Problemas com câmera
+```bash
+git clone <seu-remote> siscav-api
+cd siscav-api
+python -m venv venv
+# Ative o venv (Windows: .\venv\Scripts\Activate.ps1)
+pip install -r requirements-dev.txt
+```
 
-**Nota**: O guia de troubleshooting foi movido para `apps/iot-device/docs/troubleshooting.md`.
+Na **raiz** do repositório (onde está `alembic.ini`):
 
-## Início Rápido
+```bash
+export PYTHONPATH=.    # PowerShell: $env:PYTHONPATH = $PWD
+alembic upgrade head
+uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-### Para Desenvolvedores
+Windows (PowerShell), a partir da raiz:
 
-1. Leia o [Guia de Instalação do Dispositivo IoT](../../apps/iot-device/docs/installation.md)
-2. Configure o ambiente de desenvolvimento
-3. Execute os testes para verificar a instalação
+```powershell
+.\scripts\start_server.ps1
+```
 
-### Para Operadores
+- API: http://localhost:8000  
+- Swagger: http://localhost:8000/docs  
+- Health: http://localhost:8000/api/v1/health  
 
-1. Siga o [Guia de Instalação do Dispositivo IoT](../../apps/iot-device/docs/installation.md)
-2. Configure o dispositivo IoT
-3. Teste a conexão com a API
+## Dados de demonstração (opcional)
 
-## Requisitos Mínimos
+Com o banco migrado, a partir da raiz com `PYTHONPATH` definido:
 
-- Python 3.10, 3.11 ou 3.12 (evitar 3.13 e 3.14)
-- Windows 10/11, Linux (Ubuntu 20.04+), ou macOS
-- 4GB RAM mínimo, 8GB recomendado
-- Câmera USB ou IP
+```bash
+cd apps/api/src
+python seed_demo.py
+```
 
-## Próximos Passos
+Credenciais padrão do seed estão no docstring de `apps/api/src/seed_demo.py` — **não use em produção**.
 
-Após a instalação, consulte:
-- [Documentação da API](../api/README.md) para entender os endpoints
-- [Documentação Operacional](../operations/README.md) para guias de uso
-- [Documentação de Arquitetura](../architecture/README.md) para entender o sistema
+## Cliente IoT / ALPR
 
+Não há mais pasta `apps/iot-device/` neste repositório. Para integrar um dispositivo, leia **[`docs/iot/README.md`](../iot/README.md)**.
+
+## Próximos passos
+
+- [Documentação da API](../api/README.md)
+- [Integração frontend](../api/FRONTEND_INTEGRATION.md)
+- [Arquitetura](../architecture/README.md)

@@ -8,7 +8,7 @@
 4. [Pré-requisitos](#pré-requisitos)
 5. [Instalação da API Central](#instalação-da-api-central)
 6. [Configuração do Banco de Dados](#configuração-do-banco-de-dados)
-7. [Instalação do Dispositivo IoT](#instalação-do-dispositivo-iot)
+7. [Integração com cliente de borda (ALPR/IoT)](#integração-com-cliente-de-borda-alpriot)
 8. [Executando o Sistema](#executando-o-sistema)
 9. [Verificação e Testes](#verificação-e-testes)
 10. [Troubleshooting](#troubleshooting)
@@ -56,24 +56,20 @@ O **SISCAV (Sistema de Controle de Acesso Veicular)** é uma solução completa 
 
 ### Stack Tecnológica
 
-#### Backend (API Central)
-- **Framework**: FastAPI 0.104+
-- **Linguagem**: Python 3.12
-- **ORM**: SQLAlchemy 2.0+
-- **Migrações**: Alembic
-- **Validação**: Pydantic 2.0+
-- **Autenticação**: JWT (python-jose)
-- **Hashing**: Argon2 (passlib)
+#### Backend (API Central) — versões pinadas em `pyproject.toml`
+- **Framework**: FastAPI 0.135.x
+- **Linguagem**: Python compatível com o projeto; **CI** usa Python **3.13** (`.github/workflows/ci.yml`); `ruff.toml` usa `target-version = "py313"`.
+- **ORM**: SQLAlchemy 2.0.x
+- **Migrações**: Alembic (`alembic.ini` na raiz; revisões em `apps/api/src/alembic/versions/`)
+- **Validação**: Pydantic 2.x
+- **Autenticação**: JWT (`python-jose`), refresh tokens
+- **Hashing**: Argon2 (`passlib`)
 - **Rate Limiting**: slowapi
-- **Banco de Dados**: PostgreSQL (Supabase ou local)
+- **Banco de Dados**: PostgreSQL (Supabase ou local) ou SQLite em desenvolvimento
 
-#### Dispositivo IoT
-- **Linguagem**: Python 3.10, 3.11 ou 3.12
-- **Visão Computacional**: OpenCV 4.8+
-- **OCR**: EasyOCR 1.7+ (Deep Learning)
-- **Processamento**: NumPy 1.24+
-- **Comunicação**: HTTP/REST (requests)
-- **Hardware**: Câmera USB, Módulo Relé (Arduino)
+#### Cliente de borda (ALPR / IoT)
+
+**Não faz parte deste repositório.** Um dispositivo ou serviço externo pode capturar a placa (OpenCV, EasyOCR, etc.) e enviar **`POST /api/v1/access_logs/`** (multipart). Veja [`docs/iot/README.md`](iot/README.md).
 
 ### Padrões Arquiteturais
 
@@ -109,8 +105,8 @@ O projeto segue rigorosamente os princípios **SOLID** e **DRY**, utilizando o p
 
 O sistema utiliza três tabelas principais:
 
-1. **users**: Usuários administradores do sistema
-   - Campos: id (UUID), email, hashed_password, created_at, updated_at
+1. **users**: Usuários do sistema
+   - Campos: id (UUID), email, hashed_password, **is_admin** (boolean), created_at, updated_at
 
 2. **authorized_plates**: Lista de placas autorizadas
    - Campos: id (UUID), plate, normalized_plate, description, created_at, updated_at
@@ -124,17 +120,14 @@ O sistema utiliza três tabelas principais:
 
 ### Para a API Central
 
-- **Python**: 3.12 (recomendado) ou 3.11
+- **Python**: 3.11+ recomendado; alinhe com CI (3.13) quando possível
 - **pip**: Versão atualizada
-- **PostgreSQL**: 12+ (ou acesso a Supabase)
+- **PostgreSQL**: 12+ (ou acesso a Supabase), ou SQLite para desenvolvimento rápido
 - **Git**: Para clonar o repositório
 
-### Para o Dispositivo IoT
+### Para um cliente ALPR / IoT (fora deste repo)
 
-- **Python**: 3.10, 3.11 ou 3.12 (evitar 3.13+)
-- **pip**: Versão atualizada
-- **Câmera USB**: Para captura de imagens (opcional para testes)
-- **Arduino com Módulo Relé**: Para controle do portão (opcional)
+Depende do seu projeto de borda (Python, embarcado, etc.). O contrato com **esta** API está em [`docs/iot/README.md`](iot/README.md).
 
 ### Opcional
 
@@ -410,8 +403,11 @@ alembic upgrade head
 Após configurar o banco de dados, crie um usuário administrador. Você pode usar o script de seed:
 
 ```bash
-python app/seed_demo.py
+cd apps/api/src
+python seed_demo.py
 ```
+
+(Exige `PYTHONPATH` apontando para a **raiz** do repositório, ou executar a partir de `apps/api/src` como acima — o script ajusta `sys.path` conforme `seed_demo.py`.)
 
 Ou criar manualmente via Python:
 
@@ -424,7 +420,8 @@ db = SessionLocal()
 try:
     admin = User(
         email="admin@example.com",
-        hashed_password=get_password_hash("senha123")
+        hashed_password=get_password_hash("senha123"),
+        is_admin=True,
     )
     db.add(admin)
     db.commit()
@@ -435,115 +432,17 @@ finally:
 
 ---
 
-## Instalação do Dispositivo IoT
+## Integração com cliente de borda (ALPR/IoT)
 
-O dispositivo IoT está localizado em `app/iot-device/` e é responsável por:
-- Capturar imagens da câmera
-- Detectar placas usando visão computacional
-- Extrair texto das placas usando OCR
-- Enviar dados para a API central
-- Controlar módulo relé para acionar portão
+Este repositório **não inclui** o aplicativo Python que rodava em `apps/iot-device/`. Qualquer cliente (outro repositório, firmware, gateway) deve:
 
-### 1. Navegar para o Diretório
+1. Obter a string da placa (OCR, LPR comercial, leitura manual em testes, etc.).
+2. Enviar **`POST /api/v1/access_logs/`** com `multipart/form-data`: campo **`plate`** e arquivo **`file`** (imagem).
+3. Se o servidor tiver **`DEVICE_INGEST_KEY`** definido (fora de ambiente de desenvolvimento), enviar o header **`X-Device-Key`** com o mesmo valor.
 
-```bash
-cd app/iot-device
-```
+Detalhes e links: **[`docs/iot/README.md`](iot/README.md)**.
 
-### 2. Criar Ambiente Virtual
-
-**Windows (PowerShell):**
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-
-**Linux/Mac:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-**Importante**: Use Python 3.10, 3.11 ou 3.12. Python 3.13+ pode ter problemas com wheels pré-compilados.
-
-### 3. Instalar Dependências
-
-**Windows (PowerShell) - Método Automático (Recomendado):**
-
-```powershell
-.\scripts\install_dependencies.ps1
-```
-
-O script detecta problemas automaticamente e oferece soluções.
-
-**Windows (PowerShell) - Método Manual:**
-
-```powershell
-# Atualizar pip
-python -m pip install --upgrade pip
-
-# Instalar NumPy (forçar wheel pré-compilado)
-pip install --only-binary :all: numpy
-
-# Instalar outras dependências
-pip install opencv-python requests pyserial
-
-# Instalar EasyOCR
-pip install easyocr
-
-# Verificar instalação
-python -c "import numpy, cv2, easyocr, requests; print('Instalação OK!')"
-```
-
-**Se encontrar erro de compilação do NumPy:**
-```powershell
-.\scripts\fix_numpy_install.ps1
-```
-
-**Linux/Mac:**
-
-```bash
-# Atualizar pip
-pip install --upgrade pip
-
-# Instalar dependências
-pip install -r requirements.txt
-
-# Verificar instalação
-python -c "import numpy, cv2, easyocr, requests; print('Instalação OK!')"
-```
-
-### 4. Configurar Variáveis de Ambiente
-
-Crie um arquivo `.env` em `app/iot-device/` ou configure variáveis de ambiente:
-
-```env
-# URL da API Central
-API_BASE_URL=http://localhost:8000
-ACCESS_LOGS_ENDPOINT=http://localhost:8000/api/v1/access_logs
-
-# Configurações da Câmera
-CAMERA_INDEX=0
-CAMERA_WIDTH=1280
-CAMERA_HEIGHT=720
-
-# Configurações de Detecção
-PLATE_DETECTION_COOLDOWN=5
-DEMO_MODE=False
-DEMO_WHITELIST=ABC1234,XYZ5678
-
-# Configurações do Arduino (opcional)
-ARDUINO_ENABLED=False
-ARDUINO_PORT=COM3
-ARDUINO_BAUD_RATE=9600
-
-# Logging
-LOG_LEVEL=INFO
-ENABLE_DISPLAY=True
-ENABLE_SOUND=False
-```
-
-**Nota**: Ajuste `API_BASE_URL` e `ACCESS_LOGS_ENDPOINT` para apontar para sua API central.
+Para testar sem cliente físico, use Swagger em `/docs`, a coleção Postman em `docs/`, ou **[`docs/api_curl_tests_guide.md`](api_curl_tests_guide.md)**.
 
 ---
 
@@ -551,15 +450,24 @@ ENABLE_SOUND=False
 
 ### 1. Iniciar a API Central
 
-**Desenvolvimento (com reload automático):**
+Na **raiz do repositório**, com venv ativado e dependências instaladas:
+
+**Desenvolvimento (reload):**
 ```bash
-# Na raiz do projeto, com venv ativado
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+export PYTHONPATH=.   # PowerShell: $env:PYTHONPATH = (Get-Location).Path
+uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**Produção:**
+**Alternativa:** entrar em `apps/api/src` e rodar `uvicorn main:app --reload --host 0.0.0.0 --port 8000`.
+
+**Windows (PowerShell), a partir da raiz:**
+```powershell
+.\scripts\start_server.ps1
+```
+
+**Produção (exemplo):**
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn apps.api.src.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 A API estará disponível em:
@@ -568,28 +476,13 @@ A API estará disponível em:
 - **ReDoc**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/api/v1/health
 
-### 2. Iniciar o Dispositivo IoT
+Guia rápido adicional: **[`docs/init-server-guide.md`](init-server-guide.md)**.
 
-**Modo Normal:**
-```bash
-# Em app/iot-device/, com venv ativado
-python main.py
-```
+### 2. Cliente de borda
 
-**Modo Demo (sem câmera):**
-```bash
-python run_demo.py
-```
+Implementação **fora** deste repositório; ver seção [Integração com cliente de borda](#integração-com-cliente-de-borda-alpriot) acima.
 
-O dispositivo IoT irá:
-1. Inicializar a câmera
-2. Capturar frames continuamente
-3. Detectar placas em cada frame
-4. Extrair texto usando OCR
-5. Enviar dados para a API central
-6. Exibir resultados na tela (se `ENABLE_DISPLAY=True`)
-
-### 3. Verificar Funcionamento
+### 3. Verificar funcionamento
 
 1. **Health Check da API:**
 ```bash
@@ -621,8 +514,8 @@ curl -X POST "http://localhost:8000/api/v1/whitelist" \
 # Na raiz do projeto, com venv ativado
 pytest
 
-# Com verbose e cobertura
-pytest -v --cov=app --cov-report=term-missing
+# Com verbose e cobertura (fonte: pacote `apps`)
+pytest -v --cov=apps --cov-report=term-missing
 
 # Executar testes específicos
 pytest tests/test_main.py
@@ -663,33 +556,15 @@ Use a documentação interativa do Swagger em http://localhost:8000/docs para te
 
 #### 2. Erro de Importação de Módulos
 
-**Sintoma**: `ModuleNotFoundError: No module named 'app'`
+**Sintoma**: `ModuleNotFoundError: No module named 'apps'`
 
 **Soluções**:
-- Certifique-se de estar na raiz do projeto ao executar comandos
-- Verifique se o ambiente virtual está ativado
-- Reinstale as dependências: `pip install -r requirements-dev.txt`
+- Defina `PYTHONPATH` para a **raiz** do repositório ao usar `uvicorn apps.api.src.main:app`
+- Ou execute a partir de `apps/api/src` com `uvicorn main:app`
+- Use `.\scripts\start_server.ps1` no Windows a partir da raiz
+- Verifique se o ambiente virtual está ativado e rode `pip install -r requirements-dev.txt`
 
-#### 3. Erro de Compilação do NumPy (Dispositivo IoT)
-
-**Sintoma**: `error: Microsoft Visual C++ 14.0 or greater is required`
-
-**Soluções**:
-- Use o script automático: `.\scripts\fix_numpy_install.ps1`
-- Ou instale wheel pré-compilado: `pip install --only-binary :all: numpy`
-- Considere usar Python 3.12 que tem melhor suporte a wheels
-
-#### 4. Câmera Não Detectada (Dispositivo IoT)
-
-**Sintoma**: `cv2.error: OpenCV(4.x) ... Can't initialize camera`
-
-**Soluções**:
-- Verifique se a câmera está conectada
-- Teste com `CAMERA_INDEX=0, 1, 2...` no arquivo de configuração
-- No Linux, verifique permissões: `sudo usermod -a -G video $USER`
-- Use modo demo para testes sem câmera: `python run_demo.py`
-
-#### 5. Token JWT Inválido
+#### 3. Token JWT Inválido
 
 **Sintoma**: `Could not validate credentials`
 
@@ -699,7 +574,7 @@ Use a documentação interativa do Swagger em http://localhost:8000/docs para te
 - Verifique se `SECRET_KEY` está configurada corretamente
 - Certifique-se de incluir `Bearer ` antes do token no header
 
-#### 6. Rate Limit Exceeded
+#### 4. Rate Limit Exceeded
 
 **Sintoma**: `Rate limit exceeded: 5/minute`
 
@@ -714,10 +589,7 @@ Use a documentação interativa do Swagger em http://localhost:8000/docs para te
 - Logs são exibidos no console onde o uvicorn está rodando
 - Para mais detalhes, ajuste o nível de log no código
 
-**Dispositivo IoT:**
-- Logs são exibidos no console
-- Configure `LOG_LEVEL=DEBUG` no arquivo de configuração para mais detalhes
-- Logs incluem informações sobre detecção de placas, OCR e comunicação com API
+**Cliente de borda (fora deste repo):** depuração fica a cargo do seu aplicativo ou firmware.
 
 ---
 
@@ -751,13 +623,6 @@ Use a documentação interativa do Swagger em http://localhost:8000/docs para te
 - **Segurança**: Tokens assinados e validados a cada requisição
 - **Padrão da Indústria**: Amplamente adotado e bem documentado
 
-### Por que EasyOCR?
-
-- **Precisão**: Baseado em Deep Learning (CNN + RNN), superior a OCR tradicional
-- **Multilíngue**: Suporta português e outros idiomas
-- **Fácil Integração**: API simples e bem documentada
-- **Open Source**: Sem custos de licenciamento
-
 ### Por que PostgreSQL?
 
 - **Robustez**: Banco de dados relacional maduro e confiável
@@ -773,7 +638,7 @@ Após a instalação bem-sucedida:
 
 1. **Configurar Usuários**: Crie usuários administradores via script de seed ou manualmente
 2. **Adicionar Placas**: Adicione placas autorizadas via API ou interface web
-3. **Configurar Dispositivo IoT**: Ajuste configurações de câmera e Arduino conforme seu hardware
+3. **Integrar cliente de borda**: implemente ou recupere um cliente que chame `POST /api/v1/access_logs/` (ver `docs/iot/README.md`)
 4. **Monitorar Logs**: Acompanhe os logs de acesso através da API ou interface web
 5. **Personalizar**: Ajuste configurações de segurança, rate limiting e expiração de tokens conforme necessário
 
@@ -781,14 +646,13 @@ Após a instalação bem-sucedida:
 
 ## Referências
 
-- **Documentação da API**: `app/docs/`
-- **Documentação Técnica**: `app/docs/technical-documentation.md`
-- **Arquitetura**: `app/docs/architecture.md`
-- **Endpoints**: `app/docs/endpoints.md`
-- **Dispositivo IoT**: `app/iot-device/docs/`
+- **Documentação geral**: `docs/README.md`
+- **Documentação da API (técnica)**: `apps/api/docs/technical-documentation.md`
+- **Modelo de dados**: `apps/api/docs/database/data-model.md`
+- **Integração frontend**: `docs/api/FRONTEND_INTEGRATION.md`
+- **Contrato IoT / borda**: `docs/iot/README.md`
 - **FastAPI**: https://fastapi.tiangolo.com/
 - **SQLAlchemy**: https://docs.sqlalchemy.org/
-- **EasyOCR**: https://github.com/JaidedAI/EasyOCR
 - **Supabase**: https://supabase.com/docs
 
 ---
@@ -796,7 +660,7 @@ Após a instalação bem-sucedida:
 ## Suporte
 
 Para problemas ou dúvidas:
-1. Consulte a documentação em `app/docs/`
+1. Consulte a documentação em `docs/` e `apps/api/docs/`
 2. Verifique os logs do sistema
 3. Execute os testes para verificar integridade
 4. Consulte o código-fonte para entender implementações específicas

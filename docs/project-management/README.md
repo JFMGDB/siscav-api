@@ -2,6 +2,8 @@
 
 Esta seção contém documentação relacionada ao gerenciamento de projeto, status de tarefas e rastreamento de progresso.
 
+**Nota (2026):** cards e status podem referir `apps/iot-device/` ou `arduino/` — esses caminhos foram removidos do tree atual. Trate como histórico; o escopo ativo do repositório é a API em `apps/api/src/`.
+
 ## Documentos Disponíveis
 
 ### [Status das Tarefas](./backend-tasks-trello-status.md)

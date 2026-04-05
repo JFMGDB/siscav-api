@@ -2,6 +2,8 @@
 
 Este guia explica como criar as tabelas e executar as migrações no Supabase.
 
+**Alinhamento com o código:** o modelo atual de `users` inclui a coluna booleana **`is_admin`** (migração Alembic `20260404_0002_add_user_is_admin.py`). Se usar apenas o script `00_complete_setup.sql` e ele ainda não declarar `is_admin`, execute **`alembic upgrade head`** apontando para o mesmo banco ou aplique o SQL equivalente à migração, para evitar erros em rotas administrativas.
+
 ## Opção 1: Setup Manual via Supabase Studio (Recomendado)
 
 ### Passo 1: Acessar o SQL Editor

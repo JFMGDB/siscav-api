@@ -29,7 +29,7 @@ A imagem deve mostrar:
 
 ## Como Capturar a Imagem
 
-1. Execute o sistema IoT (`apps/iot-device/main.py`)
+1. Execute o seu cliente de captura/ALPR (este repositório contém apenas a API; não há mais `apps/iot-device/main.py` aqui) ou simule o fluxo com a API em `http://localhost:8000/docs`
 2. Posicione uma placa na frente da câmera
 3. Capture a tela quando o sistema detectar a placa
 4. Salve a imagem como `evidencia-processo-deteccao-tempo-real.png`

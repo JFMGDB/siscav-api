@@ -1,44 +1,45 @@
-# Documentação Operacional
+# Documentação operacional — API SISCAV
 
-**Nota**: A documentação operacional relacionada ao dispositivo IoT foi reorganizada e movida para `apps/iot-device/docs/`.
+Esta seção descreve como **operar e validar a API** deste repositório. Documentação específica de um cliente Python IoT que existia em `apps/iot-device/` **não se aplica mais** — o tree atual é centrado em `apps/api/src/`.
 
-Consulte a documentação atualizada em:
-- [Documentação do Dispositivo IoT](../../apps/iot-device/docs/README.md)
+## Verificar se a API está no ar
 
-## Documentos Movidos
+```bash
+curl http://localhost:8000/
+curl http://localhost:8000/api/v1/health
+```
 
-A documentação operacional do dispositivo IoT foi movida para ficar próxima ao código-fonte:
+Com a API rodando: **http://localhost:8000/docs** (Swagger).
 
-- Guias de demonstração: `apps/iot-device/docs/demo-guide.md` e `apps/iot-device/docs/demo-evaluation-guide.md`
-- Troubleshooting: `apps/iot-device/docs/troubleshooting.md`
-- Documentos arquivados: `apps/iot-device/docs/archive/`
+## Variáveis de ambiente críticas
 
-## Descrição
+Resumo; detalhes em `apps/api/src/api/v1/core/config.py` e em [`docs/installation.md`](../installation.md).
 
-Esta seção contém documentação prática para:
+| Variável | Uso |
+|----------|-----|
+| `DATABASE_URL` ou `POSTGRES_*` | Conexão PostgreSQL; sem isso, desenvolvimento pode usar SQLite (fallback em código). |
+| `SECRET_KEY` | JWT; em `production`/`prod` não pode ser o valor de desenvolvimento. |
+| `DEVICE_INGEST_KEY` | Se definido fora de ambiente de dev, ingestão `POST /api/v1/access_logs/` exige header `X-Device-Key`. |
+| `GATE_ACTUATOR_URL` | Opcional; se vazio, acionamento de portão é simulado. |
+| `UPLOAD_DIR`, `MAX_FILE_SIZE_MB` | Armazenamento de imagens de log de acesso. |
 
-- Configuração e instalação do sistema
-- Resolução de problemas comuns
-- Demonstração e avaliação de desempenho
-- Troubleshooting de dependências Python
-- Guias de operação
+## Postman
 
-## Requisitos Mínimos
+Coleção e ambiente na pasta **`docs/`**:
 
-- Python 3.10, 3.11 ou 3.12 (evitar 3.13 e 3.14)
-- Windows 10/11, Linux (Ubuntu 20.04+), ou macOS
-- 4GB RAM mínimo, 8GB recomendado
-- Câmera USB ou IP
+- [`SISCAV_API.postman_collection.json`](../SISCAV_API.postman_collection.json)
+- [`SISCAV_API.postman_environment.json`](../SISCAV_API.postman_environment.json)
 
+Importe no Postman e ajuste `base_url` e tokens conforme o ambiente.
 
+## Logs
 
+A API usa `logging` padrão; mensagens aparecem no terminal do Uvicorn. Não há APM ou export OTLP configurado no código atual.
 
+## Integração de dispositivos
 
+Qualquer cliente que envie placas e imagens deve seguir o contrato em [`docs/iot/README.md`](../iot/README.md).
 
+## CI
 
-
-
-
-
-
-
+O pipeline em `.github/workflows/ci.yml` executa `ruff` e `pytest` com `requirements-dev.txt`.

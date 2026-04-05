@@ -25,7 +25,7 @@ A API SISCAV é construída com FastAPI e serve como o backend central do sistem
 
 - Autenticação de administradores (JWT)
 - Gerenciamento de whitelist de placas
-- Recebimento e processamento de logs de acesso dos dispositivos IoT
+- Recebimento e processamento de logs de acesso enviados por clientes de borda (`POST /api/v1/access_logs/`)
 - Controle remoto do portão
 - Servir imagens de acesso de forma segura
 

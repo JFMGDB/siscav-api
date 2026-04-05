@@ -1,28 +1,27 @@
-# Hardware Documentation
+# Hardware — referência histórica
 
-**Nota**: A documentação de hardware foi reorganizada e movida para `apps/iot-device/docs/hardware/`.
+## Estado atual do repositório
 
-Consulte a documentação atualizada em:
-- [Documentação de Hardware](../../apps/iot-device/docs/hardware/)
+A documentação de hardware e o firmware Arduino foram organizados anteriormente junto ao cliente IoT em **`apps/iot-device/docs/hardware/`**. Esse aplicativo e o sketch em **`arduino/cancela_control/`** **podem não existir mais** no tree atual deste repositório.
 
-## Documentos Movidos
+Para recuperar guias ou `.ino`, use o **histórico Git** (`git log --all --full-history -- "**/cancela_control.ino"` ou caminhos antigos sob `apps/iot-device/`).
 
-A documentação de hardware foi movida para ficar próxima ao código do dispositivo IoT:
+## Papel na arquitetura SISCAV
 
-- Hardware/Arduino: `apps/iot-device/docs/hardware/`
-  - `arduino.md` - Documentação do firmware Arduino
-  - `project-definition.md` - Definição do projeto Arduino
-  - `assembly-guide.md` - Guia de montagem e demonstração
+- **API (este repo):** decisão de acesso, persistência, JWT, ingestão `POST /api/v1/access_logs/`, acionamento opcional de atuador via **`GATE_ACTUATOR_URL`** (HTTP POST JSON), configurado no servidor.
+- **Borda / campo:** câmera, ALPR e hardware de portão ficam **fora** do escopo obrigatório deste repositório; integre pela API documentada em [`docs/iot/README.md`](../iot/README.md).
 
-## Especificações Técnicas
+## Especificações (referência de projeto legado)
 
-- **Plataforma**: Arduino Uno R3
-- **Comunicação**: Serial UART 9600 baud
-- **Estados FSM**: 5 estados (S0, S1, S2, S3, S5)
-- **Componentes**: Servo Motor, 3 LEDs, 3 resistores 220Ω
-- **Versão**: Simplificada (sem sensor ultrassônico e buzzer)
+Quando o firmware existia no repositório, o material citava:
 
-## Referências
+- Plataforma Arduino Uno R3  
+- Serial UART 9600 baud  
+- Componentes: servo, LEDs, resistores  
 
-- [Código Fonte](../../arduino/cancela_control/cancela_control.ino): Firmware implementado
-- [Documentação de Operação](../operations/README.md): Guias operacionais
+Trate como **referência**, não como caminho de arquivo válido no checkout atual.
+
+## Documentação relacionada
+
+- [`docs/iot/README.md`](../iot/README.md) — contrato com a API  
+- [`docs/installation.md`](../installation.md) — só API e banco  
