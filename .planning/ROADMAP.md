@@ -14,14 +14,14 @@ O milestone **v1.0** está fechado. O próximo trabalho planeado entra com **`/g
 
 **Goal:** O utilizador, através da interface, liga a câmara por Wi‑Fi ou USB e vê o vídeo em tempo real (pré-visualização), como requisito de produto para um cliente web ou app de operador.
 
-**Requirements:** TBD
+**Requirements:** TBD (entrega API repo: docs + guia Next.js; código UI noutro Git)
 
-**Plans:** 2 plans (documentação neste repo; código Next.js noutro repositório)
+**Plans:** 2/2 com SUMMARY; [VERIFICATION](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-VERIFICATION.md) **passed** (2026-04-05)
 
 Plans:
 
-- [x] [999.1-01-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-01-PLAN.md) — `docs/frontend/` guia câmara Next.js
-- [x] [999.1-02-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-02-PLAN.md) — ligações em FRONTEND_INTEGRATION + README
+- [x] [999.1-01-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-01-PLAN.md) — [SUMMARY](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-01-SUMMARY.md)
+- [x] [999.1-02-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-02-PLAN.md) — [SUMMARY](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-02-SUMMARY.md)
 
 ---
 

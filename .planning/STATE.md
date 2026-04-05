@@ -22,9 +22,9 @@ progress:
 
 ## Current position
 
-**Milestone v1.0** está **fechado e arquivado** (2026-04-05). **Backlog 999.1** (UI câmara Wi‑Fi/USB + preview): [CONTEXT](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-CONTEXT.md) · [RESEARCH](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-RESEARCH.md) · planos [01](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-01-PLAN.md) [02](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-02-PLAN.md). Documentação entregue: `docs/frontend/`.
+**Milestone v1.0** está **fechado e arquivado** (2026-04-05). **Backlog 999.1** (UI câmara Wi‑Fi/USB + preview): **executado neste repo** (docs) — [VERIFICATION passed](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-VERIFICATION.md). Código Next.js: implementar noutro repositório com [camera-preview-nextjs.md](../docs/frontend/camera-preview-nextjs.md) (a partir da raiz do repo: `docs/frontend/camera-preview-nextjs.md`).
 
-**Next:** **`/gsd-execute-phase 999.1`** se ainda não aplicaste os planos (ou confirma git — podem já estar committed). Código Next.js continua noutro repo seguindo o guia.
+**Next:** **`/gsd-new-milestone`** para definir v1.1+ com `REQUIREMENTS.md`; ou novo item de backlog.
 
 ## Performance metrics
 
@@ -37,5 +37,5 @@ _(Atualizar no próximo milestone.)_
 
 ## Session continuity
 
-- **Last planning action:** plan-phase 999.1 (RESEARCH + 2 PLANs + docs)
-- **Next action:** execute-phase 999.1 if needed; implement Next app using docs/frontend/
+- **Last planning action:** autonomous / execute closure 999.1 (SUMMARYs + VERIFICATION)
+- **Next action:** new milestone or Next.js repo implementation
