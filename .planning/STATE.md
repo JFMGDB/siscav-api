@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 04 complete
-stopped_at: Phase 1 plans refreshed (research + ROADMAP)
-last_updated: "2026-04-05T00:29:13.833Z"
+status: Milestone v1.0 roadmap complete
+stopped_at: Phase 1 executed — SEC/AUTH verified
+last_updated: "2026-04-05T12:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 11
 ---
 
 # Project state: SISCAV API
@@ -21,16 +21,16 @@ progress:
 
 ## Current position
 
-Phase: **04 — Operations & dependency hygiene** — **complete** (2026-04-05)
+**Roadmap:** Phases **1–4** are **complete** (2026-04-05).
 
-| Field | Value |
-|-------|--------|
-| **Plans** | 3/3 executed (`04-01`–`04-03`) |
-| **Verification** | [04-VERIFICATION.md](phases/04-operations-dependency-hygiene/04-VERIFICATION.md) |
+| Phase | Verification |
+|-------|----------------|
+| 1 — Security & auth | [01-VERIFICATION.md](phases/01-security-authentication-correctness/01-VERIFICATION.md) |
+| 4 — Ops hygiene | [04-VERIFICATION.md](phases/04-operations-dependency-hygiene/04-VERIFICATION.md) |
 
-**Delivered:** OPS-01 (`session.py` + docs + CONCERNS), OPS-02 (pinned deps), OPS-03 (`crud/` removed, docs aligned).
+**Last execute:** Phase 1 — verification pass + **`test_register_then_login_returns_token_pair`** (AUTH-01). **209** pytest tests green.
 
-**Next:** Phase 1 remains open on the roadmap — `/gsd-discuss-phase 1` or `/gsd-plan-phase 1` when ready.
+**Next:** Close or extend the milestone (e.g. `/gsd-complete-milestone`, new requirements, or `/gsd-verify-work` spot-checks).
 
 ## Performance metrics
 
@@ -44,5 +44,5 @@ _(Updated as phases complete.)_
 ## Session continuity
 
 - **Last roadmap update:** 2026-04-05
-- **Stopped at:** Phase 1 plans refreshed (research + ROADMAP)
-- **Next action:** `/gsd-plan-phase 1` or `/gsd-discuss-phase 1` (Phase 1 security/auth)
+- **Stopped at:** Phase 1 executed — SEC/AUTH verified
+- **Next action:** Milestone wrap-up or backlog promotion as needed

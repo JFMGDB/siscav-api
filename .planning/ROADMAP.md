@@ -6,7 +6,8 @@
 
 ## Phases
 
-- [ ] **Phase 1: Security & authentication correctness** — Protected ingest, token/rate-limit hygiene, docs aligned with real authorization; auth flows remain usable.
+- [x] **Phase 1: Security & authentication correctness** — Protected ingest, token/rate-limit hygiene, docs aligned with real authorization; auth flows remain usable.
+ (completed 2026-04-05)
 - [x] **Phase 2: Whitelist & access log behavior** — Normalized whitelist CRUD and full audit trail submit/list/image behavior for authenticated clients.
  (completed 2026-04-04)
 - [x] **Phase 3: Gate & device integration honesty** — Real integration path or explicit simulation; device endpoints production-ready or clearly disabled.
@@ -18,7 +19,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Security & authentication correctness | 0/3 | Planned     | - |
+| 1. Security & authentication correctness | 3/3 | Complete   | 2026-04-05 |
 | 2. Whitelist & access log behavior | 3/3 | Complete    | 2026-04-04 |
 | 3. Gate & device integration honesty | 2/2 | Complete    | 2026-04-04 |
 | 4. Operations & dependency hygiene | 3/3 | Complete   | 2026-04-05 |

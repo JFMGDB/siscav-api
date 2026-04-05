@@ -9,14 +9,14 @@ Backend/API capabilities targeted by the current planning cycle (brownfield hard
 
 ### Security & access control
 
-- [ ] **SEC-01**: Access log ingestion (`POST /api/v1/access_logs/`) is protected with a documented authentication mechanism (API key, device credential, or mTLS) appropriate to the deployment threat model.
-- [ ] **SEC-02**: Refresh token endpoint is rate-limited consistently with login, and weak/default `SECRET_KEY` cannot be used in production configuration.
-- [ ] **SEC-03**: OpenAPI and endpoint docstrings accurately reflect who may call privileged routes (or role-based checks are implemented where docs promise “administrator”).
+- [x] **SEC-01**: Access log ingestion (`POST /api/v1/access_logs/`) is protected with a documented authentication mechanism (API key, device credential, or mTLS) appropriate to the deployment threat model.
+- [x] **SEC-02**: Refresh token endpoint is rate-limited consistently with login, and weak/default `SECRET_KEY` cannot be used in production configuration.
+- [x] **SEC-03**: OpenAPI and endpoint docstrings accurately reflect who may call privileged routes (or role-based checks are implemented where docs promise “administrator”).
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can register with email and password and receive JWT access + refresh tokens.
-- [ ] **AUTH-02**: User can log in with OAuth2 password flow and obtain new access tokens via refresh.
+- [x] **AUTH-01**: User can register with email and password and receive JWT access + refresh tokens.
+- [x] **AUTH-02**: User can log in with OAuth2 password flow and obtain new access tokens via refresh.
 
 ### Whitelist (authorized plates)
 
@@ -69,11 +69,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | 1 | Pending |
-| SEC-02 | 1 | Pending |
-| SEC-03 | 1 | Pending |
-| AUTH-01 | 1 | Pending |
-| AUTH-02 | 1 | Pending |
+| SEC-01 | 1 | Complete |
+| SEC-02 | 1 | Complete |
+| SEC-03 | 1 | Complete |
+| AUTH-01 | 1 | Complete |
+| AUTH-02 | 1 | Complete |
 | WL-01 | 2 | Pending |
 | LOG-01 | 2 | Pending |
 | LOG-02 | 2 | Pending |
