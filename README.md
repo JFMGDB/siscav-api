@@ -12,6 +12,7 @@ A documentação viva do projeto está em **[`docs/`](docs/README.md)**:
 | Instalação e visão geral | [`docs/installation.md`](docs/installation.md) |
 | Iniciar o servidor | [`docs/init-server-guide.md`](docs/init-server-guide.md) |
 | Integração frontend / tokens | [`docs/api/FRONTEND_INTEGRATION.md`](docs/api/FRONTEND_INTEGRATION.md) |
+| Frontend operador (Next.js — repo separado) | [`docs/frontend/`](docs/frontend/README.md) (guia câmara USB/Wi‑Fi: [camera-preview-nextjs.md](docs/frontend/camera-preview-nextjs.md)) |
 | Testes com curl | [`docs/api_curl_tests_guide.md`](docs/api_curl_tests_guide.md) |
 | Postman | [`docs/SISCAV_API.postman_collection.json`](docs/SISCAV_API.postman_collection.json) + [`docs/SISCAV_API.postman_environment.json`](docs/SISCAV_API.postman_environment.json) |
 | OpenAPI (com a API rodando) | `http://localhost:8000/docs` |

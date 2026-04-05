@@ -25,6 +25,17 @@ A API SISCAV utiliza autenticação baseada em JWT (JSON Web Tokens) com dois ti
 - **Refresh Token Expiração**: 30 dias (configurável via `REFRESH_TOKEN_EXPIRE_DAYS`)
 - **Rate Limiting**: 5 tentativas de login por minuto por IP
 
+## Pré-visualização de câmara (operador — Next.js)
+
+A interface para **ligar câmara por USB ou por URL (Wi‑Fi / IP)** e ver **vídeo em tempo real** é implementada num **repositório separado** com **Next.js** e **TypeScript**. O fluxo de vídeo é sobretudo **no browser** (por exemplo `getUserMedia` para USB, ou `<img>`/`<video>` para streams MJPEG/HLS); **não** depende de endpoints de streaming nesta API.
+
+- **Guia completo (implementação no repo frontend):** [camera-preview-nextjs.md](../frontend/camera-preview-nextjs.md)
+- **Índice `docs/frontend/`:** [README.md](../frontend/README.md)
+
+A **autenticação** do operador contra esta API (registo, login, refresh, `Authorization: Bearer`) segue as secções abaixo neste documento. A pré-visualização em si **não** exige JWT.
+
+Em desenvolvimento, a API já permite origem Next.js em `http://localhost:3000` — ver `CORSMiddleware` em `apps/api/src/main.py`.
+
 ## Endpoints de Autenticação
 
 ### 1. Registrar - Criar Conta

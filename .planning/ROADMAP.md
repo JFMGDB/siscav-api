@@ -16,11 +16,12 @@ O milestone **v1.0** está fechado. O próximo trabalho planeado entra com **`/g
 
 **Requirements:** TBD
 
-**Plans:** 0 plans
+**Plans:** 2 plans (documentação neste repo; código Next.js noutro repositório)
 
 Plans:
 
-- [ ] TBD (promover com `/gsd-review-backlog` quando houver repo UI ou arquitetura escolhida)
+- [x] [999.1-01-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-01-PLAN.md) — `docs/frontend/` guia câmara Next.js
+- [x] [999.1-02-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-02-PLAN.md) — ligações em FRONTEND_INTEGRATION + README
 
 ---
 
