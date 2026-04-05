@@ -128,7 +128,64 @@ O backend em `apps/api/src/main.py` inclui `http://localhost:3000` e `http://127
 7. Testar em **Chrome desktop** (USB + URL se disponível).
 8. Verificar **HTTPS** ou localhost antes de testar USB em staging.
 9. Documentar no README do frontend limitações conhecidas (Safari iOS, mixed content).
-10. (Opcional) Integração futura: botão “Capturar frame” → `FormData` + `POST /api/v1/access_logs/` com header de dispositivo se aplicável.
+10. Ver secção abaixo: **deteção de placa + `POST /api/v1/access_logs/`**.
+
+## Deteção de placa e chamada à API
+
+A **SISCAV API não executa OCR** nem devolve “placa encontrada” a partir da imagem. O contrato atual é:
+
+- **`POST /api/v1/access_logs/`** — `multipart/form-data` com:
+  - **`plate`** (string): texto da placa **já lido** (normalmente por OCR no cliente, câmara inteligente, ou entrada manual).
+  - **`file`**: ficheiro de imagem (JPEG/PNG/WebP, conforme validação do servidor).
+
+O servidor **normaliza** a placa, **compara com a whitelist** e grava o log com `Authorized` / `Denied` + caminho da imagem. Ou seja: **a interface (ou um serviço atrás dela) tem de produzir o texto da placa** antes do `POST`.
+
+### Fluxo recomendado no Next.js
+
+1. **Capturar um frame** do `<video>` (ou do stream MJPEG via canvas oculto): `drawImage` → `canvas.toBlob('image/jpeg')`.
+2. **Obter o texto da placa** por um destes caminhos:
+   - **OCR no browser** — ex.: [Tesseract.js](https://github.com/naptha/tesseract.js) no frame recortado (ROI da zona da placa melhora muito a taxa de acerto).
+   - **Serviço externo** — Vision API / ALPR SaaS chamado do **servidor** Next.js (Route Handler) para não expor chaves no bundle.
+   - **Manual** — operador confirma/edita a string antes de enviar.
+3. **Validar formato** BR (Mercosul / antiga) no cliente se quiseres feedback rápido (a API também valida/normaliza).
+4. **Enviar** com `fetch` + `FormData`:
+
+```ts
+const form = new FormData();
+form.append("plate", plateString.trim());
+form.append("file", imageBlob, "frame.jpg");
+
+const headers: HeadersInit = {};
+// Se DEVICE_INGEST_KEY estiver definido no servidor API, em produção precisas disto:
+headers["X-Device-Key"] = deviceKey;
+
+await fetch(`${process.env.NEXT_PUBLIC_SISCAV_API_URL}/api/v1/access_logs/`, {
+  method: "POST",
+  headers,
+  body: form,
+  // Não definir Content-Type — o browser define boundary do multipart
+});
+```
+
+### Autenticação deste endpoint (`X-Device-Key`)
+
+A rota de ingestão usa **`verify_device_ingest_key`**, não JWT:
+
+- Se **`DEVICE_INGEST_KEY`** está definida no servidor da API → o pedido **deve** incluir cabeçalho **`X-Device-Key`** com o mesmo valor.
+- Se **não** está definida e o ambiente é `development` / `dev` / vazio → o servidor pode aceitar sem chave (apenas para dev).
+
+**Cuidado:** colocar a chave em `NEXT_PUBLIC_*` expõe a chave a **qualquer utilizador** que abra o DevTools. Para produção, o padrão mais seguro é:
+
+- Um **Route Handler** ou **Server Action** no Next.js que recebe o `FormData`, adiciona `X-Device-Key` **só no servidor** (variável sem `NEXT_PUBLIC`) e faz o `fetch` à SISCAV; ou
+- Uma extensão futura da API: ingestão autenticada com **JWT** de operador (ainda não existe neste repositório).
+
+### “Quando há placas” — gatilhos na UI
+
+- **Por intervalo:** `setInterval` a cada N segundos captura frame → OCR → se texto novo/confiante → `POST` (com debounce para não spammar a API).
+- **Por botão:** “Registar passagem” captura frame atual + OCR uma vez.
+- **Por movimento (avançado):** deteção de movimento no canvas antes de OCR para reduzir custo (fora do âmbito deste guia).
+
+Trata sempre erros **401** (chave em falta/errada), **413** (imagem grande), **422** (validação) conforme mensagens da API.
 
 ## Referências cruzadas
 
