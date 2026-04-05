@@ -25,7 +25,7 @@ O **SISCAV (Sistema de Controle de Acesso Veicular)** é uma solução completa 
 2. **Reconhecimento de Placa**: O sistema utiliza visão computacional (OpenCV) e OCR (EasyOCR) para detectar e extrair o texto da placa
 3. **Validação Central**: Os dados são enviados ao servidor central via API REST
 4. **Verificação de Autorização**: O servidor valida a placa contra uma lista de placas autorizadas (whitelist)
-5. **Controle de Acesso**: Se autorizada, o servidor aciona o portão através de um módulo relé conectado ao dispositivo IoT
+5. **Controle de Acesso**: Se autorizada, a decisão fica registrada; o acionamento físico do portão pode ser feito via **`GATE_ACTUATOR_URL`** (HTTP no servidor) ou por outro sistema na borda — não há firmware obrigatório neste repositório
 
 ---
 
