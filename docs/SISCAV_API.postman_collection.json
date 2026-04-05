@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "siscav-api-collection",
 		"name": "SISCAV API - Sistema de Controle de Acesso Veicular",
-		"description": "Coleção completa para testar a API do Sistema de Controle de Acesso Veicular (SISCAV).\n\n**Instruções:**\n1. Configure a variável `base_url` no ambiente (padrão: http://localhost:8000)\n2. Execute o endpoint de Login para obter os tokens (access_token e refresh_token)\n   - Email padrão: admin@siscav.com\n   - Senha padrão: admin123\n3. Os tokens serão automaticamente salvos nas variáveis `access_token` e `refresh_token`\n4. Todos os endpoints protegidos usarão automaticamente o `access_token`\n5. Quando o `access_token` expirar, use o endpoint Refresh Token para renovar\n\n**Credenciais de Teste (criadas pelo seed):**\n- Email: admin@siscav.com\n- Senha: admin123",
+		"description": "Coleção alinhada à API FastAPI em `apps/api/src` (montagem `/api/v1`).\n\n**Ambiente Postman:** importe `SISCAV_API.postman_environment.json` e ajuste `base_url`.\n\n**Fluxo típico:**\n1. `Health Check` → confirmar que a API está no ar.\n2. `Login - Obter Token` (OAuth2 password: `username` = email) → grava `access_token` e `refresh_token`.\n3. Rotas com Bearer usam `{{access_token}}`.\n4. `Refresh Token` → `POST /api/v1/login/refresh-token` com body `refresh_token` (form).\n\n**Seed (`apps/api/src/seed_demo.py`):** `admin@siscav.com` / `admin123` com **is_admin=true** (necessário para **Acionar portão** e **Obter imagem do log**).\n\n**Ingestão de logs (`POST /api/v1/access_logs/`):** se o servidor tiver `DEVICE_INGEST_KEY`, envie header **`X-Device-Key`** (ative o header neste request e preencha `device_ingest_key` no ambiente). Sem chave em `development`/`dev`, a API pode aceitar sem header (ver `deps.verify_device_ingest_key`).\n\n**Rate limits (código atual):** login/refresh **5/min** por IP; registo **100/min** por IP (`auth.py`).\n\n**Rotas `/api/v1/devices/*`:** API de **demonstração**; em `ENVIRONMENT=production` ficam **501** salvo `IOT_DEVICE_DEMO_API=true`.\n\n**Portão:** `POST .../gate_control/trigger` exige JWT de **administrador**; com `GATE_ACTUATOR_URL` vazio a resposta é modo **simulated**.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "siscav-api"
 	},
@@ -87,7 +87,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "register"]
 						},
-						"description": "Registra um novo usuário no sistema.\n\n**Rate Limiting:** Máximo de 3 tentativas por minuto por IP.\n\n**Validações:**\n- Email deve ser válido e único\n- Senha deve ter no mínimo 8 caracteres\n\n**Retorna:**\n- Dados do usuário criado (sem senha)\n- Status 201 Created em caso de sucesso\n- Status 409 Conflict se o email já estiver em uso"
+						"description": "Regista um novo utilizador (`POST /api/v1/register`).\n\n**Rate limiting (código):** 100 pedidos/minuto por IP (`auth.register`).\n\n**Corpo:** JSON `UserCreate` — `email`, `password` (mín. 8 caracteres).\n\n**Respostas:** 201 + `UserRead`; 409 se o email já existir."
 					},
 					"response": []
 				},
@@ -143,7 +143,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "login", "access-token"]
 						},
-						"description": "Login OAuth2 para obter tokens de acesso e refresh.\n\n**Rate Limiting:** Máximo de 5 tentativas por minuto por IP.\n\n**Retorna:**\n- `access_token`: Token JWT de acesso (válido por 15 minutos)\n- `refresh_token`: Token JWT de refresh (válido por 30 dias)\n\n**Nota:** Os tokens serão automaticamente salvos nas variáveis `access_token` e `refresh_token` após o login bem-sucedido."
+						"description": "OAuth2 password flow: `POST /api/v1/login/access-token` com `application/x-www-form-urlencoded` (`username` = email, `password`).\n\n**Rate limiting:** 5/min por IP.\n\n**Resposta:** `Token` — `access_token`, `refresh_token`, `token_type=bearer`. Duração configurável no servidor (`ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`).\n\nOs testes Postman gravam os tokens no ambiente."
 					},
 					"response": []
 				},
@@ -194,7 +194,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "login", "refresh-token"]
 						},
-						"description": "Renova o token de acesso usando um refresh token válido.\n\n**Uso:**\n- Quando o `access_token` expirar (após 15 minutos), use este endpoint para obter novos tokens\n- O `refresh_token` é válido por 30 dias\n\n**Retorna:**\n- Novo `access_token`\n- Novo `refresh_token`\n\n**Nota:** Os novos tokens serão automaticamente salvos nas variáveis após a renovação bem-sucedida."
+						"description": "`POST /api/v1/login/refresh-token` com body form `refresh_token` (valor JWT tipo refresh).\n\n**Rate limiting:** 5/min por IP.\n\n**Resposta:** novo par `access_token` + `refresh_token`. Utilizador tem de continuar a existir na base de dados."
 					},
 					"response": []
 				}
@@ -289,7 +289,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "whitelist", ""]
 						},
-						"description": "Cadastra uma nova placa autorizada na whitelist.\n\n**Formatos aceitos:**\n- Antigo: ABC1234 (3 letras + 4 dígitos)\n- Mercosul: ABC1D23 (3 letras + 1 dígito + 1 letra + 2 dígitos)\n\n**Nota:** O campo `normalized_plate` é calculado automaticamente e não precisa ser fornecido."
+						"description": "`POST /api/v1/whitelist/` — corpo `AuthorizedPlateCreate` (`plate`, `description` opcional). JWT Bearer (qualquer utilizador autenticado).\n\n**Formatos:** Mercosul (`ABC1D23`) ou legado (`ABC-1234`). `normalized_plate` é calculado no servidor.\n\n**Respostas:** 200 + `AuthorizedPlateRead`; 409 se a placa normalizada já existir."
 					},
 					"response": []
 				},
@@ -380,13 +380,13 @@
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de placas autorizadas (whitelist)"
+			"description": "CRUD de placas em `/api/v1/whitelist/` (autenticado; não exige admin no código atual)"
 		},
 		{
 			"name": "Access Logs - Logs de Acesso",
 			"item": [
 				{
-					"name": "Registrar Acesso (IoT)",
+					"name": "Registrar acesso (multipart)",
 					"event": [
 						{
 							"listen": "test",
@@ -395,7 +395,11 @@
 									"if (pm.response.code === 200) {",
 									"    var jsonData = pm.response.json();",
 									"    pm.environment.set(\"access_log_id\", jsonData.id);",
-									"    pm.environment.set(\"image_filename\", jsonData.image_storage_key.split('/').pop());",
+									"    var key = jsonData.image_storage_key || \"\";",
+									"    var fn = key;",
+									"    var i = Math.max(key.lastIndexOf(\"/\"), key.lastIndexOf(\"\\\\\"));",
+									"    if (i >= 0) fn = key.substring(i + 1);",
+									"    if (fn) pm.environment.set(\"image_filename\", fn);",
 									"    console.log(\"Log criado com ID: \" + jsonData.id);",
 									"    console.log(\"Status: \" + jsonData.status);",
 									"}"
@@ -409,7 +413,15 @@
 							"type": "noauth"
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "X-Device-Key",
+								"value": "{{device_ingest_key}}",
+								"type": "text",
+								"description": "Obrigatório se DEVICE_INGEST_KEY estiver definida no servidor",
+								"disabled": true
+							}
+						],
 						"body": {
 							"mode": "formdata",
 							"formdata": [
@@ -432,7 +444,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "access_logs", ""]
 						},
-						"description": "Registra um novo acesso veicular.\n\n**Fluxo:**\n1. Valida o arquivo de imagem\n2. Normaliza a placa\n3. Verifica se a placa está na whitelist\n4. Armazena a imagem\n5. Cria um registro de log com o status (Authorized/Denied)\n\n**Nota:** Este endpoint não requer autenticação, pois é usado pelos dispositivos IoT."
+						"description": "`POST /api/v1/access_logs/` — `multipart/form-data`: campo **`plate`** (texto) + **`file`** (imagem).\n\n**Autenticação:** não usa Bearer; pode exigir **`X-Device-Key`** igual a `DEVICE_INGEST_KEY` quando esta variável está definida. Ative o header acima e defina `device_ingest_key` no ambiente Postman.\n\n**Resposta:** `AccessLogRead` — `status` `Authorized` ou `Denied` conforme whitelist. `image_storage_key` é caminho de ficheiro (útil para `GET .../images/{filename}`)."
 					},
 					"response": []
 				},
@@ -492,7 +504,7 @@
 								}
 							]
 						},
-						"description": "Lista registros de acesso veicular com filtros opcionais.\n\n**Filtros disponíveis:**\n- `plate`: Busca parcial por placa\n- `status`: Authorized ou Denied\n- `start_date`: Data inicial (formato ISO 8601)\n- `end_date`: Data final (formato ISO 8601)"
+						"description": "`GET /api/v1/access_logs/` — JWT Bearer (qualquer utilizador autenticado; não exige admin).\n\n**Query:** `skip`, `limit` (1–100), opcionalmente `plate` (ILIKE parcial), `status` (`Authorized`|`Denied`), `start_date`, `end_date` (ISO 8601). Ordenação: mais recente primeiro."
 					},
 					"response": []
 				},
@@ -526,7 +538,7 @@
 								}
 							]
 						},
-						"description": "Lista apenas os logs de acesso autorizados."
+						"description": "Exemplo: `status=Authorized` (enum `AccessStatus` na API)."
 					},
 					"response": []
 				},
@@ -580,12 +592,12 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "access_logs", "images", "{{image_filename}}"]
 						},
-						"description": "Obtém a imagem capturada de um log de acesso específico.\n\n**Nota:** O nome do arquivo é salvo automaticamente após criar um log de acesso."
+						"description": "`GET /api/v1/access_logs/images/{image_filename}` — **apenas administrador** (`is_admin`); caso contrário 403.\n\nUse `image_filename` gravado pelo request de registo (apenas o nome do ficheiro, ex. UUID.jpg)."
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de logs de acesso veicular"
+			"description": "Logs de acesso: ingestão multipart, listagem autenticada, imagem só para admin"
 		},
 		{
 			"name": "Gate Control - Controle de Portão",
@@ -610,15 +622,15 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "gate_control", "trigger"]
 						},
-						"description": "Aciona o portão remotamente através do módulo relé.\n\n**Nota:** Em produção, este endpoint se comunica com o dispositivo IoT para acionar o módulo relé físico."
+						"description": "`POST /api/v1/gate_control/trigger` — **JWT de administrador** (`is_admin`). Utilizador sem privilégio → 403.\n\nSe `GATE_ACTUATOR_URL` não estiver definida, a resposta é modo **simulated** (sem HTTP externo). Com URL definida, a API faz POST `{\"action\":\"open\"}` ao atuador (modo **live**; falhas → 502/503)."
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para controle remoto do portão"
+			"description": "Acionamento de portão (admin + opcional GATE_ACTUATOR_URL)"
 		},
 		{
-			"name": "Devices - Dispositivos IoT",
+			"name": "Devices - API de demonstração (Bluetooth simulado)",
 			"item": [
 				{
 					"name": "Escanear Dispositivos Bluetooth",
@@ -640,7 +652,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "devices", "scan"]
 						},
-						"description": "Escaneia dispositivos Bluetooth disponíveis.\n\n**Nota:** Esta é uma simulação. Em produção, seria integrado com a API Web Bluetooth do navegador."
+						"description": "`GET /api/v1/devices/scan` — simulação HTTP. **Dependência global:** se `IOT_DEVICE_DEMO_API` for falso (padrão em `production`/`prod`), todas as rotas `/devices/*` respondem **501**."
 					},
 					"response": []
 				},
@@ -693,7 +705,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "devices", "connect"]
 						},
-						"description": "Conecta a um dispositivo Bluetooth.\n\n**Nota:** A conexão Bluetooth real deve ser gerenciada pelo navegador via Web Bluetooth API."
+						"description": "`POST /api/v1/devices/connect` — body JSON `ConnectionRequest` (`device_id` obrigatório). Demo apenas; Bluetooth real no browser (Web Bluetooth)."
 					},
 					"response": []
 				},
@@ -717,7 +729,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "devices", "status"]
 						},
-						"description": "Verifica o status da conexão Bluetooth atual."
+						"description": "`GET /api/v1/devices/status` — `ConnectionStatus` (demo)."
 					},
 					"response": []
 				},
@@ -741,12 +753,12 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "devices", "disconnect"]
 						},
-						"description": "Desconecta o dispositivo Bluetooth atual."
+						"description": "`POST /api/v1/devices/disconnect` — `DisconnectResponse` (demo)."
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de dispositivos IoT"
+			"description": "Rotas de demo; desligadas em produção salvo IOT_DEVICE_DEMO_API=true"
 		}
 	],
 	"event": [
@@ -802,6 +814,11 @@
 		},
 		{
 			"key": "connected_device_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "device_ingest_key",
 			"value": "",
 			"type": "string"
 		}
