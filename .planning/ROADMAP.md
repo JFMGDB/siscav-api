@@ -9,7 +9,8 @@
 - [ ] **Phase 1: Security & authentication correctness** — Protected ingest, token/rate-limit hygiene, docs aligned with real authorization; auth flows remain usable.
 - [x] **Phase 2: Whitelist & access log behavior** — Normalized whitelist CRUD and full audit trail submit/list/image behavior for authenticated clients.
  (completed 2026-04-04)
-- [x] **Phase 3: Gate & device integration honesty** — Real integration path or explicit simulation; device endpoints production-ready or clearly disabled. (completed 2026-04-04)
+- [x] **Phase 3: Gate & device integration honesty** — Real integration path or explicit simulation; device endpoints production-ready or clearly disabled.
+ (completed 2026-04-04)
 - [ ] **Phase 4: Operations & dependency hygiene** — Debug noise removed or gated, migration discipline, pinned deps, deprecated `crud/` path resolved.
 
 ## Progress
@@ -19,7 +20,7 @@
 | 1. Security & authentication correctness | 0/3 | Not started | - |
 | 2. Whitelist & access log behavior | 3/3 | Complete    | 2026-04-04 |
 | 3. Gate & device integration honesty | 2/2 | Complete    | 2026-04-04 |
-| 4. Operations & dependency hygiene | 0/3 | Not started | - |
+| 4. Operations & dependency hygiene | 0/3 | Planned     | - |
 
 ## Phase Details
 
@@ -87,9 +88,9 @@
 3. Deprecated `crud/` modules are removed or formally deprecated with no duplicate maintenance path for the same operations.
 
 **Plans**:
-- 04-01 — TBD
-- 04-02 — TBD
-- 04-03 — TBD
+- 04-01 — OPS-01: strip `session.py` agent log / `create_all`, docs + CONCERNS ([04-01-PLAN.md](phases/04-operations-dependency-hygiene/04-01-PLAN.md))
+- 04-02 — OPS-02: pin `requirements.txt` / `requirements-dev.txt` / `pyproject.toml`, CONCERNS + install doc ([04-02-PLAN.md](phases/04-operations-dependency-hygiene/04-02-PLAN.md))
+- 04-03 — OPS-03: remove `crud/`, update STRUCTURE/ARCHITECTURE/coding-standards ([04-03-PLAN.md](phases/04-operations-dependency-hygiene/04-03-PLAN.md))
 
 ## Requirement coverage
 
