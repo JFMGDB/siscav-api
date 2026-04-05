@@ -193,7 +193,7 @@ db.close()
 
 Após criar as tabelas:
 
-1. **Criar usuário administrador**: Execute `python app/seed_demo.py` ou crie manualmente
-2. **Testar API**: Execute `uvicorn app.main:app --reload`
+1. **Criar usuário administrador**: Execute `python seed_demo.py` a partir de `apps/api/src/` (ver docstring em `apps/api/src/seed_demo.py`) ou crie manualmente
+2. **Testar API**: Na raiz do repo, com `PYTHONPATH` na raiz: `uvicorn apps.api.src.main:app --reload`
 3. **Verificar endpoints**: Acesse http://localhost:8000/docs
 
