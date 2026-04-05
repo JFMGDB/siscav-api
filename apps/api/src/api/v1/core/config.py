@@ -37,6 +37,19 @@ def _read_refresh_token_expire_days() -> int:
     return int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
 
 
+def _read_password_reset_token_expire_minutes() -> int:
+    return int(os.getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES", "60"))
+
+
+def _read_password_reset_expose_token_in_response() -> bool:
+    """Em produção, não devolver o token no JSON (use email ou canal seguro)."""
+    explicit = os.getenv("PASSWORD_RESET_EXPOSE_TOKEN_IN_RESPONSE")
+    if explicit is not None and explicit.strip() != "":
+        return explicit.strip().lower() in ("1", "true", "yes", "on")
+    env = _read_environment()
+    return env not in ("production", "prod")
+
+
 def _read_upload_dir() -> str:
     return os.getenv("UPLOAD_DIR", "uploads")
 
@@ -98,9 +111,7 @@ def _read_iot_device_demo_api() -> bool:
     if explicit is not None and explicit.strip() != "":
         return explicit.strip().lower() in ("1", "true", "yes", "on")
     env = _read_environment()
-    if env in ("production", "prod"):
-        return False
-    return True
+    return env not in ("production", "prod")
 
 
 def assert_production_secrets_valid() -> None:
@@ -135,6 +146,12 @@ class Settings(BaseModel):
     algorithm: str = Field(default_factory=_read_algorithm)
     access_token_expire_minutes: int = Field(default_factory=_read_access_token_expire_minutes)
     refresh_token_expire_days: int = Field(default_factory=_read_refresh_token_expire_days)
+    password_reset_token_expire_minutes: int = Field(
+        default_factory=_read_password_reset_token_expire_minutes
+    )
+    password_reset_expose_token_in_response: bool = Field(
+        default_factory=_read_password_reset_expose_token_in_response
+    )
     upload_dir: str = Field(default_factory=_read_upload_dir)
     max_file_size_mb: int = Field(default_factory=_read_max_file_size_mb)
 

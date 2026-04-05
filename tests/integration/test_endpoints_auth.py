@@ -131,3 +131,48 @@ class TestAuthEndpoints:
         assert "refresh_token" in body
         assert body["token_type"] == "bearer"
 
+    def test_password_reset_request_unknown_email(self, client: TestClient):
+        r = client.post(
+            "/api/v1/password-reset/request",
+            json={"email": "nope-nope@example.com"},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["reset_token"] is None
+        assert "message" in data
+
+    def test_password_reset_flow_then_login(self, client: TestClient, test_user: User):
+        req = client.post(
+            "/api/v1/password-reset/request",
+            json={"email": TEST_USER_EMAIL},
+        )
+        assert req.status_code == 200
+        token = req.json().get("reset_token")
+        assert token
+
+        conf = client.post(
+            "/api/v1/password-reset/confirm",
+            json={"token": token, "new_password": "resetnewpass123"},
+        )
+        assert conf.status_code == 200
+
+        assert (
+            client.post(
+                "/api/v1/login/access-token",
+                data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
+            ).status_code
+            == 401
+        )
+        login = client.post(
+            "/api/v1/login/access-token",
+            data={"username": TEST_USER_EMAIL, "password": "resetnewpass123"},
+        )
+        assert login.status_code == 200
+
+    def test_password_reset_confirm_invalid_token(self, client: TestClient):
+        r = client.post(
+            "/api/v1/password-reset/confirm",
+            json={"token": "invalid.jwt.here", "new_password": "validpass123"},
+        )
+        assert r.status_code == 403
+

@@ -1,6 +1,5 @@
 """Repository para operações de acesso a dados de usuários."""
 
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -14,7 +13,7 @@ class UserRepository:
     """Repository para operações de banco de dados relacionadas a usuários."""
 
     @staticmethod
-    def get_by_id(db: Session, user_id: UUID) -> Optional[User]:
+    def get_by_id(db: Session, user_id: UUID) -> User | None:
         """
         Busca um usuário por ID.
 
@@ -28,7 +27,7 @@ class UserRepository:
         return db.scalar(select(User).where(User.id == user_id))
 
     @staticmethod
-    def get_by_email(db: Session, email: str) -> Optional[User]:
+    def get_by_email(db: Session, email: str) -> User | None:
         """
         Busca um usuário por email.
 
@@ -39,7 +38,8 @@ class UserRepository:
         Returns:
             User se encontrado, None caso contrário
         """
-        return db.scalar(select(User).where(User.email == email))
+        # Usar query() diretamente para melhor compatibilidade
+        return db.query(User).filter(User.email == email).first()
 
     @staticmethod
     def create(db: Session, user_data: UserCreate, hashed_password: str) -> User:
@@ -58,6 +58,7 @@ class UserRepository:
             email=user_data.email,
             hashed_password=hashed_password,
         )
+
         db.add(db_user)
         try:
             db.commit()
@@ -66,4 +67,19 @@ class UserRepository:
             db.rollback()
             raise
         return db_user
+
+    @staticmethod
+    def update_password_hash(db: Session, user_id: UUID, hashed_password: str) -> User | None:
+        """Atualiza a senha hasheada do utilizador."""
+        user = UserRepository.get_by_id(db, user_id)
+        if not user:
+            return None
+        user.hashed_password = hashed_password
+        try:
+            db.commit()
+            db.refresh(user)
+        except Exception:
+            db.rollback()
+            raise
+        return user
 

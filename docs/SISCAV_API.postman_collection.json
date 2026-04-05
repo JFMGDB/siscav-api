@@ -197,6 +197,77 @@
 						"description": "`POST /api/v1/login/refresh-token` com body form `refresh_token` (valor JWT tipo refresh).\n\n**Rate limiting:** 5/min por IP.\n\n**Resposta:** novo par `access_token` + `refresh_token`. Utilizador tem de continuar a existir na base de dados."
 					},
 					"response": []
+				},
+				{
+					"name": "Password reset - Pedido",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var j = pm.response.json();",
+									"    if (j.reset_token) {",
+									"        pm.environment.set(\"password_reset_token\", j.reset_token);",
+									"        console.log(\"password_reset_token guardado no ambiente\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@siscav.com\"\n}",
+							"options": {
+								"raw": { "language": "json" }
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/password-reset/request",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "password-reset", "request"]
+						},
+						"description": "`POST /api/v1/password-reset/request` — JSON `{\"email\"}`. Resposta genérica; `reset_token` só vem no JSON se `PASSWORD_RESET_EXPOSE_TOKEN_IN_RESPONSE` estiver ativo (padrão: sim em development, não em production)."
+					},
+					"response": []
+				},
+				{
+					"name": "Password reset - Confirmar",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"{{password_reset_token}}\",\n  \"new_password\": \"novaSenhaSegura123\"\n}",
+							"options": {
+								"raw": { "language": "json" }
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/password-reset/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "password-reset", "confirm"]
+						},
+						"description": "`POST /api/v1/password-reset/confirm` — `token` (JWT do pedido) + `new_password` (mín. 8). Depois faça login com a nova senha."
+					},
+					"response": []
 				}
 			],
 			"description": "Endpoints de autenticação"
