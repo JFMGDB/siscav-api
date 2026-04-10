@@ -9,3 +9,4 @@ python-jose[cryptography]
 slowapi
 email-validator
 python-multipart
+pillow
