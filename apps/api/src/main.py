@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -5,7 +7,20 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from apps.api.src.api.v1.api import api_router
+from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.limiter import limiter
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    if settings.secret_key == "change_me_in_development" and not settings.debug:
+        raise RuntimeError(
+            "Refusing to start: SECRET_KEY is still the default "
+            "`change_me_in_development` while DEBUG is off. Set a strong SECRET_KEY "
+            "via SECRET_KEY, or enable development mode with DEBUG=1, true, or yes."
+        )
+    yield
 
 description = """
 SISCAV API - Sistema de Controle de Acesso Veicular.
@@ -41,6 +56,7 @@ app = FastAPI(
     license_info={
         "name": "MIT",
     },
+    lifespan=lifespan,
 )
 
 # Configurar rate limiting global

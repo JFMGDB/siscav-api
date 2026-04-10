@@ -44,6 +44,14 @@ def _resolve_database_url() -> str:
     return "sqlite:///./siscav_dev.db"
 
 
+def _parse_debug_env() -> bool:
+    """Lê DEBUG da variável de ambiente: 1, true ou yes (case-insensitive) ativam; padrão: false."""
+    raw = os.getenv("DEBUG")
+    if raw is None or raw.strip() == "":
+        return False
+    return raw.strip().lower() in ("1", "true", "yes")
+
+
 class Settings(BaseModel):
     """Configurações da aplicação carregadas de variáveis de ambiente.
 
@@ -52,6 +60,7 @@ class Settings(BaseModel):
     """
 
     database_url: str = _resolve_database_url()
+    debug: bool = _parse_debug_env()
     secret_key: str = os.getenv("SECRET_KEY", "change_me_in_development")
     algorithm: str = os.getenv("ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
