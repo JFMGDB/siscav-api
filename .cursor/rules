@@ -1,0 +1,197 @@
+<!-- gsd-project-start source:PROJECT.md -->
+## Project
+
+**SISCAV API — planning context**
+
+**siscav-api** is the FastAPI backend for the *Sistema de Controle de Acesso de Veículos* (vehicle access control). It provides JWT auth for administrators, whitelist CRUD for authorized plates, access-log ingestion with image storage, and endpoints for health, devices, and gate control. The service targets PostgreSQL (including Supabase) with SQLAlchemy and Alembic.
+
+**Core Value:** **Administrators and edge devices can trust the API for authenticated administration and auditable access events** — fixes in this milestone prioritize closing security gaps, config honesty, and upload robustness over new features.
+
+### Constraints
+
+- **Tech:** Stay on current stack (FastAPI, SQLAlchemy 2, Pydantic, pytest) unless a requirement explicitly demands a library swap.
+- **Compatibility:** PostgreSQL remains the production target; SQLite fallback exists for dev only — changes must not break Supabase/Postgres deployments.
+- **Scope:** Bugfix and hardening milestone — avoid feature creep; defer IoT completion.
+<!-- gsd-project-end -->
+
+<!-- gsd-stack-start source:codebase/STACK.md -->
+## Technology Stack
+
+## Languages
+- Python 3.13 — Application code under `apps/`, tests under `tests/`, Alembic migrations under `apps/api/src/alembic/`. CI (``.github/workflows/ci.yml``) and `Dockerfile.dev` target 3.13; `pyrightconfig.json` sets `"pythonVersion": "3.13"`.
+- SQL — Hand-written schema scripts for Supabase-oriented setup in `db/sql/supabase/` (`01_enable_extensions.sql`, `02_types.sql`, `03_tables.sql`, `04_indexes.sql`).
+## Runtime
+- CPython 3.13 (see `Dockerfile.dev`, `.github/workflows/ci.yml`, `pyrightconfig.json`).
+- pip — Dependencies listed in `requirements.txt` (runtime) and `requirements-dev.txt` (dev/CI includes `-r requirements.txt`).
+- Lockfile: Not detected (no `uv.lock`, `poetry.lock`, or pinned versions in `requirements.txt`).
+## Frameworks
+- FastAPI — HTTP API and OpenAPI docs; entrypoint `apps/api/src/main.py` (`FastAPI` app, CORS, SlowAPI middleware).
+- Uvicorn [standard] — ASGI server; `docker-compose.yml` runs `uvicorn apps.api.src.main:app --host 0.0.0.0 --port 8000 --reload`.
+- SQLAlchemy — ORM; engine and `SessionLocal` in `apps/api/src/api/v1/db/session.py`; models under `apps/api/src/api/v1/models/`.
+- Pydantic — Request/response and settings-shaped models; schemas in `apps/api/src/api/v1/schemas/`. Note: `Settings` in `apps/api/src/api/v1/core/config.py` uses `pydantic.BaseModel` plus `os.getenv`; the project avoids `pydantic-settings` to keep dependencies minimal (documented in that file).
+- Alembic — Migrations; config `alembic.ini` (`script_location = apps/api/src/alembic`), env logic `apps/api/src/alembic/env.py`.
+- pytest — Config in `pyproject.toml` (`[tool.pytest.ini_options]`, `testpaths = ["tests"]`).
+- pytest-cov — Coverage; CI runs `pytest -v --cov=apps --cov-report=term-missing` (see `.github/workflows/ci.yml`). Coverage source: `apps` with omissions in `pyproject.toml` `[tool.coverage.run]`.
+- Ruff — Lint and format; config `ruff.toml` (target `py313`, line length 100, broad rule sets).
+- Docker — `Dockerfile.dev` (multi-stage base `python:3.13-slim`), `docker-compose.yml` (API + optional local Postgres).
+## Key Dependencies
+- `fastapi` — Web framework (`apps/api/src/main.py`, routers under `apps/api/src/api/v1/endpoints/`).
+- `uvicorn[standard]` — ASGI server for local and container runs.
+- `sqlalchemy` — Database access layer.
+- `alembic` — Schema migrations (`apps/api/src/alembic/`).
+- `psycopg2-binary` — PostgreSQL driver for SQLAlchemy URLs using `postgresql+psycopg2` (`apps/api/src/api/v1/core/config.py`).
+- `pydantic` — Validation and `Settings`-style model in `config.py`.
+- `passlib` — Password hashing; `apps/api/src/api/v1/core/security.py` uses `CryptContext(schemes=["argon2"], ...)`. `requirements.txt` lists `passlib[argon2]`; `pyproject.toml` lists `passlib[bcrypt]` — prefer the resolved runtime in `requirements.txt` and `security.py` (argon2).
+- `python-jose[cryptography]` — JWT create/verify in `security.py` (`jwt.encode` / validation paths via controllers).
+- `slowapi` — Rate limiting; `apps/api/src/api/v1/core/limiter.py`, wired in `main.py` (`Limiter`, `SlowAPIMiddleware`, `RateLimitExceeded` handler).
+- `email-validator` — Supports Pydantic `EmailStr` (schemas such as `apps/api/src/api/v1/schemas/user.py`).
+- `python-multipart` — Form/file uploads for FastAPI (`requirements.txt`); used with access log uploads (`UploadFile` in `apps/api/src/api/v1/endpoints/access_logs.py`).
+- Not applicable as separate runtime services in Python deps (Postgres runs as Docker image `postgres:16-alpine` in `docker-compose.yml`, not a pip package).
+## Configuration
+- Loaded via `os.getenv` and `apps/api/src/api/v1/core/config.py` (`Settings`, `get_settings()` cached with `lru_cache`). Database URL resolution: `DATABASE_URL` → or composed `POSTGRES_*` → else SQLite fallback `sqlite:///./siscav_dev.db`.
+- Example env templates (variable names only; do not commit real secrets): `env.local.example`, `env.supabase.example`.
+- `.env` files may exist locally; not read for this analysis.
+- `alembic.ini` — Default `sqlalchemy.url` for Alembic; overridden at runtime from `DATABASE_URL` or `get_settings().database_url` in `apps/api/src/alembic/env.py`.
+- `ruff.toml` — Lint/format.
+- `pyrightconfig.json` — Editor/type-check paths (`apps`, `venv`).
+- `pyproject.toml` — Project metadata, pytest/coverage options, dependency list (may diverge slightly from `requirements.txt`; installs typically use requirements files per README/CI).
+## Platform Requirements
+- Python 3.13+ (per README and CI).
+- Optional: Docker + Docker Compose for API and local Postgres (`docker-compose.yml`, `Dockerfile.dev`).
+- For OpenAPI/HTTP testing: Postman assets `SISCAV_API.postman_collection.json`, `SISCAV_API.postman_environment.json` (client tooling, not runtime deps).
+- Not fully specified in-repo; `config.py` supports PostgreSQL (including Supabase-style `DATABASE_URL` with `sslmode=require` as documented in comments). HTTPS for clients/IoT is described in `README.md` as an expectation, not a coded integration.
+## Standalone / non-packaged scripts
+- `apps/api/src/api/v1/ml/recognize-plate.py` imports `cv2` (OpenCV), `easyocr`, `numpy`, and Windows-specific `winsound`. These libraries are not listed in `requirements.txt` or `pyproject.toml` dependencies; treat as experimental/local tooling unless added to project dependencies.
+<!-- gsd-stack-end -->
+
+<!-- gsd-conventions-start source:CONVENTIONS.md -->
+## Conventions
+
+## Naming Patterns
+- Python modules: `snake_case.py` (e.g. `access_log_controller.py`, `user_repository.py`).
+- Standalone script outside the package tree: `apps/api/src/api/v1/ml/recognize-plate.py` uses a hyphen (atypical; prefer `snake_case` for new modules).
+- `snake_case` for functions and methods (PEP 8; enforced by Ruff rule set `N` in `ruff.toml`).
+- `snake_case` for locals and module-level names.
+- `PascalCase` for classes: Pydantic schemas (`UserCreate`, `UserRead` in `apps/api/src/api/v1/schemas/user.py`), SQLAlchemy models (`User` in `apps/api/src/api/v1/models/user.py`), controllers, repositories.
+- Enum-style values: Pydantic/schema enums follow the domain (e.g. `AccessStatus` in `apps/api/src/api/v1/schemas/access_log.py`).
+- Path segments use kebab-case or REST-style lowercase (e.g. `/api/v1/login/access-token` in `apps/api/src/api/v1/endpoints/auth.py`).
+## Code Style
+- **Ruff** formatter (`ruff format`) — configuration in `ruff.toml` `[format]`: double quotes, 4-space indent, Unix (`lf`) line endings, max line length **100** (same as `[tool.ruff]` / project standard).
+- CI runs `ruff format --check .` (see `.github/workflows/ci.yml`).
+- **Ruff** linter (`ruff check`) with broad rule categories (`E`, `W`, `F`, `I`, `N`, `UP`, `B`, …) defined in `ruff.toml` `[lint] select`.
+- **Ignored globally:** `E501` (line length handled by formatter), `B008` (FastAPI `Depends()` in defaults), `TRY003`, `PLR0913`.
+- **Per-file:** `__init__.py` — `F401`, `F403`; `tests/**/*.py` — `T20` (print), `PLR2004` (magic numbers).
+- **Excluded from lint:** Alembic migrations `alembic/versions/*.py` (see `ruff.toml` `exclude`).
+- Cyclomatic complexity cap: **10** (`[lint.mccabe]` in `ruff.toml`).
+- **Pyright** config: `pyrightconfig.json` — `include`: `apps`, Python **3.13**, `extraPaths`: `apps` for import resolution.
+## Import Organization
+- Imports use the **`apps`** package root (e.g. `from apps.api.src.main import app` in tests, `from apps.api.src.api.v1.deps import get_current_user`).
+- Prefer explicit imports over wildcards except where `__init__.py` re-exports are intentional (unused-import rules relaxed there).
+## Error Handling
+- Use **`fastapi.HTTPException`** with `status` constants from `fastapi.status` where appropriate (e.g. `apps/api/src/api/v1/endpoints/auth.py`: `400` for bad credentials).
+- Dependencies validate JWT and raise `HTTPException` with **403** for invalid token, **404** if user missing (`apps/api/src/api/v1/deps.py`).
+- JWT decode failures: catch `JWTError` and Pydantic `ValidationError`, map to a single 403 response with detail `"Could not validate credentials"` (`apps/api/src/api/v1/deps.py`).
+- Business rules signal errors via **`HTTPException`** (e.g. 404/400/409/413) — unit tests assert `pytest.raises(HTTPException)` and `exc_info.value.status_code` (see `tests/unit/test_controllers.py`, `tests/unit/test_deps.py`).
+- Avoid raising in `Settings` construction for missing env; defaults are applied in `apps/api/src/api/v1/core/config.py` (e.g. `SECRET_KEY` default for dev).
+## Logging
+- Module logger: `logger = logging.getLogger(__name__)` in controllers such as `apps/api/src/api/v1/controllers/auth_controller.py`, `plate_controller.py`, `device_controller.py`, `access_log_controller.py`.
+- Levels: `debug` for verbose flow, `info` for success paths, `warning` for auth/plate validation issues, `error` with `exc_info=True` on unexpected failures (`plate_controller.py`).
+- **Do not** use `print` in application code under Ruff `T20`; a legacy script `apps/api/src/api/v1/ml/recognize-plate.py` uses prints (excluded from typical API lint scope by location — new code should use logging).
+## Comments
+- Module docstrings at top of file are common and often in **Portuguese** (e.g. `apps/api/src/api/v1/deps.py`, `apps/api/src/api/v1/core/config.py`).
+- Public FastAPI endpoints use docstrings describing args, returns, and raises (`apps/api/src/api/v1/endpoints/auth.py`).
+- Google-style narrative is used in several modules; keep endpoint and dependency docstrings aligned with actual behavior.
+## Function Design
+- FastAPI dependencies use **`typing.Annotated`** with `Depends()` (`apps/api/src/api/v1/deps.py`, `apps/api/src/api/v1/endpoints/auth.py`).
+- Endpoints declare `response_model` where applicable; controllers return ORM models or dicts consistent with schemas.
+## Module Design
+- Package `__init__.py` files may re-export; Ruff allows unused imports there via per-file ignores (`ruff.toml`).
+- Endpoints are registered from `apps/api/src/api/v1/api.py`; prefer adding routers there when introducing new endpoint modules.
+- Use **`get_settings()`** from `apps/api/src/api/v1/core/config.py` (cached with `@lru_cache`). In tests that need fresh env, call **`get_settings.cache_clear()`** (`tests/unit/test_core_config.py`).
+<!-- gsd-conventions-end -->
+
+<!-- gsd-architecture-start source:ARCHITECTURE.md -->
+## Architecture
+
+## Pattern Overview
+- HTTP routing lives in `endpoints/`; route handlers stay thin and delegate to controllers.
+- Business rules, validation orchestration, and `HTTPException` mapping live in `controllers/`.
+- SQLAlchemy data access uses static methods on `repositories/` classes (no repository instances required).
+- Request/response shapes are Pydantic models in `schemas/`; ORM entities are in `models/` inheriting from `Base` in `apps/api/src/api/v1/db/base.py`.
+- Cross-cutting infrastructure (settings, JWT/password helpers, rate limiting) lives under `core/`.
+## Layers
+- Purpose: Define routes, OpenAPI metadata, `Depends()` wiring, and map DTOs via `response_model`.
+- Location: `apps/api/src/api/v1/endpoints/`
+- Contains: One `APIRouter` module per domain (`auth.py`, `whitelist.py`, `access_logs.py`, `devices.py`, `gate_control.py`, `health.py`).
+- Depends on: `controllers/` (via `deps.py`), `schemas/`, FastAPI primitives.
+- Used by: Aggregator `apps/api/src/api/v1/api.py`, included from `apps/api/src/main.py`.
+- Purpose: Encode domain logic, call repositories, raise `HTTPException` with appropriate status codes, use `logging` where needed.
+- Location: `apps/api/src/api/v1/controllers/`
+- Contains: Classes such as `PlateController`, `AuthController`, `AccessLogController`; some controllers omit DB (`GateController`, `DeviceController` — stubs/simulations).
+- Depends on: `Session` from `get_db`, `repositories/`, `core/config.py`, `core/security.py`, `utils/`, `models/` types.
+- Used by: Endpoints through factories in `apps/api/src/api/v1/deps.py`.
+- Purpose: Encapsulate SQLAlchemy queries and transactions (`commit`/`rollback`/`refresh` patterns where applicable).
+- Location: `apps/api/src/api/v1/repositories/`
+- Contains: Classes with `@staticmethod` methods taking `Session` as first argument (e.g. `AuthorizedPlateRepository.get_by_id` in `authorized_plate_repository.py`).
+- Depends on: `models/`, SQLAlchemy `Session`, `select()` / `scalar()` / `scalars()`.
+- Used by: Controllers only (not directly from endpoints).
+- Purpose: Map tables to Python classes using SQLAlchemy 2.0 style (`Mapped`, `mapped_column`).
+- Location: `apps/api/src/api/v1/models/`
+- Contains: `User`, `AuthorizedPlate`, `AccessLog` (and related table definitions).
+- Depends on: `apps/api/src/api/v1/db/base.py` (`Base`).
+- Used by: Repositories, Alembic metadata (`target_metadata` in `apps/api/src/alembic/env.py`).
+- Purpose: Validate and serialize API inputs/outputs; separate from ORM models.
+- Location: `apps/api/src/api/v1/schemas/`
+- Contains: e.g. `AuthorizedPlateCreate`, `AccessLogRead`, `Token`, `TokenPayload`.
+- Depends on: Pydantic only.
+- Used by: Endpoints and controllers.
+- **Configuration:** `apps/api/src/api/v1/core/config.py` — `Settings` built from environment (see docstring for `DATABASE_URL` resolution order); `get_settings()` is LRU-cached.
+- **Security:** `apps/api/src/api/v1/core/security.py` — Argon2 via passlib, JWT encode/decode helpers using `python-jose`.
+- **Rate limiting:** `apps/api/src/api/v1/core/limiter.py` — shared `slowapi` `Limiter`; login applies `@limiter.limit("5/minute")` in `apps/api/src/api/v1/endpoints/auth.py`.
+- **DB session:** `apps/api/src/api/v1/db/session.py` — `get_db()` generator for per-request `Session`.
+- Location: `apps/api/src/api/v1/crud/`
+- Purpose: Older module-style CRUD; **deprecated** in favor of repositories/controllers (see deprecation banner in `apps/api/src/api/v1/crud/crud_user.py`). Prefer new code in `repositories/` and `controllers/`.
+## Data Flow
+- No global application state for domain data; per-request `Session` from `get_db()`. FastAPI `app.state.limiter` holds the rate limiter instance (`main.py`).
+## Key Abstractions
+- Purpose: Single mount point for all v1 routes.
+- Examples: `apps/api/src/api/v1/api.py` exports `api_router`; `main.py` does `app.include_router(api_router, prefix="/api/v1")`.
+- Purpose: Centralize OAuth2 scheme, `get_current_user`, and controller factories for `Depends()`.
+- Pattern: Use `Annotated[..., Depends(...)]` in endpoints; lazy import for `DeviceController` to avoid cycles.
+- Purpose: Thin, testable data layer without instantiating repository objects in controllers.
+- Examples: `apps/api/src/api/v1/repositories/authorized_plate_repository.py`, `user_repository.py`, `access_log_repository.py`.
+- Purpose: One resolved config object per process via `get_settings()` in `config.py`.
+## Entry Points
+- Location: `apps/api/src/main.py`
+- Triggers: Uvicorn loads `apps.api.src.main:app` (see `docker-compose.yml` `command`).
+- Responsibilities: Instantiate `FastAPI`, attach rate-limit exception handler and `SlowAPIMiddleware`, CORS, root `GET /`, include `api_router` at `/api/v1`.
+- Alembic env: `apps/api/src/alembic/env.py` — sets `sqlalchemy.url` from `DATABASE_URL` or `get_settings().database_url`; imports all models so `Base.metadata` is complete.
+- Config file: `alembic.ini` at repo root points `script_location` to `apps/api/src/alembic`.
+## Error Handling
+- Auth: 403/404 from `get_current_user` (`deps.py`).
+- Validation / conflicts: 400/409 from controllers (e.g. duplicate plate).
+- File upload: 400/413 from `AccessLogController`.
+## Cross-Cutting Concerns
+<!-- gsd-architecture-end -->
+
+<!-- gsd-workflow-start source:GSD defaults -->
+## GSD Workflow Enforcement
+
+Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+
+Use these entry points:
+- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
+- `/gsd-debug` for investigation and bug fixing
+- `/gsd-execute-phase` for planned phase work
+
+Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+<!-- gsd-workflow-end -->
+
+
+
+<!-- gsd-profile-start -->
+## Developer Profile
+
+> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
+> This section is managed by `generate-claude-profile` -- do not edit manually.
+<!-- gsd-profile-end -->
