@@ -18,6 +18,7 @@ from apps.api.src.api.v1.repositories.authorized_plate_repository import (
 )
 from apps.api.src.api.v1.schemas.access_log import AccessLogRead, AccessStatus
 from apps.api.src.api.v1.utils.plate import normalize_plate
+from apps.api.src.api.v1.utils.image_validate import assert_image_bytes  # ADICIONADO: Importação da função de validação
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,15 @@ class AccessLogController:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=f"Arquivo muito grande. Máximo: {self.settings.max_file_size_mb}MB",
+            )
+
+        # Validação de imagem usando a biblioteca externa
+        try:
+            assert_image_bytes(file_content)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="O arquivo enviado não é válido. The provided file is not a valid image.",
             )
 
         # Normalizar placa
@@ -173,4 +183,3 @@ class AccessLogController:
         )
 
         return [AccessLogRead.model_validate(log) for log in access_logs]
-
