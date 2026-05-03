@@ -27,7 +27,7 @@ Uvicorn, health check, Swagger e script PowerShell em `scripts/start_server.ps1`
 ### [API](./api/)
 
 - [README da pasta API](./api/README.md)
-- [Integração frontend](./api/FRONTEND_INTEGRATION.md) — tokens, refresh, CORS
+- [Integração frontend](./api/FRONTEND_INTEGRATION.md) — tokens, refresh, CORS, OCR (`/api/v1/ml/recognize-plate`)
 - Documentação técnica detalhada: [`../apps/api/docs/technical-documentation.md`](../apps/api/docs/technical-documentation.md)
 - **Postman:** [`SISCAV_API.postman_collection.json`](SISCAV_API.postman_collection.json), [`SISCAV_API.postman_environment.json`](SISCAV_API.postman_environment.json)
 - [Guia de testes com curl](./api_curl_tests_guide.md)

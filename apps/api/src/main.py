@@ -34,6 +34,7 @@ Esta API fornece o backend para o sistema SISCAV, integrando dispositivos IoT (c
 *   **Validação Automática**: Verificação de placas contra a whitelist para autorização de acesso.
 *   **Controle Remoto**: Acionamento remoto do portão (`POST /api/v1/gate_control/trigger`) exige **JWT de administrador** (`is_admin`).
 *   **Download de imagem de log**: `GET /api/v1/access_logs/images/{filename}` exige **JWT de administrador** (`is_admin`); utilizador sem `is_admin` recebe **403**.
+*   **OCR opcional (frame → candidatos de placa)**: `POST /api/v1/ml/recognize-plate` (multipart, JPEG/PNG/WebP) exige **Bearer JWT**; sem pacotes ML instalados (`requirements-ml.txt`) responde **503**.
 *   **Gate**: `POST /api/v1/gate_control/trigger` — resposta com `integration` **simulated** (sem `GATE_ACTUATOR_URL`) ou **live** (POST ao atuador com 2xx); falhas do atuador → 502/503.
 *   **Dispositivos (`/devices/`)**: rotas de **demonstração** (`demo: true` nas respostas) ou **501** quando `IOT_DEVICE_DEMO_API` está desligado (padrão em produção); Bluetooth real no cliente via **Web Bluetooth**.
 

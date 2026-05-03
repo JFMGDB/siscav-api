@@ -5,10 +5,12 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
-from app.api.v1.controllers.plate_controller import PlateController
-from app.api.v1.models.authorized_plate import AuthorizedPlate
-from app.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
-from app.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
+from apps.api.src.api.v1.controllers.plate_controller import PlateController
+from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
+from apps.api.src.api.v1.schemas.authorized_plate import (
+    AuthorizedPlateCreate,
+    AuthorizedPlateRead,
+)
 
 
 class TestPlateController:
@@ -57,7 +59,7 @@ class TestPlateController:
         result = controller.get_all(skip=0, limit=3)
 
         assert len(result) == 3
-        assert all(isinstance(p, AuthorizedPlate) for p in result)
+        assert all(isinstance(p, AuthorizedPlateRead) for p in result)
 
     def test_get_all_with_pagination(self, db_session: Session):
         """Testa paginação na listagem de placas."""
@@ -104,7 +106,9 @@ class TestPlateController:
     def test_create_invalid_plate_format(self, db_session: Session):
         """Testa criação de placa com formato inválido."""
         controller = PlateController(db_session)
-        plate_data = AuthorizedPlateCreate(plate="INVALID", description="Invalid plate")
+        plate_data = AuthorizedPlateCreate.model_construct(
+            plate="INVALID", normalized_plate="INVALID", description="Invalid plate"
+        )
 
         with pytest.raises(HTTPException) as exc_info:
             controller.create(plate_data)

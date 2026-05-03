@@ -24,6 +24,7 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - ✓ **Device demo API** — feature-flagged; 501 when disabled; `demo` on schemas
 - ✓ **Health check**, **Alembic migrations**, **pytest** unit + integration coverage
 - ✓ **Operations hygiene** — no ad hoc `create_all` in session bootstrap; pinned deps; `crud/` removed
+- ✓ **SonarQube / SonarCloud CI hook** — `sonar-project.properties`, pytest `coverage.xml`, scan condicional no GitHub Actions; setup em `.github/SONAR_SETUP.md` (Phase 5, 2026-05-03)
 
 ### Active (next milestones)
 
@@ -75,4 +76,4 @@ Secções antigas de “Active” listavam itens já fechados nas fases 1–4 (S
 </details>
 
 ---
-*Last updated: 2026-04-05 — after v1.0 milestone complete*
+*Last updated: 2026-05-03 — SonarQube (fase 5) implementada e verificada*

@@ -6,11 +6,16 @@ Uso:
     python seed_demo.py
 
 Este script cria:
-1. Um usuário administrador (admin@siscav.com / admin123)
+1. Um usuário administrador (admin@siscav.com / admin123) com is_admin=true
 2. Placas de exemplo na whitelist
+
+Após a primeira migração com a coluna is_admin, se o usuário já existir sem privilégios,
+promova manualmente: UPDATE users SET is_admin = 1 WHERE email = 'admin@siscav.com';
+(veja docs/api/README.md — seção Primeiro administrador).
 """
 
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Adicionar diretório raiz ao PYTHONPATH
@@ -32,6 +37,9 @@ settings = get_settings()
 engine = create_engine(settings.database_url, echo=True)
 SessionLocal = sessionmaker(bind=engine)
 
+# Verificar se estamos usando SQLite
+is_sqlite = "sqlite" in settings.database_url.lower()
+
 # Dados de demonstração
 DEMO_USER = {
     "email": "admin@siscav.com",
@@ -51,22 +59,29 @@ def seed_user(db):
     """Cria usuário administrador se não existir."""
     existing = db.query(User).filter(User.email == DEMO_USER["email"]).first()
     if existing:
-        print(f"✓ Usuário já existe: {DEMO_USER['email']}")
+        print(f"[OK] Usuario ja existe: {DEMO_USER['email']}")
         return existing
     
+    now = datetime.now(timezone.utc)
     user = User(
         email=DEMO_USER["email"],
         hashed_password=get_password_hash(DEMO_USER["password"]),
+        is_admin=True,
     )
+    # Para SQLite, definir timestamps manualmente
+    if is_sqlite:
+        user.created_at = now
+        user.updated_at = now
     db.add(user)
     db.commit()
     db.refresh(user)
-    print(f"✓ Usuário criado: {DEMO_USER['email']} (senha: {DEMO_USER['password']})")
+    print(f"[OK] Usuario criado: {DEMO_USER['email']} (senha: {DEMO_USER['password']})")
     return user
 
 
 def seed_plates(db):
     """Cria placas de demonstração se não existirem."""
+    now = datetime.now(timezone.utc)
     for plate, description in DEMO_PLATES:
         normalized = normalize_plate(plate)
         existing = db.query(AuthorizedPlate).filter(
@@ -74,7 +89,7 @@ def seed_plates(db):
         ).first()
         
         if existing:
-            print(f"✓ Placa já existe: {plate} ({normalized})")
+            print(f"[OK] Placa ja existe: {plate} ({normalized})")
             continue
         
         plate_obj = AuthorizedPlate(
@@ -82,9 +97,13 @@ def seed_plates(db):
             normalized_plate=normalized,
             description=description,
         )
+        # Para SQLite, definir timestamps manualmente
+        if is_sqlite:
+            plate_obj.created_at = now
+            plate_obj.updated_at = now
         db.add(plate_obj)
         db.commit()
-        print(f"✓ Placa cadastrada: {plate} ({normalized}) - {description}")
+        print(f"[OK] Placa cadastrada: {plate} ({normalized}) - {description}")
 
 
 def main():

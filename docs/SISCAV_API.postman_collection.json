@@ -671,6 +671,47 @@
 			"description": "Logs de acesso: ingestão multipart, listagem autenticada, imagem só para admin"
 		},
 		{
+			"name": "ML - OCR de placa (operador)",
+			"item": [
+				{
+					"name": "Reconhecer placa (multipart)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Frame ou recorte JPEG/PNG/WebP"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ml/recognize-plate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "ml", "recognize-plate"]
+						},
+						"description": "`POST /api/v1/ml/recognize-plate` — **JWT Bearer** (qualquer utilizador autenticado). `multipart/form-data`, campo **`file`**.\n\n**Servidor:** requer `pip install -r requirements-ml.txt`; sem dependências ML → **503**.\n\n**Resposta 200:** `{ \"candidates\": [ { \"plate_raw\", \"normalized_plate\", \"plate_color_hint\" } ] }`.\n\n**Erros:** 400 tipo/imagem inválida; 413 acima de `MAX_FILE_SIZE_MB`.\n\nDocumentação: `docs/api/FRONTEND_INTEGRATION.md` (secção OCR)."
+					},
+					"response": []
+				}
+			],
+			"description": "OCR opcional no servidor (OpenCV + EasyOCR) para integração com frontend do operador"
+		},
+		{
 			"name": "Gate Control - Controle de Portão",
 			"item": [
 				{

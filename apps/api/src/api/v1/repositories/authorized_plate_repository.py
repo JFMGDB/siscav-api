@@ -3,7 +3,7 @@
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
@@ -82,10 +82,17 @@ class AuthorizedPlateRepository:
         Returns:
             AuthorizedPlate criada
         """
+        from datetime import datetime, timezone
+        
+        # Definir timestamps manualmente (necessário para SQLite)
+        now = datetime.now(timezone.utc)
+        
         db_plate = AuthorizedPlate(
             plate=plate,
             normalized_plate=normalized_plate,
             description=description,
+            created_at=now,
+            updated_at=now,
         )
         db.add(db_plate)
         try:
@@ -117,9 +124,14 @@ class AuthorizedPlateRepository:
         Returns:
             AuthorizedPlate atualizada
         """
+        from datetime import datetime, timezone
+        
         plate.plate = plate_value
         plate.normalized_plate = normalized_plate
         plate.description = description
+        # Atualizar timestamp manualmente (necessário para SQLite)
+        plate.updated_at = datetime.now(timezone.utc)
+        
         try:
             db.commit()
             db.refresh(plate)
@@ -149,4 +161,17 @@ class AuthorizedPlateRepository:
                 db.rollback()
                 raise
         return plate
+
+    @staticmethod
+    def count(db: Session) -> int:
+        """
+        Conta o total de placas autorizadas no banco de dados.
+
+        Args:
+            db: Sessão do banco de dados
+
+        Returns:
+            Número total de placas autorizadas
+        """
+        return db.scalar(select(func.count(AuthorizedPlate.id))) or 0
 

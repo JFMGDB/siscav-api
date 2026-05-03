@@ -1,16 +1,17 @@
-# Documentação de Integração - Autenticação Frontend
+# Documentação de Integração - Frontend (autenticação e API)
 
-Esta documentação descreve como integrar o sistema de autenticação da API SISCAV no frontend.
+Esta documentação descreve como integrar **autenticação JWT** e **recursos da API** usados pelo frontend (incluindo **OCR de placa no servidor** para o posto do operador).
 
 ## Índice
 
 1. [Visão Geral](#visão-geral)
-2. [Endpoints de Autenticação](#endpoints-de-autenticação)
-3. [Fluxo de Autenticação](#fluxo-de-autenticação)
-4. [Gerenciamento de Tokens](#gerenciamento-de-tokens)
-5. [Exemplos de Implementação](#exemplos-de-implementação)
-6. [Tratamento de Erros](#tratamento-de-erros)
-7. [Segurança](#segurança)
+2. [OCR de placa no servidor (operador)](#ocr-de-placa-no-servidor-operador)
+3. [Endpoints de Autenticação](#endpoints-de-autenticação)
+4. [Fluxo de Autenticação](#fluxo-de-autenticação)
+5. [Gerenciamento de Tokens](#gerenciamento-de-tokens)
+6. [Exemplos de Implementação](#exemplos-de-implementação)
+7. [Tratamento de Erros](#tratamento-de-erros)
+8. [Segurança](#segurança)
 
 ## Visão Geral
 
@@ -34,7 +35,124 @@ A interface para **ligar câmara por USB ou por URL (Wi‑Fi / IP)** e ver **ví
 
 A **autenticação** do operador contra esta API (registo, login, refresh, `Authorization: Bearer`) segue as secções abaixo neste documento. A pré-visualização em si **não** exige JWT.
 
+**OCR no servidor** (`POST /api/v1/ml/recognize-plate`) **exige JWT** — ver secção seguinte.
+
 Em desenvolvimento, a API já permite origem Next.js em `http://localhost:3000` — ver `CORSMiddleware` em `apps/api/src/main.py`.
+
+## OCR de placa no servidor (operador)
+
+O frontend pode enviar um **frame ou recorte** (JPEG, PNG ou WebP) para a API executar deteção de regiões + **EasyOCR** (mesma família de lógica que o script em `apps/api/src/api/v1/ml/recognize-plate.py`). O resultado é uma **lista de candidatos** com texto de 7 caracteres alfanuméricos; o operador pode escolher um valor e depois registar acesso com `POST /api/v1/access_logs/` (ou outro fluxo da vossa UI).
+
+### Pré-requisito no servidor
+
+A rota só funciona se o ambiente tiver as dependências ML instaladas:
+
+```bash
+pip install -r requirements-ml.txt
+```
+
+Sem isso, a API responde **503** com mensagem a indicar a instalação. O arranque normal da API **não** exige estes pacotes.
+
+### Endpoint
+
+| Método | Caminho | Autenticação |
+|--------|---------|--------------|
+| `POST` | `/api/v1/ml/recognize-plate` | `Authorization: Bearer {access_token}` |
+
+### Pedido
+
+- **Content-Type:** `multipart/form-data`
+- **Campo do ficheiro:** `file` (nome exato esperado pelo FastAPI `UploadFile`)
+- **Tipos MIME aceites:** `image/jpeg`, `image/jpg`, `image/png`, `image/webp`
+- **Tamanho máximo:** `MAX_FILE_SIZE_MB` (variável de ambiente; predefinição **10** MB), igual à política usada noutros uploads da API
+
+### Resposta de sucesso (200)
+
+```json
+{
+  "candidates": [
+    {
+      "plate_raw": "ABC1D23",
+      "normalized_plate": "ABC1D23",
+      "plate_color_hint": "branca"
+    }
+  ]
+}
+```
+
+- `candidates` pode ser uma lista **vazia** se nenhuma região válida for encontrada.
+- `plate_color_hint` é heurística (`branca`, `amarela`, `cinza`, `desconhecida`).
+- `normalized_plate` segue `normalize_plate()` (alfanumérico em maiúsculas), útil para comparar com a whitelist no cliente ou antes de submeter o log.
+
+### Erros relevantes
+
+| HTTP | Situação |
+|------|----------|
+| **401** | Sem `Authorization` ou token inválido |
+| **400** | Tipo de ficheiro não suportado ou imagem que o OpenCV não consegue decodificar |
+| **413** | Ficheiro acima do limite configurado |
+| **503** | Stack ML não instalada ou indisponível |
+| **500** | Falha interna no pipeline OCR |
+
+### Exemplo TypeScript (fetch + FormData)
+
+```typescript
+const baseUrl = process.env.NEXT_PUBLIC_SISCAV_API_URL ?? 'http://127.0.0.1:8000';
+
+/** Blob a partir de um <canvas> (frame do vídeo) — qualidade JPEG ajustável */
+export async function canvasToJpegBlob(canvas: HTMLCanvasElement, quality = 0.92): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error('toBlob falhou'))),
+      'image/jpeg',
+      quality
+    );
+  });
+}
+
+export type PlateCandidate = {
+  plate_raw: string;
+  normalized_plate: string;
+  plate_color_hint: string;
+};
+
+export type RecognizePlateResponse = {
+  candidates: PlateCandidate[];
+};
+
+export async function recognizePlateFromImage(
+  accessToken: string,
+  imageBlob: Blob,
+  fileName = 'frame.jpg'
+): Promise<RecognizePlateResponse> {
+  const form = new FormData();
+  form.append('file', imageBlob, fileName);
+
+  const res = await fetch(`${baseUrl}/api/v1/ml/recognize-plate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: form,
+  });
+
+  if (res.status === 503) {
+    throw new Error('OCR não disponível no servidor (instalar requirements-ml.txt).');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(typeof err.detail === 'string' ? err.detail : `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+```
+
+Fluxo típico: **login** → capturar frame (por exemplo `drawImage` de `<video>` para `<canvas>`) → `canvasToJpegBlob` → `recognizePlateFromImage` → mostrar candidatos ao operador → confirmar e chamar `POST /api/v1/access_logs/` com a placa escolhida (e imagem, se aplicável). Detalhes de câmara USB / URL: [camera-preview-nextjs.md](../frontend/camera-preview-nextjs.md).
+
+### Documentação interativa
+
+No servidor em execução: tag **`ml`** em [Swagger UI](http://127.0.0.1:8000/docs) ou ReDoc.
 
 ## Endpoints de Autenticação
 
@@ -480,7 +598,9 @@ export default apiClient;
 | 401 | Unauthorized | Credenciais inválidas ou token expirado |
 | 403 | Forbidden | Token inválido ou tipo incorreto |
 | 404 | Not Found | Recurso não encontrado |
+| 413 | Content Too Large | Ficheiro acima do limite (ex.: OCR / uploads) |
 | 429 | Too Many Requests | Aguardar antes de tentar novamente |
+| 503 | Service Unavailable | OCR: dependências ML não instaladas no servidor |
 
 ### Mensagens de Erro
 
@@ -612,10 +732,11 @@ export function LoginForm() {
 1. **Registro**: Use `POST /api/v1/register` para criar nova conta (email e senha)
 2. **Login**: Use `POST /api/v1/login/access-token` com email e senha
 3. **Armazenamento**: Guarde access_token e refresh_token de forma segura
-4. **Requisições**: Inclua `Authorization: Bearer {access_token}` em todas as requisições
-5. **Renovação**: Use `POST /api/v1/login/refresh-token` quando access_token expirar
-6. **Erros**: Trate 401/403 renovando tokens ou fazendo logout
-7. **Segurança**: Use HTTPS, valide tokens e implemente proteções adequadas
+4. **Requisições**: Inclua `Authorization: Bearer {access_token}` em todas as requisições protegidas
+5. **OCR (operador)**: `POST /api/v1/ml/recognize-plate` com `multipart/form-data` campo `file` — requer JWT e `requirements-ml.txt` no servidor
+6. **Renovação**: Use `POST /api/v1/login/refresh-token` quando access_token expirar
+7. **Erros**: Trate 401/403 renovando tokens ou fazendo logout; trate 503 no OCR conforme mensagem do servidor
+8. **Segurança**: Use HTTPS, valide tokens e implemente proteções adequadas
 
 ## Suporte
 

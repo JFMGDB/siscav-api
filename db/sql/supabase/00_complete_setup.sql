@@ -98,3 +98,4 @@ CREATE INDEX IF NOT EXISTS idx_access_logs_plate_trgm
 -- WHERE schemaname = 'public' 
 -- AND tablename IN ('users', 'authorized_plates', 'access_logs');
 
+

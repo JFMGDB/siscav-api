@@ -4,10 +4,10 @@ import pytest
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
-from app.api.v1.core.security import get_password_hash
-from app.api.v1.models.user import User
-from app.api.v1.repositories.user_repository import UserRepository
-from app.api.v1.schemas.user import UserCreate
+from apps.api.src.api.v1.core.security import get_password_hash
+from apps.api.src.api.v1.models.user import User
+from apps.api.src.api.v1.repositories.user_repository import UserRepository
+from apps.api.src.api.v1.schemas.user import UserCreate
 
 
 class TestUserRepository:
@@ -18,6 +18,7 @@ class TestUserRepository:
         user = User(
             email="test@example.com",
             hashed_password=get_password_hash("password123"),
+            is_admin=False,
         )
         db_session.add(user)
         db_session.commit()
@@ -41,6 +42,7 @@ class TestUserRepository:
         user = User(
             email="test@example.com",
             hashed_password=get_password_hash("password123"),
+            is_admin=False,
         )
         db_session.add(user)
         db_session.commit()

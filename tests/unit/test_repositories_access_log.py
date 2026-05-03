@@ -6,10 +6,10 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.orm import Session
 
-from app.api.v1.models.authorized_plate import AuthorizedPlate
-from app.api.v1.repositories.access_log_repository import AccessLogRepository
-from app.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
-from app.api.v1.schemas.access_log import AccessStatus
+from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
+from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
+from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
+from apps.api.src.api.v1.schemas.access_log import AccessStatus
 
 
 class TestAccessLogRepository:

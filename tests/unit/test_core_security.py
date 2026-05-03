@@ -91,3 +91,4 @@ class TestAccessToken:
         assert isinstance(token, str)
         assert len(token) > 0
 
+

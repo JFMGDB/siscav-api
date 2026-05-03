@@ -1,7 +1,7 @@
 # Documentação Técnica da API SISCAV
 
 **Versão:** 1.0.0
-**Data:** 06 de dezembro de 2025
+**Data:** atualizado em abril de 2026 (inclui rota `/ml/recognize-plate`)
 
 ---
 
@@ -86,6 +86,13 @@ Gerenciamento de placas autorizadas. Acesso restrito a administradores autentica
 
 ### Logs de Acesso (`/access_logs`)
 *   **POST /**: Endpoint principal utilizado pelos dispositivos IoT. Recebe a imagem e a leitura da placa, processa a regra de negócio e retorna a autorização.
+
+### OCR opcional — placas (`/ml`)
+Processamento **no servidor** (OpenCV + EasyOCR) para interfaces de operador ou integrações que enviam um frame/recorte em imagem. **Dependências opcionais:** ficheiro `requirements-ml.txt` na raiz do repositório; sem instalação, a rota responde **503** e o restante da API continua operacional.
+
+*   **POST /recognize-plate**: `multipart/form-data`, campo **`file`** (JPEG, PNG ou WebP). Autenticação **JWT** (`Authorization: Bearer`). Resposta JSON com lista `candidates` (`plate_raw`, `normalized_plate`, `plate_color_hint`). Limite de tamanho alinhado com `MAX_FILE_SIZE_MB`.
+
+Documentação orientada ao frontend: `docs/api/FRONTEND_INTEGRATION.md` (secção OCR).
 
 ## 6. Modelagem de Dados (Resumo)
 

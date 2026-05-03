@@ -7,7 +7,7 @@ Esta pasta contém toda a documentação relacionada à API do SISCAV, incluindo
 ### Documentos Principais
 
 - **[technical-documentation.md](./technical-documentation.md)** - Documentação técnica completa da API REST
-- **[FRONTEND_INTEGRATION.md](../../../docs/api/FRONTEND_INTEGRATION.md)** - Guia de integração para frontend (autenticação, tokens, exemplos)
+- **[FRONTEND_INTEGRATION.md](../../../docs/api/FRONTEND_INTEGRATION.md)** - Guia de integração para frontend (autenticação, tokens, **OCR** `POST /api/v1/ml/recognize-plate`, exemplos)
 
 ### Database
 

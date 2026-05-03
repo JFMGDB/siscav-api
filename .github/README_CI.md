@@ -46,10 +46,14 @@ O workflow `.github/workflows/ci.yml` executa as seguintes etapas:
 
 6. **Testes Unitários com Pytest** 🧪
    - Executa todos os testes unitários com cobertura
-   - Comando: `pytest -v --tb=short --cov=apps --cov-report=term-missing`
+   - Comando: `pytest -v --tb=short --cov=apps --cov-report=term-missing --cov-report=xml:coverage.xml`
    - **Falha se qualquer teste falhar**
 
-7. **Relatório de Cobertura** 📊 (Opcional)
+7. **SonarQube / SonarCloud** (opcional)
+   - Se o secret `SONAR_TOKEN` estiver configurado, corre análise estática com `SonarSource/sonarqube-scan-action@v5` e envia cobertura a partir de `coverage.xml`.
+   - Guia de configuração: [SONAR_SETUP.md](SONAR_SETUP.md)
+
+8. **Relatório de Cobertura** 📊 (Opcional)
    - Gera relatório de cobertura de código
    - Upload para Codecov (se configurado)
 
@@ -77,10 +81,10 @@ ruff check .
 ruff format --check .
 
 # 4. Executar testes
-pytest -v --tb=short --cov=apps --cov-report=term-missing
+pytest -v --tb=short --cov=apps --cov-report=term-missing --cov-report=xml:coverage.xml
 
 # 5. OU executar tudo de uma vez (simula o CI)
-ruff check . && ruff format --check . && pytest -v --tb=short --cov=apps --cov-report=term-missing
+ruff check . && ruff format --check . && pytest -v --tb=short --cov=apps --cov-report=term-missing --cov-report=xml:coverage.xml
 ```
 
 Se todos os comandos passarem, seu código está pronto para PR!

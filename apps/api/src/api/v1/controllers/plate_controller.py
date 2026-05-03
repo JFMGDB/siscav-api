@@ -11,7 +11,10 @@ from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.repositories.authorized_plate_repository import (
     AuthorizedPlateRepository,
 )
-from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
+from apps.api.src.api.v1.schemas.authorized_plate import (
+    AuthorizedPlateCreate,
+    AuthorizedPlateRead,
+)
 from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
 
 logger = logging.getLogger(__name__)
@@ -31,7 +34,7 @@ class PlateController:
         # Repositories são classes com métodos estáticos, não requerem instanciação
         self.plate_repository = AuthorizedPlateRepository
 
-    def get_by_id(self, plate_id: UUID) -> AuthorizedPlate:
+    def get_by_id(self, plate_id: UUID) -> AuthorizedPlateRead:
         """
         Busca uma placa autorizada por ID.
 
@@ -39,7 +42,7 @@ class PlateController:
             plate_id: ID único da placa
 
         Returns:
-            AuthorizedPlate encontrada
+            AuthorizedPlateRead encontrada
 
         Raises:
             HTTPException: Se a placa não for encontrada
@@ -49,9 +52,9 @@ class PlateController:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found"
             )
-        return plate
+        return AuthorizedPlateRead.model_validate(plate)
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> list[AuthorizedPlate]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> list[AuthorizedPlateRead]:
         """
         Lista todas as placas autorizadas com paginação.
 
@@ -62,9 +65,10 @@ class PlateController:
         Returns:
             Lista de placas autorizadas
         """
-        return self.plate_repository.get_all(self.db, skip=skip, limit=limit)
+        plates = self.plate_repository.get_all(self.db, skip=skip, limit=limit)
+        return [AuthorizedPlateRead.model_validate(plate) for plate in plates]
 
-    def create(self, plate_data: AuthorizedPlateCreate) -> AuthorizedPlate:
+    def create(self, plate_data: AuthorizedPlateCreate) -> AuthorizedPlateRead:
         """
         Cria uma nova placa autorizada.
 
@@ -74,7 +78,7 @@ class PlateController:
             plate_data: Dados da placa a ser criada
 
         Returns:
-            AuthorizedPlate criada
+            AuthorizedPlateRead criada
 
         Raises:
             HTTPException: Se a placa for inválida ou já existir
@@ -112,7 +116,7 @@ class PlateController:
                 description=plate_data.description,
             )
             logger.info(f"Placa autorizada criada com sucesso: {normalized} (ID: {plate.id})")
-            return plate
+            return AuthorizedPlateRead.model_validate(plate)
         except Exception as e:
             logger.error(f"Erro ao criar placa autorizada: {e}", exc_info=True)
             raise HTTPException(
@@ -122,7 +126,7 @@ class PlateController:
 
     def update(
         self, plate_id: UUID, plate_data: AuthorizedPlateCreate
-    ) -> AuthorizedPlate:
+    ) -> AuthorizedPlateRead:
         """
         Atualiza uma placa autorizada existente.
 
@@ -133,13 +137,17 @@ class PlateController:
             plate_data: Novos dados da placa
 
         Returns:
-            AuthorizedPlate atualizada
+            AuthorizedPlateRead atualizada
 
         Raises:
             HTTPException: Se a placa não for encontrada ou for inválida
         """
         # Buscar placa existente
-        plate = self.get_by_id(plate_id)
+        plate = self.plate_repository.get_by_id(self.db, plate_id)
+        if not plate:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found"
+            )
 
         # Validar formato da placa
         is_valid, error_message = validate_brazilian_plate(plate_data.plate)
@@ -162,15 +170,16 @@ class PlateController:
             )
 
         # Atualizar placa
-        return self.plate_repository.update(
+        updated_plate = self.plate_repository.update(
             self.db,
             plate=plate,
             plate_value=plate_data.plate,
             normalized_plate=normalized,
             description=plate_data.description,
         )
+        return AuthorizedPlateRead.model_validate(updated_plate)
 
-    def delete(self, plate_id: UUID) -> AuthorizedPlate:
+    def delete(self, plate_id: UUID) -> AuthorizedPlateRead:
         """
         Remove uma placa autorizada.
 
@@ -178,14 +187,18 @@ class PlateController:
             plate_id: ID da placa a ser removida
 
         Returns:
-            AuthorizedPlate removida
+            AuthorizedPlateRead removida
 
         Raises:
             HTTPException: Se a placa não for encontrada
         """
-        plate = self.get_by_id(plate_id)
+        plate = self.plate_repository.get_by_id(self.db, plate_id)
+        if not plate:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found"
+            )
         self.plate_repository.delete(self.db, plate_id)
-        return plate
+        return AuthorizedPlateRead.model_validate(plate)
 
     def check_authorization(self, plate: str) -> tuple[bool, Optional[UUID]]:
         """
@@ -207,4 +220,13 @@ class PlateController:
         if authorized_plate:
             return True, authorized_plate.id
         return False, None
+
+    def count(self) -> int:
+        """
+        Conta o total de placas autorizadas no banco de dados.
+
+        Returns:
+            Número total de placas autorizadas
+        """
+        return self.plate_repository.count(self.db)
 

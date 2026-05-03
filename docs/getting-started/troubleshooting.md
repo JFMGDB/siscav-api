@@ -74,6 +74,29 @@ Depois reinicie o Uvicorn e volte a testar o registo/login.
 
 ---
 
+## `no such table: access_logs` (SQLite)
+
+### Sintoma
+
+Erro ao listar ou gravar logs: `sqlite3.OperationalError: no such table: access_logs`, embora `alembic_version` já mostre uma revisão recente (ex. `20260404_0002` ou superior).
+
+### Causa
+
+O ficheiro SQLite ficou **desalinhado**: a revisão no Alembic foi marcada ou avançada sem executar o DDL completo da revisão inicial (onde `access_logs` é criada), ou a base foi criada à mão só com parte das tabelas.
+
+### Solução
+
+Na **raiz** do repositório, com o mesmo `DATABASE_URL` que o servidor usa:
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+python -m alembic upgrade head
+```
+
+A revisão **`20260405_0003`** cria `access_logs` apenas se a tabela ainda não existir. Depois reinicie o Uvicorn.
+
+---
+
 ## JWT / 401 / 403
 
 - Login: `POST /api/v1/login/access-token` (form `username` = email, `password`)

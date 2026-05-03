@@ -1,12 +1,13 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
 
 
 class AuthorizedPlateBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     plate: str = Field(..., description="A placa do veículo (formato original).", example="ABC-1234")
     description: str | None = Field(None, description="Descrição opcional do veículo ou proprietário.", example="Carro do Diretor")
 

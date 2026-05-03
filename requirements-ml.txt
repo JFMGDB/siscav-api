@@ -1,0 +1,7 @@
+# Dependências opcionais para OCR de placas (rota POST /api/v1/ml/recognize-plate).
+# Instalação: pip install -r requirements-ml.txt
+# Nota: easyocr puxa PyTorch — pesado para CI; não incluído em requirements.txt por defeito.
+
+numpy>=1.24
+opencv-python-headless>=4.8
+easyocr>=1.7

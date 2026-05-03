@@ -174,3 +174,30 @@ class AccessLogController:
 
         return [AccessLogRead.model_validate(log) for log in access_logs]
 
+    def count(
+        self,
+        plate_filter: Optional[str] = None,
+        status_filter: Optional[AccessStatus] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ) -> int:
+        """
+        Conta o total de registros de acesso com filtros opcionais.
+
+        Args:
+            plate_filter: Filtrar por placa (busca parcial, case-insensitive)
+            status_filter: Filtrar por status de acesso
+            start_date: Data inicial para filtrar (inclusive)
+            end_date: Data final para filtrar (inclusive)
+
+        Returns:
+            Número total de registros que correspondem aos filtros
+        """
+        return self.access_log_repository.count(
+            db=self.db,
+            plate_filter=plate_filter,
+            status_filter=status_filter,
+            start_date=start_date,
+            end_date=end_date,
+        )
+

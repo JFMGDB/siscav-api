@@ -1,10 +1,11 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     email: EmailStr = Field(..., description="Email do usuário (usado para login).", example="admin@siscav.com.br")
 
 

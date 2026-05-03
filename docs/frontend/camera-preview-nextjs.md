@@ -9,7 +9,7 @@ Guia de implementação para o **repositório frontend** (Next.js, TypeScript). 
 
 ### Fora de âmbito deste guia
 
-- OCR / leitura automática de matrícula na página.
+- Detalhe de UI para OCR na página — contrato HTTP e exemplo TypeScript: [**FRONTEND_INTEGRATION.md**](../api/FRONTEND_INTEGRATION.md#ocr-de-placa-no-servidor-operador) (também Swagger, tag `ml`).
 - Envio de frame para `POST /api/v1/access_logs/` (multipart) — a API já suporta; integração “capturar → enviar” é trabalho separado.
 - Gravação longa, DVR, WebRTC com TURN, proxy de vídeo na FastAPI.
 

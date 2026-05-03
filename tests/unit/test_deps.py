@@ -40,6 +40,7 @@ def test_user(db_session):
     user = User(
         email="test@example.com",
         hashed_password=get_password_hash("password123"),
+        is_admin=False,
     )
     db_session.add(user)
     db_session.commit()
@@ -92,4 +93,5 @@ class TestGetCurrentUser:
         with pytest.raises(HTTPException) as exc_info:
             get_current_user(token=malformed_token, db=db_session)
         assert exc_info.value.status_code == 403
+
 

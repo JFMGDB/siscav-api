@@ -1,7 +1,7 @@
 """Testes unitários para DeviceController."""
 
-from app.api.v1.controllers.device_controller import DeviceController
-from app.api.v1.schemas.device import ConnectionRequest
+from apps.api.src.api.v1.controllers.device_controller import DeviceController
+from apps.api.src.api.v1.schemas.device import ConnectionRequest
 
 
 class TestDeviceController:

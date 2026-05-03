@@ -17,20 +17,48 @@ branch_labels = None
 depends_on = None
 
 
+def _get_uuid_type():
+    """Retorna o tipo de UUID apropriado baseado no banco de dados."""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return postgresql.UUID(as_uuid=True)
+    else:
+        # SQLite e outros: usar String(36)
+        return sa.String(36)
+
+
+def _get_uuid_default():
+    """Retorna o default apropriado para UUID baseado no banco de dados."""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return sa.text("gen_random_uuid()")
+    else:
+        # SQLite não tem função nativa, será gerado pelo Python
+        return None
+
+
 def upgrade() -> None:
-    # Cria o tipo ENUM para o status de acesso (PostgreSQL)
-    access_status = sa.Enum("Authorized", "Denied", name="access_status")
-    access_status.create(op.get_bind(), checkfirst=True)
+    # Detecta o tipo de banco de dados
+    bind = op.get_bind()
+    is_postgresql = bind.dialect.name == "postgresql"
+    
+    # Cria o tipo ENUM para o status de acesso (apenas PostgreSQL)
+    if is_postgresql:
+        access_status = sa.Enum("Authorized", "Denied", name="access_status")
+        access_status.create(bind, checkfirst=True)
 
     # Tabela users
+    uuid_type = _get_uuid_type()
+    uuid_default = _get_uuid_default()
+    
     op.create_table(
         "users",
         sa.Column(
             "id",
-            postgresql.UUID(as_uuid=True),
+            uuid_type,
             primary_key=True,
             nullable=False,
-            server_default=sa.text("gen_random_uuid()"),
+            server_default=uuid_default,
         ),
         sa.Column("email", sa.Text(), nullable=False, unique=True),
         sa.Column("hashed_password", sa.Text(), nullable=False),
@@ -53,10 +81,10 @@ def upgrade() -> None:
         "authorized_plates",
         sa.Column(
             "id",
-            postgresql.UUID(as_uuid=True),
+            uuid_type,
             primary_key=True,
             nullable=False,
-            server_default=sa.text("gen_random_uuid()"),
+            server_default=uuid_default,
         ),
         sa.Column("plate", sa.Text(), nullable=False),
         sa.Column("normalized_plate", sa.Text(), nullable=False, unique=True),
@@ -80,10 +108,10 @@ def upgrade() -> None:
         "access_logs",
         sa.Column(
             "id",
-            postgresql.UUID(as_uuid=True),
+            uuid_type,
             primary_key=True,
             nullable=False,
-            server_default=sa.text("gen_random_uuid()"),
+            server_default=uuid_default,
         ),
         sa.Column(
             "timestamp",
@@ -92,11 +120,15 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("plate_string_detected", sa.Text(), nullable=False),
-        sa.Column("status", sa.Enum("Authorized", "Denied", name="access_status"), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum("Authorized", "Denied", name="access_status") if is_postgresql else sa.String(20),
+            nullable=False,
+        ),
         sa.Column("image_storage_key", sa.Text(), nullable=False),
         sa.Column(
             "authorized_plate_id",
-            postgresql.UUID(as_uuid=True),
+            uuid_type,
             sa.ForeignKey("authorized_plates.id"),
             nullable=True,
         ),
@@ -108,6 +140,8 @@ def downgrade() -> None:
     op.drop_table("authorized_plates")
     op.drop_table("users")
 
-    # Remove o tipo ENUM
-    access_status = sa.Enum("Authorized", "Denied", name="access_status")
-    access_status.drop(op.get_bind(), checkfirst=True)
+    # Remove o tipo ENUM (apenas PostgreSQL)
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        access_status = sa.Enum("Authorized", "Denied", name="access_status")
+        access_status.drop(bind, checkfirst=True)

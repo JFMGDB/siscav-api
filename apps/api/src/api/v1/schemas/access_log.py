@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AccessStatus(str, Enum):
@@ -11,6 +11,8 @@ class AccessStatus(str, Enum):
 
 
 class AccessLogRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: UUID = Field(..., description="ID único do registro de acesso.")
     timestamp: datetime = Field(..., description="Data e hora do acesso.")
     plate_string_detected: str = Field(..., description="Texto da placa detectado pelo OCR.", example="ABC1234")
