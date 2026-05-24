@@ -1,16 +1,16 @@
 """Testes de integração para endpoints de access logs."""
 
-import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-import pytest
-from sqlalchemy import update
 from fastapi.testclient import TestClient
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.models.access_log import AccessLog
+from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
+from apps.api.src.api.v1.schemas.access_log import AccessStatus
 from tests.conftest import TEST_DEVICE_INGEST_KEY
 
 
@@ -78,9 +78,6 @@ class TestAccessLogsEndpoints:
 
     def test_list_access_logs(self, client: TestClient, auth_token: str, db_session: Session):
         """Testa listagem de logs de acesso."""
-        from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
-        from apps.api.src.api.v1.schemas.access_log import AccessStatus
-
         # Criar alguns logs
         for i in range(3):
             AccessLogRepository.create(
@@ -102,11 +99,10 @@ class TestAccessLogsEndpoints:
         assert isinstance(data, list)
         assert len(data) >= 3
 
-    def test_list_access_logs_with_filters(self, client: TestClient, auth_token: str, db_session: Session):
+    def test_list_access_logs_with_filters(
+        self, client: TestClient, auth_token: str, db_session: Session
+    ):
         """Testa listagem de logs com filtros."""
-        from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
-        from apps.api.src.api.v1.schemas.access_log import AccessStatus
-
         # Criar logs com diferentes status
         AccessLogRepository.create(
             db_session,
@@ -139,11 +135,8 @@ class TestAccessLogsEndpoints:
         self, client: TestClient, auth_token: str, db_session: Session
     ):
         """Lista retorna mais recente primeiro (timestamp DESC)."""
-        from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
-        from apps.api.src.api.v1.schemas.access_log import AccessStatus
-
-        older = datetime(2024, 1, 2, 10, 0, 0, tzinfo=timezone.utc)
-        newer = datetime(2024, 1, 2, 18, 0, 0, tzinfo=timezone.utc)
+        older = datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
+        newer = datetime(2024, 1, 2, 18, 0, 0, tzinfo=UTC)
 
         log_a = AccessLogRepository.create(
             db_session,
@@ -172,18 +165,19 @@ class TestAccessLogsEndpoints:
         )
         assert response.status_code == 200
         data = response.json()
-        plates = [row["plate_string_detected"] for row in data if row["plate_string_detected"] in ("ORD-A", "ORD-B")]
+        plates = [
+            row["plate_string_detected"]
+            for row in data
+            if row["plate_string_detected"] in ("ORD-A", "ORD-B")
+        ]
         assert plates == ["ORD-B", "ORD-A"]
 
     def test_list_access_logs_start_date_end_date_filters(
         self, client: TestClient, auth_token: str, db_session: Session
     ):
         """start_date e end_date (inclusivos) restringem o conjunto retornado."""
-        from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
-        from apps.api.src.api.v1.schemas.access_log import AccessStatus
-
-        day1 = datetime(2024, 3, 10, 12, 0, 0, tzinfo=timezone.utc)
-        day2 = datetime(2024, 3, 12, 12, 0, 0, tzinfo=timezone.utc)
+        day1 = datetime(2024, 3, 10, 12, 0, 0, tzinfo=UTC)
+        day2 = datetime(2024, 3, 12, 12, 0, 0, tzinfo=UTC)
 
         log_in = AccessLogRepository.create(
             db_session,
@@ -251,9 +245,6 @@ class TestAccessLogsEndpoints:
         admin_auth_token: str,
     ):
         """LOG-03 / Phase 2: imagem só para admin; não-admin 403, admin 200."""
-        from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
-        from apps.api.src.api.v1.schemas.access_log import AccessStatus
-
         AccessLogRepository.create(
             db_session,
             plate_string_detected="IMG-TEST",
@@ -283,4 +274,3 @@ class TestAccessLogsEndpoints:
         finally:
             if image_path.exists():
                 image_path.unlink()
-

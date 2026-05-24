@@ -1,7 +1,6 @@
 """Testes unitários para AccessLogController."""
 
 import io
-from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -9,7 +8,8 @@ from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
-from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
+from apps.api.src.api.v1.core.config import get_settings
+from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
 from apps.api.src.api.v1.schemas.access_log import AccessStatus
 
@@ -90,8 +90,6 @@ class TestAccessLogController:
     def test_create_access_log_file_too_large(self, db_session: Session, monkeypatch):
         """Testa criação de log com arquivo muito grande."""
         # Mock para reduzir tamanho máximo
-        from apps.api.src.api.v1.core.config import get_settings
-
         settings = get_settings()
         original_max_size = settings.max_file_size_mb
         monkeypatch.setattr(settings, "max_file_size_mb", 1)  # 1MB
@@ -152,8 +150,6 @@ class TestAccessLogController:
     def test_get_all_with_filters(self, db_session: Session):
         """Testa listagem de logs com filtros."""
         # Criar logs de teste
-        from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
-
         AccessLogRepository.create(
             db_session,
             plate_string_detected="ABC-1234",
@@ -180,8 +176,6 @@ class TestAccessLogController:
 
     def test_count_with_filters(self, db_session: Session):
         """Testa contagem de logs com filtros."""
-        from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
-
         # Criar logs de teste
         AccessLogRepository.create(
             db_session,
@@ -206,4 +200,3 @@ class TestAccessLogController:
 
         denied_count = controller.count(status_filter=AccessStatus.Denied)
         assert denied_count == 1
-

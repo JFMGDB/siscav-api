@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
+from apps.api.src.api.v1.controllers.device_controller import DeviceController
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.core.config import get_settings
@@ -27,9 +28,7 @@ from apps.api.src.api.v1.schemas.token import TokenPayload
 
 logger = logging.getLogger(__name__)
 
-reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/login/access-token"
-)
+reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token")
 
 settings = get_settings()
 
@@ -92,56 +91,57 @@ def get_current_user(
         HTTPException: Se o token for inválido ou o usuário não existir
     """
     try:
-        payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithm]
-        )
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         token_data = TokenPayload(**payload)
     except (JWTError, ValidationError) as e:
-        logger.warning(f"Token validation failed: {type(e).__name__}: {str(e)}")
+        logger.warning("Token validation failed: %s: %s", type(e).__name__, e)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
-        )
-    
+        ) from None
+
     # Validar que é um token de acesso (não refresh)
     if token_data.type != "access":
-        logger.warning(f"Invalid token type: {token_data.type} (expected 'access')")
+        logger.warning("Invalid token type: %s (expected 'access')", token_data.type)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid token type. Use access token for authenticated requests.",
         )
-    
+
     if not token_data.sub:
         logger.warning("Token missing 'sub' field")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    
+
     try:
         user_id = UUID(token_data.sub)
     except (ValueError, TypeError) as e:
-        logger.error(f"Invalid user ID format in token: {token_data.sub} - {type(e).__name__}: {str(e)}")
+        logger.exception(
+            "Invalid user ID format in token: %s - %s",
+            token_data.sub,
+            type(e).__name__,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid user ID in token",
-        )
-    
-    logger.debug(f"Looking up user with ID: {user_id}")
+        ) from e
+
+    logger.debug("Looking up user with ID: %s", user_id)
     user = UserRepository.get_by_id(db, user_id)
     if not user:
         # Log adicional para debug: verificar se há usuários no banco
         user_count = db.query(User).count()
         logger.error(
-            f"User not found: ID={user_id} (sub={token_data.sub}). "
-            f"Total users in database: {user_count}"
+            "User not found: ID=%s (sub=%s). Total users in database: %s",
+            user_id,
+            token_data.sub,
+            user_count,
         )
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
-    
-    logger.debug(f"User authenticated: {user.email} (ID: {user.id})")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    logger.debug("User authenticated: %s (ID: %s)", user.email, user.id)
     return user
 
 
@@ -227,7 +227,7 @@ def verify_device_demo_api_enabled() -> None:
         )
 
 
-def get_device_controller() -> "DeviceController":
+def get_device_controller() -> DeviceController:
     """
     Dependência para obter uma instância de DeviceController.
 
@@ -237,6 +237,4 @@ def get_device_controller() -> "DeviceController":
     Returns:
         DeviceController: Instância do controller de dispositivos
     """
-    from apps.api.src.api.v1.controllers.device_controller import DeviceController
-
     return DeviceController()

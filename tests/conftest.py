@@ -41,7 +41,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 Base.metadata.create_all(bind=engine)
 
 
-def override_get_db() -> Generator[Session, None, None]:
+def override_get_db() -> Generator[Session]:
     """Override da dependência get_db para testes."""
     try:
         db = TestingSessionLocal()
@@ -66,7 +66,7 @@ def client() -> TestClient:
 
 
 @pytest.fixture
-def db_session() -> Generator[Session, None, None]:
+def db_session() -> Generator[Session]:
     """Fixture para criar uma sessão de banco de dados de teste."""
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

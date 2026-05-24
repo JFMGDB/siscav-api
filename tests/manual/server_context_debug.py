@@ -1,4 +1,5 @@
 """Script manual: simula contexto de sessão do servidor."""
+
 import sys
 from pathlib import Path
 from uuid import UUID
@@ -37,7 +38,7 @@ def main() -> None:
             current_user2 = get_current_user(token=token, db=db2)
             print(f"[7] get_current_user com nova sessão OK: {current_user2.email}")
         except Exception as e:
-            print(f"[7] ERRO com nova sessão: {type(e).__name__}: {str(e)}")
+            print(f"[7] ERRO com nova sessão: {type(e).__name__}: {e!s}")
             from jose import jwt
 
             from apps.api.src.api.v1.core.config import get_settings
@@ -47,7 +48,9 @@ def main() -> None:
             user_id = UUID(payload["sub"])
             print(f"[8] Token sub: {user_id}")
             found = UserRepository.get_by_id(db2, user_id)
-            print(f"[9] Repository.get_by_id resultado: {found.email if found else 'NÃO ENCONTRADO'}")
+            print(
+                f"[9] Repository.get_by_id resultado: {found.email if found else 'NÃO ENCONTRADO'}"
+            )
             found2 = db2.get(User, user_id)
             print(f"[10] db.get resultado: {found2.email if found2 else 'NÃO ENCONTRADO'}")
         finally:

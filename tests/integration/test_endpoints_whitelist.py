@@ -2,7 +2,6 @@
 
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -144,9 +143,7 @@ class TestWhitelistEndpoints:
         assert r2.status_code == 409
         assert "whitelist" in r2.json().get("detail", "").lower()
 
-    def test_create_invalid_plate_returns_client_error(
-        self, client: TestClient, auth_token: str
-    ):
+    def test_create_invalid_plate_returns_client_error(self, client: TestClient, auth_token: str):
         """Placa fora do formato BR → 422 (Pydantic) ou 400 (controller)."""
         response = client.post(
             "/api/v1/whitelist/",
@@ -155,9 +152,7 @@ class TestWhitelistEndpoints:
         )
         assert response.status_code in (400, 422)
 
-    def test_list_whitelist_respects_limit(
-        self, client: TestClient, auth_token: str
-    ):
+    def test_list_whitelist_respects_limit(self, client: TestClient, auth_token: str):
         """GET com limit=1 devolve uma entrada quando há várias placas."""
         base = int(uuid.uuid4().hex[:4], 16) % 5000 + 1000
         for i in range(2):
@@ -178,4 +173,3 @@ class TestWhitelistEndpoints:
         )
         assert response.status_code == 200
         assert len(response.json()) == 1
-

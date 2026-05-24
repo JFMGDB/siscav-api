@@ -82,4 +82,3 @@ class UserRepository:
             db.rollback()
             raise
         return user
-

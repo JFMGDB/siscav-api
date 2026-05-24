@@ -14,7 +14,7 @@ UPDATE users SET is_admin = 1 WHERE email = 'admin@siscav.com';
 """
 
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Add repo root to PYTHONPATH
@@ -26,8 +26,8 @@ from sqlalchemy.orm import sessionmaker
 
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.security import get_password_hash
-from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
+from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.utils.plate import normalize_plate
 
 settings = get_settings()
@@ -57,7 +57,7 @@ def seed_user(db):
         print(f"[OK] User already exists: {DEMO_USER['email']}")
         return existing
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     user = User(
         email=DEMO_USER["email"],
         hashed_password=get_password_hash(DEMO_USER["password"]),
@@ -75,12 +75,12 @@ def seed_user(db):
 
 def seed_plates(db):
     """Create demo plates if they do not exist."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for plate, description in DEMO_PLATES:
         normalized = normalize_plate(plate)
-        existing = db.query(AuthorizedPlate).filter(
-            AuthorizedPlate.normalized_plate == normalized
-        ).first()
+        existing = (
+            db.query(AuthorizedPlate).filter(AuthorizedPlate.normalized_plate == normalized).first()
+        )
 
         if existing:
             print(f"[OK] Plate already exists: {plate} ({normalized})")

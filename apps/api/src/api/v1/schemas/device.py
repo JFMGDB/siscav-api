@@ -57,5 +57,3 @@ class DisconnectResponse(BaseModel):
         True,
         description="True = resposta simulada pela API de demonstração.",
     )
-
-

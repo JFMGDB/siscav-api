@@ -1,7 +1,6 @@
 """Repository para operações de acesso a dados de logs de acesso."""
 
-from datetime import datetime
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import and_, func, select
@@ -15,7 +14,7 @@ class AccessLogRepository:
     """Repository para operações de banco de dados relacionadas a logs de acesso."""
 
     @staticmethod
-    def get_by_id(db: Session, log_id: UUID) -> Optional[AccessLog]:
+    def get_by_id(db: Session, log_id: UUID) -> AccessLog | None:
         """
         Busca um registro de log de acesso por ID.
 
@@ -33,10 +32,10 @@ class AccessLogRepository:
         db: Session,
         skip: int = 0,
         limit: int = 100,
-        plate_filter: Optional[str] = None,
-        status_filter: Optional[AccessStatus] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        plate_filter: str | None = None,
+        status_filter: AccessStatus | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> list[AccessLog]:
         """
         Lista registros de log de acesso com filtros opcionais.
@@ -84,7 +83,7 @@ class AccessLogRepository:
         plate_string_detected: str,
         status: AccessStatus,
         image_storage_key: str,
-        authorized_plate_id: Optional[UUID] = None,
+        authorized_plate_id: UUID | None = None,
     ) -> AccessLog:
         """
         Cria um novo registro de log de acesso.
@@ -99,11 +98,10 @@ class AccessLogRepository:
         Returns:
             AccessLog criado
         """
-        from datetime import timezone
-        
+
         # Definir timestamp manualmente (necessário para SQLite)
-        now = datetime.now(timezone.utc)
-        
+        now = datetime.now(UTC)
+
         db_log = AccessLog(
             plate_string_detected=plate_string_detected,
             status=status,
@@ -123,10 +121,10 @@ class AccessLogRepository:
     @staticmethod
     def count(
         db: Session,
-        plate_filter: Optional[str] = None,
-        status_filter: Optional[AccessStatus] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        plate_filter: str | None = None,
+        status_filter: AccessStatus | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> int:
         """
         Conta o total de registros de acesso com filtros opcionais.
@@ -162,4 +160,3 @@ class AccessLogRepository:
             query = query.where(and_(*conditions))
 
         return db.scalar(query) or 0
-

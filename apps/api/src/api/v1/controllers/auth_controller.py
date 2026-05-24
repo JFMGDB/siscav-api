@@ -2,7 +2,6 @@
 
 import logging
 from datetime import timedelta
-from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -41,7 +40,7 @@ class AuthController:
         # Repositories são classes com métodos estáticos, não requerem instanciação
         self.user_repository = UserRepository
 
-    def authenticate(self, email: str, password: str) -> Optional[User]:
+    def authenticate(self, email: str, password: str) -> User | None:
         """
         Autentica um usuário com email e senha.
 
@@ -52,17 +51,17 @@ class AuthController:
         Returns:
             User se autenticação bem-sucedida, None caso contrário
         """
-        logger.debug(f"Tentativa de autenticação para email: {email}")
+        logger.debug("Authentication attempt for email: %s", email)
         user = self.user_repository.get_by_email(self.db, email)
         if not user:
-            logger.warning(f"Tentativa de login com email não encontrado: {email}")
+            logger.warning("Login attempt with unknown email: %s", email)
             return None
 
         if not verify_password(password, user.hashed_password):
-            logger.warning(f"Senha incorreta para email: {email}")
+            logger.warning("Incorrect password for email: %s", email)
             return None
 
-        logger.info(f"Autenticação bem-sucedida para usuário: {email} (ID: {user.id})")
+        logger.info("Authentication successful for user: %s (ID: %s)", email, user.id)
         return user
 
     def create_access_token_for_user(self, user: User) -> str:
@@ -91,12 +90,12 @@ class AuthController:
         Raises:
             HTTPException: Se o email já estiver em uso ou ocorrer erro
         """
-        logger.info(f"Tentativa de registro de novo usuário: {user_data.email}")
+        logger.info("User registration attempt: %s", user_data.email)
 
         # Verificar se o email já existe
         existing_user = self.user_repository.get_by_email(self.db, user_data.email)
         if existing_user:
-            logger.warning(f"Tentativa de registro com email já existente: {user_data.email}")
+            logger.warning("Registration attempt with existing email: %s", user_data.email)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already registered",
@@ -110,14 +109,16 @@ class AuthController:
             user = self.user_repository.create(
                 self.db, user_data=user_data, hashed_password=hashed_password
             )
-            logger.info(f"Usuário registrado com sucesso: {user_data.email} (ID: {user.id})")
+            logger.info("User registered successfully: %s (ID: %s)", user_data.email, user.id)
             return UserRead.model_validate(user)
         except IntegrityError as e:
             # Violação de constraint (ex: email duplicado)
             self.db.rollback()
-            error_msg = str(e.orig) if hasattr(e, 'orig') and e.orig else str(e)
+            error_msg = str(e.orig) if hasattr(e, "orig") and e.orig else str(e)
             logger.warning(
-                f"Tentativa de registro com email duplicado ou constraint violada: {user_data.email} - {error_msg}"
+                "Registration constraint violation for %s: %s",
+                user_data.email,
+                error_msg,
             )
 
             # Verificar se é erro de email duplicado
@@ -141,7 +142,9 @@ class AuthController:
             self.db.rollback()
             error_details = "; ".join([f"{err['loc']}: {err['msg']}" for err in e.errors()])
             logger.warning(
-                f"Erro de validação ao registrar usuário: {user_data.email} - {error_details}"
+                "Validation error registering user %s: %s",
+                user_data.email,
+                error_details,
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -151,9 +154,10 @@ class AuthController:
             # Erros do SQLAlchemy (conexão, etc.)
             self.db.rollback()
             error_msg = str(e)
-            logger.error(
-                f"Erro de banco de dados ao registrar usuário: {user_data.email} - {error_msg}",
-                exc_info=True,
+            logger.exception(
+                "Database error registering user %s: %s",
+                user_data.email,
+                error_msg,
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -164,9 +168,11 @@ class AuthController:
             self.db.rollback()
             error_msg = str(e)
             error_type = type(e).__name__
-            logger.error(
-                f"Erro inesperado ao registrar usuário: {user_data.email} - {error_type}: {error_msg}",
-                exc_info=True,
+            logger.exception(
+                "Unexpected error registering user %s: %s: %s",
+                user_data.email,
+                error_type,
+                error_msg,
             )
             # Retornar mensagem mais específica para ajudar no debug
             detail_msg = f"Error creating user: {error_type}"
@@ -185,10 +191,7 @@ class AuthController:
         Returns:
             Tupla (token_jwt ou None, mensagem pública idêntica para existir ou não o email).
         """
-        msg = (
-            "If an account exists for this email, password reset instructions "
-            "have been issued."
-        )
+        msg = "If an account exists for this email, password reset instructions have been issued."
         normalized = email.strip()
         user = self.user_repository.get_by_email(self.db, normalized)
         if not user:
@@ -241,4 +244,3 @@ class AuthController:
                 detail="User not found",
             )
         logger.info("Password reset completed for user id=%s", user_id)
-

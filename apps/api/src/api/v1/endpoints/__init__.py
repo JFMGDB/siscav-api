@@ -13,11 +13,10 @@ from apps.api.src.api.v1.endpoints.health import router as health_router
 from apps.api.src.api.v1.endpoints.whitelist import router as whitelist_router
 
 __all__ = [
-    "health_router",
+    "access_logs_router",
     "auth_router",
     "devices_router",
-    "whitelist_router",
-    "access_logs_router",
     "gate_control_router",
+    "health_router",
+    "whitelist_router",
 ]
-

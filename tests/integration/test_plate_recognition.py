@@ -4,6 +4,7 @@ import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi.testclient import TestClient
 
 from apps.api.src.api.v1.core.config import get_settings
 
@@ -27,14 +28,14 @@ def fake_numpy_module():
 
 
 class TestRecognizePlateRoute:
-    def test_requires_auth(self, client):
+    def test_requires_auth(self, client: TestClient):
         r = client.post(
             "/api/v1/ml/recognize-plate",
             files={"file": ("x.jpg", b"dummy", "image/jpeg")},
         )
         assert r.status_code == 401
 
-    def test_ml_stack_unavailable_503(self, client, auth_token):
+    def test_ml_stack_unavailable_503(self, client: TestClient, auth_token: str):
         with patch(
             "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
             return_value=False,
@@ -47,7 +48,7 @@ class TestRecognizePlateRoute:
         assert r.status_code == 503
         assert "OCR" in r.json().get("detail", "")
 
-    def test_unsupported_media_type(self, client, auth_token):
+    def test_unsupported_media_type(self, client: TestClient, auth_token: str):
         with patch(
             "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
             return_value=True,
@@ -59,7 +60,9 @@ class TestRecognizePlateRoute:
             )
         assert r.status_code == 400
 
-    def test_decode_fails_400(self, client, auth_token, fake_cv2_module, fake_numpy_module):
+    def test_decode_fails_400(
+        self, client: TestClient, auth_token: str, fake_cv2_module, fake_numpy_module
+    ):
         fake_cv2_module.imdecode.return_value = None
         with (
             patch(
@@ -75,7 +78,9 @@ class TestRecognizePlateRoute:
             )
         assert r.status_code == 400
 
-    def test_success_candidates(self, client, auth_token, fake_cv2_module, fake_numpy_module):
+    def test_success_candidates(
+        self, client: TestClient, auth_token: str, fake_cv2_module, fake_numpy_module
+    ):
         with (
             patch(
                 "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
@@ -101,7 +106,9 @@ class TestRecognizePlateRoute:
         assert data["candidates"][0]["normalized_plate"] == "ABC1D23"
         assert data["candidates"][0]["plate_color_hint"] == "branca"
 
-    def test_payload_too_large(self, client, auth_token, fake_cv2_module, monkeypatch):
+    def test_payload_too_large(
+        self, client: TestClient, auth_token: str, fake_cv2_module, monkeypatch
+    ):
         monkeypatch.setenv("MAX_FILE_SIZE_MB", "0")
         get_settings.cache_clear()
         try:

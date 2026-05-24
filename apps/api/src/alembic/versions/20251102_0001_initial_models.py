@@ -22,9 +22,8 @@ def _get_uuid_type():
     bind = op.get_bind()
     if bind.dialect.name == "postgresql":
         return postgresql.UUID(as_uuid=True)
-    else:
-        # SQLite e outros: usar String(36)
-        return sa.String(36)
+    # SQLite e outros: usar String(36)
+    return sa.String(36)
 
 
 def _get_uuid_default():
@@ -32,16 +31,15 @@ def _get_uuid_default():
     bind = op.get_bind()
     if bind.dialect.name == "postgresql":
         return sa.text("gen_random_uuid()")
-    else:
-        # SQLite não tem função nativa, será gerado pelo Python
-        return None
+    # SQLite não tem função nativa, será gerado pelo Python
+    return None
 
 
 def upgrade() -> None:
     # Detecta o tipo de banco de dados
     bind = op.get_bind()
     is_postgresql = bind.dialect.name == "postgresql"
-    
+
     # Cria o tipo ENUM para o status de acesso (apenas PostgreSQL)
     if is_postgresql:
         access_status = sa.Enum("Authorized", "Denied", name="access_status")
@@ -50,7 +48,7 @@ def upgrade() -> None:
     # Tabela users
     uuid_type = _get_uuid_type()
     uuid_default = _get_uuid_default()
-    
+
     op.create_table(
         "users",
         sa.Column(
@@ -122,7 +120,9 @@ def upgrade() -> None:
         sa.Column("plate_string_detected", sa.Text(), nullable=False),
         sa.Column(
             "status",
-            sa.Enum("Authorized", "Denied", name="access_status") if is_postgresql else sa.String(20),
+            sa.Enum("Authorized", "Denied", name="access_status")
+            if is_postgresql
+            else sa.String(20),
             nullable=False,
         ),
         sa.Column("image_storage_key", sa.Text(), nullable=False),

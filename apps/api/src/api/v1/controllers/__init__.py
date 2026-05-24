@@ -11,10 +11,9 @@ from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 
 __all__ = [
-    "AuthController",
-    "PlateController",
     "AccessLogController",
-    "GateController",
+    "AuthController",
     "DeviceController",
+    "GateController",
+    "PlateController",
 ]
-

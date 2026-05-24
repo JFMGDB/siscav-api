@@ -19,7 +19,7 @@ router = APIRouter()
 @router.get("/", response_model=list[AuthorizedPlateRead])
 def read_authorized_plates(
     plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
     skip: Annotated[
         int,
         Query(
@@ -51,7 +51,7 @@ def read_authorized_plates(
 def create_authorized_plate(
     plate_in: AuthorizedPlateCreate,
     plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
     Cadastrar nova placa autorizada.
@@ -72,7 +72,7 @@ def create_authorized_plate(
 def read_authorized_plate(
     id: UUID,
     plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
     Obter placa autorizada por ID.
@@ -87,7 +87,7 @@ def update_authorized_plate(
     id: UUID,
     plate_in: AuthorizedPlateCreate,
     plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
     Atualizar placa autorizada.
@@ -105,7 +105,7 @@ def update_authorized_plate(
 def delete_authorized_plate(
     id: UUID,
     plate_controller: Annotated[PlateController, Depends(get_plate_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> AuthorizedPlateRead:
     """
     Remover placa autorizada.

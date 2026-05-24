@@ -28,7 +28,7 @@ router = APIRouter(
 @router.get("/scan", response_model=list[BluetoothDevice])
 def scan_bluetooth_devices(
     device_controller: Annotated[DeviceController, Depends(get_device_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[BluetoothDevice]:
     """
     Escanear dispositivos Bluetooth disponíveis.
@@ -55,7 +55,7 @@ def scan_bluetooth_devices(
 def connect_bluetooth_device(
     request: ConnectionRequest,
     device_controller: Annotated[DeviceController, Depends(get_device_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> ConnectionResponse:
     """
     Conectar a um dispositivo Bluetooth.
@@ -95,7 +95,7 @@ def connect_bluetooth_device(
 @router.get("/status", response_model=ConnectionStatus)
 def get_connection_status(
     device_controller: Annotated[DeviceController, Depends(get_device_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> ConnectionStatus:
     """
     Verificar status da conexão Bluetooth.
@@ -115,7 +115,7 @@ def get_connection_status(
 @router.post("/disconnect", response_model=DisconnectResponse)
 def disconnect_bluetooth_device(
     device_controller: Annotated[DeviceController, Depends(get_device_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> DisconnectResponse:
     """
     Desconectar dispositivo Bluetooth.

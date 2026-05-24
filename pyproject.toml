@@ -2,6 +2,7 @@
 name = "siscav-api"
 version = "0.1.0"
 description = "Backend do Sistema de Controle de Acesso Veicular"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi==0.135.1",
     "uvicorn[standard]==0.42.0",
@@ -26,6 +27,14 @@ dev = [
     "pytest-cov==7.1.0",  # Para cobertura de código
     "ruff==0.14.6",  # Para linting rápido
     "httpx==0.28.1",  # Cliente HTTP para usar nos testes
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.0.2",
+    "pytest-cov==7.1.0",
+    "ruff==0.14.6",
+    "httpx==0.28.1",
 ]
 
 [tool.pytest.ini_options]

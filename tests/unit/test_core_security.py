@@ -1,8 +1,7 @@
 """Testes unitários para módulo de segurança."""
 
 from datetime import timedelta
-
-import pytest
+from uuid import uuid4
 
 from apps.api.src.api.v1.core.security import (
     create_access_token,
@@ -84,11 +83,7 @@ class TestAccessToken:
 
     def test_create_access_token_uuid_subject(self):
         """Testa criação de token com UUID como subject."""
-        from uuid import uuid4
-
         subject = str(uuid4())
         token = create_access_token(subject)
         assert isinstance(token, str)
         assert len(token) > 0
-
-

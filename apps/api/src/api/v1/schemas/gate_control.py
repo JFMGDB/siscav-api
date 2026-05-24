@@ -15,7 +15,7 @@ class GateTriggerResponse(BaseModel):
 
     integration: Literal["simulated", "live"] = Field(
         ...,
-        description='simulated = nenhum atuador configurado; live = POST HTTP ao GATE_ACTUATOR_URL.',
+        description="simulated = nenhum atuador configurado; live = POST HTTP ao GATE_ACTUATOR_URL.",
     )
     message: str = Field(..., description="Mensagem legível para operadores.")
     acknowledged: bool = Field(

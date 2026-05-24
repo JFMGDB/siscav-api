@@ -1,17 +1,15 @@
 """Testes unitários para repositories."""
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from apps.api.src.api.v1.core.security import get_password_hash
 from apps.api.src.api.v1.db.base import Base
-from apps.api.src.api.v1.models.access_log import AccessLog
-from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
-from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import (
     AuthorizedPlateRepository,
@@ -30,8 +28,8 @@ def db_session():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = TestingSessionLocal()
+    testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = testing_session_local()
     yield session
     session.close()
 
@@ -52,8 +50,6 @@ class TestUserRepository:
 
     def test_create_user(self, db_session):
         """Testa criação de usuário."""
-        from apps.api.src.api.v1.core.security import get_password_hash
-
         user_data = UserCreate(email="test@example.com", password="password123")
         hashed_password = get_password_hash("password123")
         user = UserRepository.create(db_session, user_data, hashed_password)
@@ -63,8 +59,6 @@ class TestUserRepository:
 
     def test_get_by_id_found(self, db_session):
         """Testa busca de usuário por ID existente."""
-        from apps.api.src.api.v1.core.security import get_password_hash
-
         user_data = UserCreate(email="test@example.com", password="password123")
         hashed_password = get_password_hash("password123")
         created_user = UserRepository.create(db_session, user_data, hashed_password)
@@ -75,8 +69,6 @@ class TestUserRepository:
 
     def test_get_by_email_found(self, db_session):
         """Testa busca de usuário por email existente."""
-        from apps.api.src.api.v1.core.security import get_password_hash
-
         user_data = UserCreate(email="test@example.com", password="password123")
         hashed_password = get_password_hash("password123")
         UserRepository.create(db_session, user_data, hashed_password)
@@ -96,9 +88,7 @@ class TestAuthorizedPlateRepository:
 
     def test_get_by_normalized_plate_not_found(self, db_session):
         """Testa busca de placa normalizada inexistente."""
-        result = AuthorizedPlateRepository.get_by_normalized_plate(
-            db_session, "XYZ9999"
-        )
+        result = AuthorizedPlateRepository.get_by_normalized_plate(db_session, "XYZ9999")
         assert result is None
 
     def test_create_plate(self, db_session):
@@ -135,9 +125,7 @@ class TestAuthorizedPlateRepository:
             normalized_plate="ABC1234",
             description="Test Car",
         )
-        found_plate = AuthorizedPlateRepository.get_by_normalized_plate(
-            db_session, "ABC1234"
-        )
+        found_plate = AuthorizedPlateRepository.get_by_normalized_plate(db_session, "ABC1234")
         assert found_plate is not None
         assert found_plate.normalized_plate == "ABC1234"
 
@@ -274,9 +262,7 @@ class TestAccessLogRepository:
             status=AccessStatus.Denied,
             image_storage_key="uploads/test2.jpg",
         )
-        logs = AccessLogRepository.get_all(
-            db_session, skip=0, limit=10, plate_filter="ABC"
-        )
+        logs = AccessLogRepository.get_all(db_session, skip=0, limit=10, plate_filter="ABC")
         assert len(logs) == 1
         assert logs[0].plate_string_detected == "ABC-1234"
 
@@ -302,9 +288,7 @@ class TestAccessLogRepository:
 
     def test_get_all_with_date_filter(self, db_session):
         """Testa filtro por data."""
-        from datetime import timedelta
-
-        now = datetime.now()
+        now = datetime.now(UTC)
         AccessLogRepository.create(
             db_session,
             plate_string_detected="ABC-1234",
@@ -319,4 +303,3 @@ class TestAccessLogRepository:
             end_date=now + timedelta(days=1),
         )
         assert len(logs) >= 1
-

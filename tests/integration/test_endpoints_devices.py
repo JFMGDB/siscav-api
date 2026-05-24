@@ -76,5 +76,3 @@ class TestDevicesEndpoints:
         finally:
             monkeypatch.delenv("IOT_DEVICE_DEMO_API", raising=False)
             get_settings.cache_clear()
-
-

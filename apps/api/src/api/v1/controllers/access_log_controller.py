@@ -4,8 +4,6 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
-from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -37,9 +35,7 @@ class AccessLogController:
         self.plate_repository = AuthorizedPlateRepository
         self.settings = get_settings()
 
-    def create_access_log(
-        self, plate: str, file: UploadFile
-    ) -> AccessLogRead:
+    def create_access_log(self, plate: str, file: UploadFile) -> AccessLogRead:
         """
         Cria um novo registro de log de acesso veicular.
 
@@ -76,8 +72,8 @@ class AccessLogController:
         normalized_plate = normalize_plate(plate)
 
         # Verificar se a placa está na whitelist
-        authorized_plate: Optional[AuthorizedPlate] = (
-            self.plate_repository.get_by_normalized_plate(self.db, normalized_plate)
+        authorized_plate: AuthorizedPlate | None = self.plate_repository.get_by_normalized_plate(
+            self.db, normalized_plate
         )
 
         # Determinar status
@@ -143,10 +139,10 @@ class AccessLogController:
         self,
         skip: int = 0,
         limit: int = 100,
-        plate_filter: Optional[str] = None,
-        status_filter: Optional[AccessStatus] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        plate_filter: str | None = None,
+        status_filter: AccessStatus | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> list[AccessLogRead]:
         """
         Lista registros de acesso veicular com filtros opcionais.
@@ -176,10 +172,10 @@ class AccessLogController:
 
     def count(
         self,
-        plate_filter: Optional[str] = None,
-        status_filter: Optional[AccessStatus] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        plate_filter: str | None = None,
+        status_filter: AccessStatus | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> int:
         """
         Conta o total de registros de acesso com filtros opcionais.
@@ -200,4 +196,3 @@ class AccessLogController:
             start_date=start_date,
             end_date=end_date,
         )
-

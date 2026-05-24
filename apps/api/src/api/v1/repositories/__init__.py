@@ -11,8 +11,7 @@ from apps.api.src.api.v1.repositories.authorized_plate_repository import (
 from apps.api.src.api.v1.repositories.user_repository import UserRepository
 
 __all__ = [
-    "UserRepository",
-    "AuthorizedPlateRepository",
     "AccessLogRepository",
+    "AuthorizedPlateRepository",
+    "UserRepository",
 ]
-

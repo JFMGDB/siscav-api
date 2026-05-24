@@ -20,18 +20,17 @@ from apps.api.src.api.v1.schemas.token import Token, TokenPayload
 from apps.api.src.api.v1.schemas.user import UserCreate, UserRead
 
 __all__ = [
-    "UserCreate",
-    "UserRead",
-    "AuthorizedPlateCreate",
-    "AuthorizedPlateRead",
     "AccessLogRead",
     "AccessStatus",
-    "Token",
-    "TokenPayload",
+    "AuthorizedPlateCreate",
+    "AuthorizedPlateRead",
     "BluetoothDevice",
     "ConnectionRequest",
     "ConnectionResponse",
     "ConnectionStatus",
     "DisconnectResponse",
+    "Token",
+    "TokenPayload",
+    "UserCreate",
+    "UserRead",
 ]
-

@@ -1,7 +1,7 @@
 """Testes unitários para AuthController."""
 
-import pytest
-from fastapi import HTTPException
+from datetime import timedelta
+
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
@@ -11,7 +11,6 @@ from apps.api.src.api.v1.core.security import (
     verify_password,
 )
 from apps.api.src.api.v1.models.user import User
-from apps.api.src.api.v1.repositories.user_repository import UserRepository
 
 
 class TestAuthController:
@@ -109,8 +108,6 @@ class TestAuthController:
         db_session.commit()
         db_session.refresh(user)
 
-        from datetime import timedelta
-
         token = create_password_reset_token(user.id, expires_delta=timedelta(minutes=10))
 
         controller = AuthController(db_session)
@@ -119,4 +116,3 @@ class TestAuthController:
         db_session.refresh(user)
         assert verify_password("newpassword123", user.hashed_password)
         assert not verify_password("oldpass123", user.hashed_password)
-

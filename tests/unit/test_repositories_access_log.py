@@ -1,12 +1,10 @@
 """Testes unitários para AccessLogRepository."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
-import pytest
 from sqlalchemy.orm import Session
 
-from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
 from apps.api.src.api.v1.schemas.access_log import AccessStatus
@@ -93,15 +91,13 @@ class TestAccessLogRepository:
         assert len(authorized_logs) == 1
         assert authorized_logs[0].status == AccessStatus.Authorized
 
-        denied_logs = AccessLogRepository.get_all(
-            db_session, status_filter=AccessStatus.Denied
-        )
+        denied_logs = AccessLogRepository.get_all(db_session, status_filter=AccessStatus.Denied)
         assert len(denied_logs) == 1
         assert denied_logs[0].status == AccessStatus.Denied
 
     def test_get_all_with_date_filters(self, db_session: Session):
         """Testa listagem de logs com filtros de data."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         yesterday = now - timedelta(days=1)
         tomorrow = now + timedelta(days=1)
 
@@ -113,9 +109,7 @@ class TestAccessLogRepository:
             image_storage_key="test1.jpg",
         )
 
-        result = AccessLogRepository.get_all(
-            db_session, start_date=yesterday, end_date=tomorrow
-        )
+        result = AccessLogRepository.get_all(db_session, start_date=yesterday, end_date=tomorrow)
 
         assert len(result) >= 1
 
@@ -187,4 +181,3 @@ class TestAccessLogRepository:
         )
 
         assert result.authorized_plate_id == plate.id
-

@@ -1,4 +1,5 @@
 """Script manual: fluxo de autenticação contra o banco configurado em DATABASE_URL."""
+
 import sys
 from pathlib import Path
 
@@ -6,13 +7,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from jose import jwt
+
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.security import create_access_token
 from apps.api.src.api.v1.db.session import SessionLocal
 from apps.api.src.api.v1.deps import get_current_user
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.user_repository import UserRepository
-from jose import jwt
 
 
 def main() -> None:
@@ -41,7 +43,7 @@ def main() -> None:
             print(f"[6] get_current_user() funcionou: {current_user.email}")
             print("\n[OK] Fluxo de autenticação está funcionando corretamente!")
         except Exception as e:
-            print(f"[6] get_current_user() falhou: {type(e).__name__}: {str(e)}")
+            print(f"[6] get_current_user() falhou: {type(e).__name__}: {e!s}")
             import traceback
 
             traceback.print_exc()

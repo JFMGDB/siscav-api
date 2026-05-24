@@ -1,9 +1,10 @@
 """Testes unitários para PlateController."""
 
+from uuid import uuid4
+
 import pytest
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from uuid import uuid4
 
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
@@ -217,7 +218,7 @@ class TestPlateController:
     def test_check_authorization_normalizes_plate(self, db_session: Session):
         """Testa que verificação de autorização normaliza a placa."""
         # Criar placa autorizada
-        plate = AuthorizedPlateRepository.create(
+        AuthorizedPlateRepository.create(
             db_session,
             plate="ABC-1234",
             normalized_plate="ABC1234",
@@ -232,4 +233,3 @@ class TestPlateController:
         assert is_authorized1 is True
         assert is_authorized2 is True
         assert is_authorized3 is True
-

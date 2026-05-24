@@ -69,8 +69,16 @@ unfixable = []
 [lint.per-file-ignores]
 # Ignorar imports não utilizados em arquivos __init__.py
 "__init__.py" = ["F401", "F403"]
-# Ignorar prints e números mágicos em scripts de teste
+# Ignorar prints e números mágicos em testes
 "tests/**/*.py" = ["T20", "PLR2004"]
+# Scripts de teste manual usam sys.path antes dos imports
+"tests/manual/**/*.py" = ["T20", "E402", "PLR2004", "PLC0415", "TRY300"]
+# Scripts usam print e manipulação de sys.path antes dos imports
+"scripts/**/*.py" = ["T20", "E402", "PLR2004"]
+# Fail-fast de secrets antes dos imports do app
+"apps/api/src/main.py" = ["E402"]
+# Imports condicionais/lazy para dependências ML opcionais
+"apps/api/src/api/v1/ml/plate_ocr.py" = ["PLC0415", "PLW0603", "PLR2004"]
 
 [lint.isort]
 known-first-party = ["apps"]

@@ -1,8 +1,6 @@
 """Testes unitários para dependências do FastAPI."""
 
 import uuid
-from datetime import timedelta
-from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -16,7 +14,6 @@ from apps.api.src.api.v1.core.security import create_access_token, get_password_
 from apps.api.src.api.v1.db.base import Base
 from apps.api.src.api.v1.deps import get_current_user
 from apps.api.src.api.v1.models.user import User
-from apps.api.src.api.v1.repositories.user_repository import UserRepository
 
 
 @pytest.fixture
@@ -28,8 +25,8 @@ def db_session():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = TestingSessionLocal()
+    testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = testing_session_local()
     yield session
     session.close()
 
@@ -93,5 +90,3 @@ class TestGetCurrentUser:
         with pytest.raises(HTTPException) as exc_info:
             get_current_user(token=malformed_token, db=db_session)
         assert exc_info.value.status_code == 403
-
-

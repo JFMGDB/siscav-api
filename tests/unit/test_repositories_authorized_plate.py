@@ -1,8 +1,8 @@
 """Testes unitários para AuthorizedPlateRepository."""
 
-import pytest
-from sqlalchemy.orm import Session
 from uuid import uuid4
+
+from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
@@ -153,4 +153,3 @@ class TestAuthorizedPlateRepository:
         result = AuthorizedPlateRepository.delete(db_session, fake_id)
 
         assert result is None
-
