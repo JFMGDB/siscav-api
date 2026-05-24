@@ -20,7 +20,7 @@ exclude = [
     "build",
     "dist",
     "*.egg-info",
-    "alembic/versions/*.py",  # Não fazer lint em migrações do Alembic
+    "**/alembic/versions/*.py",  # Não fazer lint em migrações do Alembic
 ]
 
 [lint]
