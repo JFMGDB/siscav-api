@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: API brownfield hardening
-status: Phase 5 complete — SonarQube CI
-last_updated: "2026-05-03T18:45:00.000Z"
+status: Milestone v1.0 closed — Phase 5 (SonarQube CI) complete
+last_updated: "2026-05-24T00:00:00.000Z"
 progress:
-  note: "Phase 5 (SonarQube): 2/2 plans + VERIFICATION passed"
+  note: "Codebase cleanup complete; planning phase artifacts archived in git history"
 ---
 
 # Project state: SISCAV API
@@ -14,31 +14,32 @@ progress:
 
 - **Core value:** Trustworthy plate-based access decisions and an auditable log of every attempt, with a path to secure devices and real gate integration.
 - **Source of truth:** [.planning/PROJECT.md](PROJECT.md)
-- **Shipped v1.0:** [.planning/MILESTONES.md](MILESTONES.md) · [audit](milestones/v1.0-MILESTONE-AUDIT.md)
+- **Shipped v1.0:** [.planning/MILESTONES.md](MILESTONES.md)
 
 ## Current position
 
-**Fase 5 (SonarQube)** concluída em 2026-05-03 — ver [05-VERIFICATION.md](phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/05-VERIFICATION.md). Configurar `SONAR_TOKEN` e chaves em `sonar-project.properties` para ativar o scan no CI.
+**Milestone v1.0** is **closed** (2026-04-05). Phases 1–4 delivered security, whitelist, gate honesty, and operations hygiene. **Phase 5 (SonarQube CI)** completed 2026-05-03 — configure `SONAR_TOKEN` and keys in `sonar-project.properties` to enable CI scans.
 
-**Milestone v1.0** está **fechado** (2026-04-05). **Backlog 999.1** (UI câmara): docs neste repo; código Next.js noutro Git — [camera-preview-nextjs.md](../docs/frontend/camera-preview-nextjs.md).
+**Codebase cleanup** completed 2026-05-24: docs consolidated under `docs/`, stale artifacts removed, `.planning/phases/` and `.planning/milestones/` trimmed (history preserved in git).
 
-**Next:** **`/gsd-new-milestone`** para v1.1+; ou continuar produto/backlog conforme [ROADMAP](ROADMAP.md).
+**Next:** `/gsd-new-milestone` for v1.1+; or continue product/backlog per [ROADMAP.md](ROADMAP.md).
 
 ## Performance metrics
 
-_(Atualizar no próximo milestone.)_
+_(Update on next milestone.)_
 
 ## Accumulated context
 
-- **Decisions:** Ver PROJECT.md — Key decisions.
-- **Blockers:** Nenhum.
+- **Decisions:** See PROJECT.md — Key decisions.
+- **Blockers:** None.
 
 ### Roadmap evolution
 
-- **2026-05-03:** Fase **5** adicionada — SonarQube (análise estática e quality gates no CI). Pasta: `.planning/phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/`.
-- **2026-05-03:** Fase **5** executada e verificada — planos 05-01, 05-02; `sonar-project.properties`, CI, `SONAR_SETUP.md`.
+- **2026-05-24:** Final docs/codebase cleanup — removed stale folders (`docs/assets/`, `docs/project-management/`, `docs/getting-started/`, `docs/operations/`), consolidated `.github/` guides into `docs/setup/commands.md`.
+- **2026-05-03:** Phase 5 (SonarQube) executed — `sonar-project.properties`, CI job, `SONAR_SETUP.md`.
+- **2026-04-05:** Milestone v1.0 closed — 11 plans across 4 phases.
 
 ## Session continuity
 
-- **Last planning action:** `/gsd-execute-phase 5` — implementação SonarQube CI + docs
-- **Next action:** Configurar SonarCloud (secret + keys); `/gsd-new-milestone` ou `/gsd-progress`
+- **Last action:** Final codebase cleanup pass
+- **Next action:** Configure SonarCloud (secret + keys); `/gsd-new-milestone` or `/gsd-progress`

@@ -2,42 +2,32 @@
 
 ## Milestones
 
-- ✅ **[v1.0 — API brownfield hardening](milestones/v1.0-ROADMAP.md)** — Fases 1–4 entregues em 2026-04-05 (11 planos). Arquivo: [requisitos v1.0](milestones/v1.0-REQUIREMENTS.md), [auditoria](milestones/v1.0-MILESTONE-AUDIT.md).
+- **v1.0 — API brownfield hardening** (shipped 2026-04-05) — Phases 1–4: security/auth, whitelist + logs, gate + device honesty, operations hygiene. 11 plans delivered. See [MILESTONES.md](MILESTONES.md).
 
-## Fases ativas / próximo ciclo
+## Completed work (summary)
 
-O milestone **v1.0** está fechado. **Fase 5 (SonarQube)** foi **concluída** (2026-05-03). Novo trabalho estruturado: **`/gsd-new-milestone`** e `REQUIREMENTS.md`.
+| Phase | Goal | Status |
+|-------|------|--------|
+| 1 | Security & authentication correctness | Done |
+| 2 | Whitelist & access-log behavior | Done |
+| 3 | Gate & device integration honesty | Done |
+| 4 | Operations & dependency hygiene | Done |
+| 5 | SonarQube static analysis in CI | Done (2026-05-03) |
+
+Detailed phase plans and verification reports were removed during codebase cleanup; history is in git.
 
 ## Backlog
 
-### Phase 999.1: Interface — câmara Wi‑Fi/USB e pré-visualização em tempo real (BACKLOG)
+### Phase 999.1: Camera Wi-Fi/USB live preview (BACKLOG)
 
-**Goal:** O utilizador, através da interface, liga a câmara por Wi‑Fi ou USB e vê o vídeo em tempo real (pré-visualização), como requisito de produto para um cliente web ou app de operador.
+**Goal:** Operator UI connects camera via Wi-Fi or USB and shows live preview. Delivery is in a separate frontend repository (Next.js); this API repo provides auth and OCR endpoints only.
 
-**Requirements:** TBD (entrega API repo: docs + guia Next.js; código UI noutro Git)
+**Status:** Documented in `docs/api/frontend-integration.md`. No API-side streaming endpoints required.
 
-**Plans:** 2/2 com SUMMARY; [VERIFICATION](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-VERIFICATION.md) **passed** (2026-04-05)
+### v1.1+ (TBD)
 
-Plans:
-
-- [x] [999.1-01-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-01-PLAN.md) — [SUMMARY](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-01-SUMMARY.md)
-- [x] [999.1-02-PLAN.md](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-02-PLAN.md) — [SUMMARY](phases/999.1-ui-camera-wifi-usb-live-preview/999.1-02-SUMMARY.md)
-
-### Phase 5: SonarQube — análise estática e quality gates no CI
-
-**Goal:** Integrar **SonarQube** (SonarCloud ou servidor self-hosted) para análise contínua de Python/FastAPI, cobertura de testes onde aplicável, e **quality gate** alinhado à equipa; segredos (`SONAR_TOKEN`) apenas em CI seguro.
-
-**Requirements:** SONAR-01, SONAR-02, SONAR-03, SONAR-04 (ver [05-CONTEXT.md](phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/05-CONTEXT.md))
-
-**Depends on:** — (não depende da fase 999.1)
-
-**Plans:** 2/2 com SUMMARY; [VERIFICATION](phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/05-VERIFICATION.md) **passed** (2026-05-03)
-
-Plans:
-
-- [x] [05-01-PLAN.md](phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/05-01-PLAN.md) — [SUMMARY](phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/05-01-SUMMARY.md)
-- [x] [05-02-PLAN.md](phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/05-02-PLAN.md) — [SUMMARY](phases/05-sonarqube-static-analysis-and-quality-gates-in-ci/05-02-SUMMARY.md)
+Use `/gsd-new-milestone` to define the next structured cycle. Open items tracked in [REQUIREMENTS.md](REQUIREMENTS.md) and [BUGS.md](BUGS.md).
 
 ---
 
-*Última atualização: 2026-05-03 — fase 5 SonarQube executada (planos 05-01, 05-02)*
+*Last updated: 2026-05-24*

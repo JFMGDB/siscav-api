@@ -20,7 +20,6 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 ## Languages
 - **Python** — Entire backend API under `apps/api/src/`. CI runs on Python 3.13 (`.github/workflows/ci.yml`); `apps/api/src/main.py` documents Python 3.10+ as the intended minimum.
 - **SQL** — Schema and Supabase-oriented scripts in `db/sql/supabase/` (e.g. `db/sql/supabase/00_complete_setup.sql`).
-- **HTML** — Standalone `register.html` at repo root (not part of the FastAPI app bundle).
 ## Runtime
 - CPython (see CI `python-version: '3.13'` in `.github/workflows/ci.yml`).
 - **pip** — Primary install path via `requirements.txt` and `requirements-dev.txt`.
@@ -52,7 +51,7 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - Python 3.10+ (documented) / 3.13 in CI; pip; optional PostgreSQL or Supabase-compatible `DATABASE_URL`; Ruff and pytest from `requirements-dev.txt`.
 - ASGI host (typically Uvicorn behind a reverse proxy); PostgreSQL or compatible cloud Postgres (e.g. Supabase) with `sslmode=require` when applicable; writable directory for `UPLOAD_DIR` if file uploads are used.
 ## Other repository artifacts
-- **`package-lock.json`** — Present at repo root without a matching `package.json` in the workspace layout surveyed; treat as ancillary unless a Node toolchain is added.
+- Demo seed script: `scripts/seed_demo.py` (run manually, not part of the request path).
 <!-- gsd-stack-end -->
 
 <!-- gsd-conventions-start source:CONVENTIONS.md -->
@@ -140,8 +139,6 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - **DB session:** `apps/api/src/api/v1/db/session.py` — engine from `get_settings().database_url`, `SessionLocal`, `get_db()` generator for FastAPI.
 - **Configuration:** `apps/api/src/api/v1/core/config.py` — `get_settings()` (cached) resolves DB URL from env with documented fallback order (including SQLite dev fallback).
 - **Migrations:** Root `alembic.ini` points `script_location` to `apps/api/src/alembic`; revision scripts live under `apps/api/src/alembic/versions/`.
-- Purpose: Older CRUD-style modules marked deprecated; **no current imports** from `crud/` under `apps/api` (prefer repositories + controllers).
-- Location: `apps/api/src/api/v1/crud/` (`crud_user.py`, `crud_authorized_plate.py`, `crud_access_log.py`).
 - Purpose: Pure helpers (e.g. plate normalization/validation).
 - Location: `apps/api/src/api/v1/utils/plate.py`.
 ## Data Flow
@@ -158,7 +155,7 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - Location: `apps/api/src/main.py`
 - Triggers: Uvicorn (or compatible ASGI server) loading `app`.
 - Responsibilities: Middleware stack, exception handling, include `api_router` at `/api/v1`, root `GET /`.
-- Location: `apps/api/src/seed_demo.py` — database seeding for demos (invoked manually, not part of request path).
+- Location: `scripts/seed_demo.py` — database seeding for demos (invoked manually, not part of request path).
 - Location: `apps/api/src/api/v1/endpoints/health.py` — `GET /api/v1/health` (mounted without extra prefix in `api.py`).
 ## Error Handling
 - Controllers translate “not found” repository results into `HTTPException(status_code=404, ...)` (e.g. `plate_controller.py`).

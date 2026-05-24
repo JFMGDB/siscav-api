@@ -109,7 +109,7 @@
 - Responsibilities: Align schema with `Base.metadata` after models are imported.
 
 **Demo / operational scripts:**
-- Location: `apps/api/src/seed_demo.py` (data seeding; not part of the HTTP request path unless invoked manually).
+- Location: `scripts/seed_demo.py` (data seeding; not part of the HTTP request path unless invoked manually).
 
 ## Error Handling
 

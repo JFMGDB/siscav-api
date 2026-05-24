@@ -89,7 +89,7 @@ ruff check . && ruff format --check . && pytest -v --tb=short --cov=apps --cov-r
 
 Se todos os comandos passarem, seu código está pronto para PR!
 
-**Guia detalhado**: Veja `.github/CI_LOCAL_GUIDE.md`
+**Guia detalhado**: Veja [`docs/setup/commands.md`](../docs/setup/commands.md)
 
 ## 📊 Status do Pipeline
 

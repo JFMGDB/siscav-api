@@ -65,7 +65,7 @@
 
 **Development:**
 - Python compatible with declared dependencies; PostgreSQL optional (SQLite fallback when no DB env vars).
-- `PYTHONPATH` / working directory must allow imports `apps.api.src...` (see `apps/api/src/seed_demo.py` for path bootstrap when run as script).
+- `PYTHONPATH` / working directory must allow imports `apps.api.src...` (see `scripts/seed_demo.py` for path bootstrap when run as script).
 
 **Production:**
 - PostgreSQL (or compatible URL) recommended; `ENVIRONMENT=production` requires non-default `SECRET_KEY` (`apps/api/src/api/v1/core/config.py`).

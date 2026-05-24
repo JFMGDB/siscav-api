@@ -22,8 +22,8 @@
 - Fix approach: Either adopt `pydantic-settings` or add a startup validation pass that fails fast on missing critical vars in production.
 
 **Orphan / demo ML script in API tree:**
-- Issue: `apps/api/src/api/v1/ml/recognize-plate.py` is a standalone OpenCV/EasyOCR script (including `winsound`), not imported by the FastAPI app.
-- Files: `apps/api/src/api/v1/ml/recognize-plate.py`
+- Issue: Standalone `recognize-plate.py` script was removed during cleanup; HTTP OCR uses `plate_ocr.py` via `plate_recognition.py`.
+- Files: `apps/api/src/api/v1/ml/plate_ocr.py`, `apps/api/src/api/v1/endpoints/plate_recognition.py`
 - Impact: Confusing layout, platform-specific code, and dependencies not reflected in the main API dependency set unless someone runs it manually.
 - Fix approach: Move to a separate `tools/` or `scripts/` package with its own requirements, or remove if obsolete.
 
@@ -83,7 +83,7 @@
 - Recommendations: Validate URL scheme (`http`/`https` only) and optionally pin host allowlist in configuration.
 
 **Demo seed credentials in repository:**
-- Issue: `apps/api/src/seed_demo.py` documents and creates `admin@siscav.com` / `admin123`.
+- Issue: `scripts/seed_demo.py` documents and creates `admin@siscav.com` / `admin123`.
 - Impact: Risk if seed script or matching credentials are ever run against a reachable environment.
 - Recommendations: Force password override via env for non-local use; document that demo credentials must not be used in production.
 
@@ -115,7 +115,7 @@
 - Test coverage: CI sets `DATABASE_URL: ""` and relies on fallback; behavior is covered indirectly but production misconfiguration is not asserted in tests.
 
 **Alembic head vs. optional column `is_admin`:**
-- Files: `apps/api/src/alembic/versions/20260404_0002_add_user_is_admin.py`, `apps/api/src/seed_demo.py`
+- Files: `apps/api/src/alembic/versions/20260404_0002_add_user_is_admin.py`, `scripts/seed_demo.py`
 - Why fragile: Deployments that stop at an older revision will lack `is_admin`, breaking admin-gated routes and seed assumptions.
 - Safe modification: Run migrations to head before serving traffic; document revision `20260404_0002` as required for admin features.
 
