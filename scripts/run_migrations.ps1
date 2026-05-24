@@ -1,56 +1,59 @@
-# Script para executar migrações do Alembic no Supabase
-# Uso: .\run_migrations.ps1
+# Script to run Alembic migrations against Supabase
+# Usage (from repo root): .\scripts\run_migrations.ps1
 
-Write-Host "=== Executando Migrações do Alembic ===" -ForegroundColor Cyan
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+Set-Location $RepoRoot
 
-# Configurar PYTHONPATH
-$env:PYTHONPATH = $PSScriptRoot
+Write-Host "=== Running Alembic Migrations ===" -ForegroundColor Cyan
 
-# Carregar variáveis de ambiente do .env.supabase
+# Repo root on PYTHONPATH (imports apps.api.src...)
+$env:PYTHONPATH = $RepoRoot
+Write-Host "PYTHONPATH configured: $env:PYTHONPATH" -ForegroundColor Gray
+
+# Load environment variables from .env.supabase
 if (Test-Path ".env.supabase") {
-    Write-Host "Carregando variáveis de ambiente de .env.supabase..." -ForegroundColor Yellow
+    Write-Host "Loading environment variables from .env.supabase..." -ForegroundColor Yellow
     Get-Content .env.supabase | ForEach-Object {
         if ($_ -match '^([^#][^=]+)=(.*)$') {
             $key = $matches[1].Trim()
             $value = $matches[2].Trim()
             [System.Environment]::SetEnvironmentVariable($key, $value, 'Process')
-            Write-Host "  Carregado: $key" -ForegroundColor Gray
+            Write-Host "  Loaded: $key" -ForegroundColor Gray
         }
     }
 } else {
-    Write-Host "AVISO: Arquivo .env.supabase não encontrado!" -ForegroundColor Red
-    Write-Host "Certifique-se de que o arquivo existe e está configurado corretamente." -ForegroundColor Yellow
+    Write-Host "WARNING: .env.supabase file not found!" -ForegroundColor Red
+    Write-Host "Make sure the file exists and is configured correctly." -ForegroundColor Yellow
     exit 1
 }
 
-# Ativar ambiente virtual
+# Activate virtual environment
 if (Test-Path "venv\Scripts\Activate.ps1") {
-    Write-Host "`nAtivando ambiente virtual..." -ForegroundColor Yellow
+    Write-Host "`nActivating virtual environment..." -ForegroundColor Yellow
     .\venv\Scripts\Activate.ps1
 } else {
-    Write-Host "ERRO: Ambiente virtual não encontrado!" -ForegroundColor Red
+    Write-Host "ERROR: Virtual environment not found!" -ForegroundColor Red
     exit 1
 }
 
-# Verificar conexão
-Write-Host "`nVerificando conexão com o banco de dados..." -ForegroundColor Yellow
+# Verify connection
+Write-Host "`nVerifying database connection..." -ForegroundColor Yellow
 python -c "import sys; sys.path.insert(0, '.'); from apps.api.src.api.v1.core.config import get_settings; url = get_settings().database_url; print('DATABASE_URL:', url[:60] + '...' if len(url) > 60 else url)"
 
-# Verificar estado atual das migrações
-Write-Host "`nVerificando estado atual das migrações..." -ForegroundColor Yellow
+# Check current migration state
+Write-Host "`nChecking current migration state..." -ForegroundColor Yellow
 alembic current
 
-# Executar migrações
-Write-Host "`nExecutando migrações..." -ForegroundColor Yellow
+# Run migrations
+Write-Host "`nRunning migrations..." -ForegroundColor Yellow
 alembic upgrade head
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "`n=== Migrações executadas com sucesso! ===" -ForegroundColor Green
-    Write-Host "`nVerificando estado final..." -ForegroundColor Yellow
+    Write-Host "`n=== Migrations completed successfully! ===" -ForegroundColor Green
+    Write-Host "`nVerifying final state..." -ForegroundColor Yellow
     alembic current
 } else {
-    Write-Host "`n=== ERRO ao executar migrações ===" -ForegroundColor Red
-    Write-Host "Verifique a conexão com o Supabase e tente novamente." -ForegroundColor Yellow
+    Write-Host "`n=== ERROR running migrations ===" -ForegroundColor Red
+    Write-Host "Check your Supabase connection and try again." -ForegroundColor Yellow
     exit 1
 }
-

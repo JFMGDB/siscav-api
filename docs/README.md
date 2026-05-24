@@ -1,110 +1,85 @@
-# Documentação do projeto SISCAV
+# SISCAV API Documentation
 
-Documentação técnica e operacional do **SISCAV API** — backend FastAPI para controle de acesso veicular baseado em placas, com registro auditável e integração opcional com atuador de portão.
+Technical and operational documentation for **SISCAV API** — a FastAPI backend for vehicle access control based on authorized plates, with auditable logging and optional gate actuator integration.
 
-**Última revisão estrutural:** 2026-04-05 (alinhada ao repositório atual: sem `apps/iot-device/` no tree).
+**Last structural review:** 2026-05-24
 
-## Visão geral
+## Overview
 
-O produto deste repositório é a **API central**: autenticação (JWT + refresh), CRUD de placas autorizadas, ingestão de logs de acesso (multipart: imagem + placa), listagens com filtros, e endpoint administrativo para acionar portão (simulado ou HTTP externo). Reconhecimento de placa em câmera (OpenCV/EasyOCR) **não** faz parte do código da API; um cliente de borda pode chamar a API documentada em [`docs/api/`](api/) e [`docs/iot/README.md`](iot/README.md).
+This repository delivers the **central API**: JWT authentication with refresh tokens, authorized-plate whitelist CRUD, access-log ingestion (multipart: image + plate), filtered listings, and an admin endpoint to trigger gate actions (simulated or via external HTTP). Server-side plate OCR is available at `POST /api/v1/ml/recognize-plate` when ML dependencies are installed.
 
-## Estrutura da documentação
+## Documentation Structure
 
-### [Getting started](./getting-started/)
+### [Setup](./setup/)
 
-- [README — primeiro passos (API)](./getting-started/README.md)
-- [Troubleshooting (API e ambiente)](./getting-started/troubleshooting.md)
-- **Instalação completa:** [Guia de instalação](./installation.md) (raiz de `docs/`)
-
-### [Instalação (guia longo)](./installation.md)
-
-Instalação da API, banco (PostgreSQL / Supabase / SQLite), Alembic, variáveis de ambiente e verificação.
-
-### [Iniciar o servidor](./init-server-guide.md)
-
-Uvicorn, health check, Swagger e script PowerShell em `scripts/start_server.ps1`.
+- [Installation guide](./setup/installation.md)
+- [Start the server](./setup/init-server-guide.md)
+- [Database setup (Supabase)](./setup/database-setup.md)
+- [Common commands (lint, test, git)](./setup/commands.md)
 
 ### [API](./api/)
 
-- [README da pasta API](./api/README.md)
-- [Integração frontend](./api/FRONTEND_INTEGRATION.md) — tokens, refresh, CORS, OCR (`/api/v1/ml/recognize-plate`)
-- Documentação técnica detalhada: [`../apps/api/docs/technical-documentation.md`](../apps/api/docs/technical-documentation.md)
+- [API documentation index](./api/README.md)
+- [Frontend integration](./api/frontend-integration.md) — tokens, refresh, CORS, OCR
+- [Technical documentation](./api/technical-documentation.md)
 - **Postman:** [`SISCAV_API.postman_collection.json`](SISCAV_API.postman_collection.json), [`SISCAV_API.postman_environment.json`](SISCAV_API.postman_environment.json)
-- [Guia de testes com curl](./api_curl_tests_guide.md)
 
 ### [Database](./database/)
 
-Visão geral; detalhes de modelo em [`../apps/api/docs/database/data-model.md`](../apps/api/docs/database/data-model.md) e Supabase em [`../apps/api/docs/database/supabase-migration.md`](../apps/api/docs/database/supabase-migration.md).
-
-### [IoT / cliente de borda](./iot/README.md)
-
-Contrato HTTP com a API para dispositivos que enviam placas e imagens. **Não** há mais aplicação IoT em `apps/iot-device/` neste repositório.
-
-### [Hardware](./hardware/README.md)
-
-Referência histórica; firmware Arduino que existia em `arduino/` não está mais no tree atual.
-
-### [Operations](./operations/README.md)
-
-Operação da API (logs, Postman, ambiente), sem dependência de pasta `apps/iot-device/`.
-
-### [Development](./development/)
-
-- [Padrões de código e arquitetura](./development/coding-standards.md)
+- [Data model](./database/data-model.md)
+- [Supabase migration guide](./database/supabase-migration.md)
 
 ### [Architecture](./architecture/)
 
-- [Resumo executivo](./architecture/executive-summary.md)
-- [Critérios de aceite / DevOps](./architecture/acceptance-criteria-devops.md)
+- [Architecture index](./architecture/README.md)
+- [Executive summary](./architecture/executive-summary.md)
+- [Acceptance criteria and DevOps](./architecture/acceptance-criteria-devops.md)
+- [ADRs](./architecture/adr/) — architecture decision records
 
 ### [Requirements](./requirements/)
 
-- [Especificação de projeto](./requirements/project-specification.md)
+- [Project specification](./requirements/project-specification.md)
 
-### [Project management](./project-management/)
+### [Development](./development/)
 
-Status e cards Trello podem citar caminhos antigos (`apps/iot-device/`); tratar como histórico.
+- [Coding standards and MVC patterns](./development/coding-standards.md)
 
-### [Presentation](./presentation/)
+### [Testing](./testing/)
 
-Materiais de apresentação.
+- [Coverage analysis](./testing/coverage-analysis.md)
 
-### [Archive](./archive/)
+## Guides by Role
 
-Documentos arquivados e decisões antigas.
+### Backend developer
 
-## Guias por perfil
-
-### Desenvolvedor backend
-
-1. [installation.md](./installation.md) e [init-server-guide.md](./init-server-guide.md)
-2. [apps/api/docs/technical-documentation.md](../apps/api/docs/technical-documentation.md)
+1. [setup/installation.md](./setup/installation.md) and [setup/init-server-guide.md](./setup/init-server-guide.md)
+2. [api/technical-documentation.md](./api/technical-documentation.md)
 3. [development/coding-standards.md](./development/coding-standards.md)
-4. Testes: `pytest` na raiz (ver [`.planning/codebase/TESTING.md`](../.planning/codebase/TESTING.md) se usar o mapa GSD)
+4. Tests: `pytest` at repo root (see [`.planning/codebase/TESTING.md`](../.planning/codebase/TESTING.md))
 
-### Frontend
+### Frontend developer
 
-1. [api/FRONTEND_INTEGRATION.md](./api/FRONTEND_INTEGRATION.md)
-2. OpenAPI em `/docs` com a API rodando
+1. [api/frontend-integration.md](./api/frontend-integration.md)
+2. OpenAPI at `/docs` with the API running
 
-### Integração de dispositivo / parceiro
+### Device / partner integration
 
-1. [iot/README.md](./iot/README.md)
-2. [api_curl_tests_guide.md](./api_curl_tests_guide.md) e coleção Postman em `docs/`
+1. [api/README.md](./api/README.md) — access-log ingestion contract
+2. Postman collection in `docs/`
 
-### Gestor / produto
+### Product / management
 
 1. [requirements/project-specification.md](./requirements/project-specification.md)
 2. [architecture/executive-summary.md](./architecture/executive-summary.md)
 
-## Stack (referência rápida)
+## Stack (quick reference)
 
-Valores pinados em [`pyproject.toml`](../pyproject.toml) na raiz — exemplos: FastAPI, Uvicorn, SQLAlchemy 2.x, Alembic, Pydantic, Argon2, JWT (`python-jose`), SlowAPI. CI em [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) usa Python 3.13 com `requirements-dev.txt`.
+Pinned values in [`pyproject.toml`](../pyproject.toml): FastAPI, Uvicorn, SQLAlchemy 2.x, Alembic, Pydantic, Argon2, JWT (`python-jose`), SlowAPI. CI uses Python 3.13 with `requirements-dev.txt` (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
 
-## Manutenção
+## Maintenance
 
-Ao alterar endpoints ou env vars, atualize: `apps/api/docs/`, `docs/installation.md`, `docs/init-server-guide.md` e, se aplicável, Postman em `docs/`.
+When changing endpoints or environment variables, update: `docs/api/`, `docs/setup/installation.md`, `docs/setup/init-server-guide.md`, and the Postman collection in `docs/` when applicable.
 
-## Contribuindo
+## Contributing
 
-Mantenha links relativos ao repositório atual; evite referências a `apps/iot-device/` ou `app/` como prefixo da API (o pacote é `apps.api.src`).
+Keep relative links aligned with the current repository layout. The application package is `apps.api.src` — not `app/` or `apps/iot-device/`.

@@ -1,42 +1,40 @@
 # SISCAV API
 
-Backend do **Sistema de Controle de Acesso Veicular (SISCAV)** — API FastAPI para whitelist de placas, registro de tentativas de acesso (com upload de imagem), autenticação JWT e acionamento opcional de portão via HTTP.
+Backend for the **Vehicle Access Control System (SISCAV)** — a FastAPI API for plate whitelist management, access attempt logging (with image upload), JWT authentication, and optional gate triggering via HTTP.
 
-## Documentação
+## Documentation
 
-A documentação viva do projeto está em **[`docs/`](docs/README.md)**:
+Live project documentation is in **[`docs/`](docs/README.md)**:
 
-| Recurso | Caminho |
-|--------|---------|
-| Índice da documentação | [`docs/README.md`](docs/README.md) |
-| Instalação e visão geral | [`docs/installation.md`](docs/installation.md) |
-| Iniciar o servidor | [`docs/init-server-guide.md`](docs/init-server-guide.md) |
-| Integração frontend (tokens, **OCR** `POST /api/v1/ml/recognize-plate`) | [`docs/api/FRONTEND_INTEGRATION.md`](docs/api/FRONTEND_INTEGRATION.md) |
-| Frontend operador (Next.js — repo separado) | [`docs/frontend/`](docs/frontend/README.md) (guia câmara USB/Wi‑Fi: [camera-preview-nextjs.md](docs/frontend/camera-preview-nextjs.md)) |
-| Testes com curl | [`docs/api_curl_tests_guide.md`](docs/api_curl_tests_guide.md) |
+| Resource | Path |
+|----------|------|
+| Documentation index | [`docs/README.md`](docs/README.md) |
+| Installation and overview | [`docs/setup/installation.md`](docs/setup/installation.md) |
+| Start the server | [`docs/setup/init-server-guide.md`](docs/setup/init-server-guide.md) |
+| Frontend integration (tokens, OCR `POST /api/v1/ml/recognize-plate`) | [`docs/api/frontend-integration.md`](docs/api/frontend-integration.md) |
 | Postman | [`docs/SISCAV_API.postman_collection.json`](docs/SISCAV_API.postman_collection.json) + [`docs/SISCAV_API.postman_environment.json`](docs/SISCAV_API.postman_environment.json) |
-| OpenAPI (com a API rodando) | `http://localhost:8000/docs` |
+| OpenAPI (with API running) | `http://localhost:8000/docs` |
 
-## Início rápido
+## Quick Start
 
 ```bash
 python -m venv venv
 # Windows: .\venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
-# Na raiz do repo (onde está alembic.ini):
+# At repo root (where alembic.ini lives):
 set PYTHONPATH=.   # Linux/Mac: export PYTHONPATH=.
 alembic upgrade head
 uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-No Windows, a partir da raiz: `.\scripts\start_server.ps1`.
+On Windows, from the repo root: `.\scripts\start_server.ps1`.
 
-## Código
+## Code
 
-- Aplicação: `apps/api/src/` (`main.py`, `api/v1/…`)
-- Testes: `tests/`
-- Migrações Alembic: `apps/api/src/alembic/` (config em `alembic.ini` na raiz)
+- Application: `apps/api/src/` (`main.py`, `api/v1/…`)
+- Tests: `tests/`
+- Alembic migrations: `apps/api/src/alembic/` (config in root `alembic.ini`)
 
-## Repositório
+## Repository Scope
 
-Este repositório concentra-se na **API**. Um cliente IoT/ALPR em Python que existia em `apps/iot-device/` foi removido do tree atual; dispositivos devem integrar via `POST /api/v1/access_logs/` (ver [`docs/iot/README.md`](docs/iot/README.md)).
+This repository focuses on the **API**. Edge clients (ALPR, cameras, gateways) integrate via `POST /api/v1/access_logs/` — see [`docs/api/README.md`](docs/api/README.md).

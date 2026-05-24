@@ -68,7 +68,7 @@ coverage.xml
 .dmypy.json
 dmypy.json
 
-# =Cobre
+# Pyre
 .pyre/
 
 # ========================

@@ -2,7 +2,7 @@
 
 ## Current state (v1.0 shipped)
 
-**Milestone v1.0** (“API brownfield hardening”) foi concluído em **2026-04-05**: API FastAPI com JWT, ingestão protegida de logs de acesso, whitelist, imagens de auditoria (admin), gate com integração HTTP opcional ou modo simulado, demo de dispositivo honesto, migrações Alembic e testes automatizados. Ver [.planning/MILESTONES.md](MILESTONES.md) e [.planning/milestones/v1.0-MILESTONE-AUDIT.md](milestones/v1.0-MILESTONE-AUDIT.md).
+**Milestone v1.0** (“API brownfield hardening”) foi concluído em **2026-04-05**: API FastAPI com JWT, ingestão protegida de logs de acesso, whitelist, imagens de auditoria (admin), gate com integração HTTP opcional ou modo simulado, demo de dispositivo honesto, migrações Alembic e testes automatizados. Ver [.planning/MILESTONES.md](MILESTONES.md).
 
 ## What this is
 

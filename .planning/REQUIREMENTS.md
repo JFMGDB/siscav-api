@@ -1,16 +1,17 @@
 # Requirements: SISCAV API (bugfix milestone)
 
 **Defined:** 2026-04-10  
+**Last updated:** 2026-05-24  
 **Core Value:** Trustworthy API for administration and auditable access events — close mapped security and correctness gaps.
 
-**Bug inventory:** `.planning/BUGS.md`
+**Bug inventory:** [.planning/BUGS.md](BUGS.md)
 
 ## v1 Requirements
 
 ### Configuration & dependency honesty
 
 - [ ] **CFG-01**: `pyproject.toml` `[project.dependencies]` matches actual runtime hashing stack (`passlib[argon2]` per `requirements.txt` / `security.py`) — closes BUG-001.
-- [ ] **CFG-02**: Either implement refresh-token issuance and document OpenAPI flows, or remove `refresh_token_expire_days` and related env documentation — closes BUG-002.
+- [x] **CFG-02**: Refresh-token issuance and OpenAPI flows — `POST /api/v1/login/refresh-token` implemented — closes BUG-002 (resolved).
 
 ### Security & authentication
 
@@ -26,11 +27,11 @@
 
 ### Cleanup & maintenance
 
-- [ ] **CLN-01**: Deprecated `crud/` modules are removed or reduced to documented shims after confirming no imports — closes BUG-009.
+- [x] **CLN-01**: Deprecated `crud/` modules removed — closes BUG-009 (resolved).
 
 ### Operations & supply chain
 
-- [ ] **OPS-01**: Docker Compose usage is documented for the `local` profile (or compose files adjusted) so `api`/`db` dependencies are not surprising — closes BUG-010.
+- [x] **OPS-01**: No `docker-compose.yml` in repo — intentional; local Postgres documented in `docs/setup/installation.md` — closes BUG-010 (resolved/irrelevant).
 - [ ] **OPS-02**: Deployment docs or scripts state how to keep Alembic and app `DATABASE_URL` aligned — closes BUG-011.
 - [ ] **OPS-03**: Introduce repeatable dependency pinning strategy (e.g. lockfile or pinned ranges) for `requirements.txt` — closes BUG-012.
 
@@ -40,43 +41,39 @@ Deferred — not part of this bugfix milestone.
 
 ### IoT / hardware
 
-- Real gate actuator and device Bluetooth integration (currently stubbed controllers).
+- Real gate actuator and device Bluetooth integration (currently stubbed/demo controllers).
 
 ### ML pipeline
 
-- Integrate `recognize-plate.py` as an optional extra or separate service with its own dependency set.
+- Server-side OCR via `POST /api/v1/ml/recognize-plate` (requires `requirements-ml.txt`); standalone script removed during cleanup.
 
 ## Out of Scope
 
 | Item | Reason |
 |------|--------|
 | New end-user features beyond fixing listed defects | Milestone is stabilization |
-| Frontend changes | Lives in `siscav-web` |
+| Frontend changes | Lives in separate frontend repository |
 | Full RBAC product design | SEC-05 may scope minimal enforcement only |
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| CFG-01 | Phase 2 | Pending |
-| CFG-02 | Phase 2 | Pending |
-| SEC-01 | Phase 1 | Pending |
-| SEC-02 | Phase 1 | Pending |
-| SEC-03 | Phase 1 | Pending |
-| SEC-04 | Phase 2 | Pending |
-| SEC-05 | Phase 4 | Pending |
-| REL-01 | Phase 3 | Pending |
-| CLN-01 | Phase 4 | Pending |
-| OPS-01 | Phase 3 | Pending |
-| OPS-02 | Phase 3 | Pending |
-| OPS-03 | Phase 3 | Pending |
+| Requirement | Status |
+|-------------|--------|
+| CFG-01 | Pending |
+| CFG-02 | Resolved |
+| SEC-01 | Pending |
+| SEC-02 | Pending |
+| SEC-03 | Pending |
+| SEC-04 | Pending |
+| SEC-05 | Pending |
+| REL-01 | Pending |
+| CLN-01 | Resolved |
+| OPS-01 | Resolved |
+| OPS-02 | Pending |
+| OPS-03 | Pending |
 
 **Coverage:**
 
 - v1 requirements: 12 total
-- Mapped to phases: 12
-- Unmapped: 0
-
----
-*Requirements defined: 2026-04-10*  
-*Last updated: 2026-04-10 — traceability mapped in ROADMAP.md (Phases 1–4)*
+- Resolved: 3
+- Pending: 9

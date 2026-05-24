@@ -1,51 +1,54 @@
 # Database Documentation
 
-Esta pasta contém toda a documentação relacionada ao modelo de dados e migrações do sistema SISCAV.
+Documentation for the SISCAV data model and migrations.
 
-## Documentos Disponíveis
+## Available Documents
 
-### [Modelo de Dados](../../apps/api/docs/database/data-model.md)
-Especificação técnica completa do modelo de dados, incluindo:
-- Entidades principais (users, authorized_plates, access_logs)
-- Decisões arquiteturais (UUIDs, TIMESTAMPTZ, ENUMs)
-- DDL completo para PostgreSQL
-- Estratégias de indexação e integridade referencial
-- Considerações de escalabilidade
+### [Data Model](./data-model.md)
 
-### [Migração para Supabase](../../apps/api/docs/database/supabase-migration.md)
-Guia para migração manual quando Docker/Alembic não estão disponíveis:
-- Extensões necessárias
-- Tipos ENUM
-- Tabelas e índices
-- Integração com Alembic
+Complete technical specification of the data model, including:
 
-**Nota**: A documentação do banco de dados foi movida para `apps/api/docs/database/` para ficar próximo ao código da API.
+- Core entities (`users`, `authorized_plates`, `access_logs`)
+- Architectural decisions (UUIDs, TIMESTAMPTZ, ENUMs)
+- PostgreSQL DDL
+- Indexing and referential integrity strategies
+- Scalability considerations
 
-## Descrição
+### [Supabase Migration](./supabase-migration.md)
 
-O banco de dados PostgreSQL do SISCAV é projetado para:
+Manual migration guide when Docker/Alembic is not available:
 
-- **Segurança**: Uso de UUIDs para chaves primárias
-- **Consistência**: Tipos ENUM para integridade de dados
-- **Auditoria**: Timestamps com timezone (TIMESTAMPTZ)
-- **Performance**: Índices otimizados para consultas frequentes
-- **Escalabilidade**: Suporte a particionamento e extensões futuras
+- Required extensions
+- ENUM types
+- Tables and indexes
+- Alembic integration
 
-## Entidades Principais
+## Description
 
-- **users**: Administradores do sistema
-- **authorized_plates**: Whitelist de placas autorizadas
-- **access_logs**: Trilha de auditoria de tentativas de acesso
+The SISCAV PostgreSQL database is designed for:
 
-## Scripts SQL
+- **Security:** UUID primary keys
+- **Consistency:** ENUM types for data integrity
+- **Auditability:** timezone-aware timestamps (TIMESTAMPTZ)
+- **Performance:** optimized indexes for frequent queries
+- **Scalability:** support for future partitioning and extensions
 
-Scripts SQL para migração manual estão localizados em `db/sql/supabase/`:
+## Core Entities
+
+- **users:** system administrators
+- **authorized_plates:** authorized plate whitelist
+- **access_logs:** audit trail of access attempts
+
+## SQL Scripts
+
+Manual migration scripts are in `db/sql/supabase/`:
+
 - `01_enable_extensions.sql` (pgcrypto, pg_trgm)
 - `02_types.sql` (ENUM `access_status`)
 - `03_tables.sql` (`users`, `authorized_plates`, `access_logs`)
-- `04_indexes.sql` (índices recomendados e opcionais com pg_trgm)
+- `04_indexes.sql` (recommended and optional pg_trgm indexes)
 
-## Referências
+## References
 
-- [Documentação da API](../api/README.md)
-- [Documentação de Arquitetura](../architecture/README.md)
+- [API Documentation](../api/README.md)
+- [Architecture Documentation](../architecture/README.md)

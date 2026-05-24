@@ -10,7 +10,6 @@ siscav-api/                          # Repository root (Python project: pyprojec
 │   └── api/
 │       └── src/
 │           ├── main.py              # FastAPI app, middleware, /api/v1 mount
-│           ├── seed_demo.py         # Optional demo seeding script
 │           ├── alembic/             # Migrations
 │           │   ├── env.py
 │           │   └── versions/
@@ -152,7 +151,7 @@ siscav-api/                          # Repository root (Python project: pyprojec
 - Integration: `tests/integration/test_endpoints_<area>.py` for route-level behavior.
 
 **Utilities at repo root:**
-- One-off scripts: `scripts/` at repository root; test/debug helpers: `tests/scripts/`.
+- One-off scripts: `scripts/` at repository root; test/debug helpers: `tests/manual/`.
 
 ## Special Directories
 
@@ -162,7 +161,7 @@ siscav-api/                          # Repository root (Python project: pyprojec
 - Committed: Typically gitignored in real deployments; path configurable via environment.
 
 **`apps/api/src/api/v1/ml/`:**
-- Purpose: Contains standalone Python such as `recognize-plate.py`; not integrated as a FastAPI router in `api.py`.
+- Purpose: Server-side OCR pipeline (`plate_ocr.py`) used by `plate_recognition.py` endpoint.
 - Generated: No.
 - Committed: Yes (if present in tree).
 

@@ -1,53 +1,30 @@
-# Documentação de Arquitetura
+# Architecture Documentation
 
-Esta pasta contém a documentação arquitetural do sistema SISCAV, incluindo decisões de design, estrutura de repositórios e backlog do projeto.
+Architecture documentation for the SISCAV system, including design decisions, repository structure, and project backlog.
 
-## Índice
+## Index
 
-- [Resumo Executivo](./executive-summary.md)
-  - Visão geral da arquitetura
-  - Decisões arquiteturais principais
-  - Componentes e tecnologias
-  - Benefícios e justificativas
+- [Executive Summary](./executive-summary.md) — high-level architecture, key decisions, components, and technologies
+- [Acceptance Criteria and DevOps](./acceptance-criteria-devops.md) — acceptance criteria for all project epics
+- [Architecture Decision Records](./adr/) — ADRs and historical planning documents
 
-- [Critérios de Aceite e DevOps](./acceptance-criteria-devops.md)
-  - Critérios de aceite para todas as tarefas do projeto
-  - Classificação por área (DevOps, Back-end, Front-end)
-  - Detalhamento de épicos e tarefas
+For current coding patterns and MVC structure, see also [Development — Coding Standards](../development/coding-standards.md).
 
-**Nota**: Documentos históricos sobre a estrutura antiga e reorganização foram movidos para `archive/`. Para documentação atual sobre arquitetura e padrões, consulte:
-- [Development - Padrões de Código](../development/coding-standards.md) - Padrão MVC implementado
-- [Executive Summary](./executive-summary.md) - Visão geral da arquitetura atual
+## Description
 
-## Descrição
+SISCAV follows a three-layer approach:
 
-A arquitetura do SISCAV segue uma abordagem de três camadas:
+1. **Edge layer:** External devices or clients that capture plates and send data to the API
+2. **Server layer (this repo):** Centralized FastAPI backend
+3. **Client layer:** Web admin panel (separate frontend repository)
 
-1. **Camada de Borda (IoT)**: Dispositivos com câmera e processamento local
-2. **Camada de Servidor (Backend)**: API FastAPI centralizada
-3. **Camada de Cliente (Frontend)**: Painel de administração web
+## Architectural Decisions
 
-## Decisões Arquiteturais
-
-- Separação de repositórios (backend e frontend)
-- Uso de FastAPI para alta performance e documentação automática
-- PostgreSQL para persistência de dados
-- JWT para autenticação stateless
-- Componentização e modularidade
-- **Padrão MVC**: Separação clara entre Models, Views (Endpoints) e Controllers
-- **Repository Pattern**: Isolamento de acesso a dados
-- **Service Layer (Controllers)**: Centralização de lógica de negócio
-- **SOLID e DRY**: Aplicação rigorosa de princípios de design
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Separate repositories for backend and frontend
+- FastAPI for performance and automatic OpenAPI documentation
+- PostgreSQL for persistence (SQLite for local development)
+- JWT for stateless authentication
+- **MVC pattern:** clear separation between endpoints, controllers, and repositories
+- **Repository pattern:** data access isolation
+- **Service layer (controllers):** centralized business logic
+- **SOLID and DRY:** rigorous application of design principles

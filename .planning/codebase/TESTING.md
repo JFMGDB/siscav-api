@@ -33,7 +33,7 @@ pytest --cov=apps --cov-report=term-missing
 - **Unit tests:** `tests/unit/` — controllers, repositories, `deps`, `core` config/security, utils.
 - **Integration tests:** `tests/integration/` — HTTP flows against the full FastAPI app with overridden DB.
 - **Top-level tests:** `tests/test_main.py`, `tests/test_access_logs.py`, `tests/test_auth_whitelist.py` (smoke/API checks without the `unit/` prefix).
-- **Ad-hoc scripts:** `tests/scripts/` (manual or debug helpers; not the main pytest suite).
+- **Ad-hoc scripts:** `tests/manual/` (manual or debug helpers; not the main pytest suite).
 
 **Naming:**
 - Files: `test_<area>.py` or `test_<layer>_<feature>.py` (e.g. `test_controllers_auth.py`, `test_endpoints_gate_control.py`).
