@@ -17,6 +17,8 @@ from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_
 
 logger = logging.getLogger(__name__)
 
+_PLATE_NOT_FOUND_DETAIL = "Plate not found"
+
 
 class PlateController:
     """Controller para operações de placas autorizadas."""
@@ -47,7 +49,9 @@ class PlateController:
         """
         plate = self.plate_repository.get_by_id(self.db, plate_id)
         if not plate:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=_PLATE_NOT_FOUND_DETAIL
+            )
         return AuthorizedPlateRead.model_validate(plate)
 
     def get_all(self, skip: int = 0, limit: int = 100) -> list[AuthorizedPlateRead]:
@@ -135,7 +139,9 @@ class PlateController:
         # Buscar placa existente
         plate = self.plate_repository.get_by_id(self.db, plate_id)
         if not plate:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=_PLATE_NOT_FOUND_DETAIL
+            )
 
         # Validar formato da placa
         is_valid, error_message = validate_brazilian_plate(plate_data.plate)
@@ -178,7 +184,9 @@ class PlateController:
         """
         plate = self.plate_repository.get_by_id(self.db, plate_id)
         if not plate:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=_PLATE_NOT_FOUND_DETAIL
+            )
         self.plate_repository.delete(self.db, plate_id)
         return AuthorizedPlateRead.model_validate(plate)
 
