@@ -1,8 +1,8 @@
 """Testes unitários para UserRepository."""
 
-import pytest
-from sqlalchemy.orm import Session
 from uuid import uuid4
+
+from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.core.security import get_password_hash
 from apps.api.src.api.v1.models.user import User
@@ -73,4 +73,3 @@ class TestUserRepository:
         saved_user = UserRepository.get_by_email(db_session, "newuser@example.com")
         assert saved_user is not None
         assert saved_user.id == result.id
-

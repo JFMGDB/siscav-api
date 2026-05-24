@@ -1,7 +1,5 @@
 """Testes unitários para utilitários de placa."""
 
-import pytest
-
 from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
 
 
@@ -77,9 +75,8 @@ class TestValidateBrazilianPlate:
     def test_validate_normalizes_before_validation(self):
         """Testa que validação normaliza antes de validar."""
         # Placa válida com espaços/hífens deve passar
-        is_valid, error = validate_brazilian_plate("ABC-1234")
+        is_valid, _error = validate_brazilian_plate("ABC-1234")
         assert is_valid is True
 
-        is_valid, error = validate_brazilian_plate("abc 1234")
+        is_valid, _error = validate_brazilian_plate("abc 1234")
         assert is_valid is True
-

@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/trigger", response_model=GateTriggerResponse)
 def trigger_gate(
     gate_controller: Annotated[GateController, Depends(get_gate_controller)],
-    current_user: Annotated[User, Depends(get_current_admin_user)],
+    _current_user: Annotated[User, Depends(get_current_admin_user)],
 ) -> GateTriggerResponse:
     """
     Acionar o portão remotamente.
@@ -38,5 +38,3 @@ def trigger_gate(
         HTTPException: Erro de rede ou resposta inválida do atuador (modo live).
     """
     return gate_controller.trigger_gate()
-
-

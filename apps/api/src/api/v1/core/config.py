@@ -121,10 +121,11 @@ def assert_production_secrets_valid() -> None:
         return
     sk = (os.getenv("SECRET_KEY") or "").strip()
     if not sk or sk == "change_me_in_development":
-        raise RuntimeError(
+        msg = (
             "SECRET_KEY must be set to a strong, non-default value when "
             "ENVIRONMENT is production or prod"
         )
+        raise RuntimeError(msg)
 
 
 class Settings(BaseModel):
@@ -138,9 +139,7 @@ class Settings(BaseModel):
     environment: str = Field(default_factory=_read_environment)
     device_ingest_key: str | None = Field(default_factory=_read_device_ingest_key)
     gate_actuator_url: str | None = Field(default_factory=_read_gate_actuator_url)
-    gate_actuator_timeout_seconds: int = Field(
-        default_factory=_read_gate_actuator_timeout_seconds
-    )
+    gate_actuator_timeout_seconds: int = Field(default_factory=_read_gate_actuator_timeout_seconds)
     iot_device_demo_api: bool = Field(default_factory=_read_iot_device_demo_api)
     secret_key: str = Field(default_factory=_read_secret_key)
     algorithm: str = Field(default_factory=_read_algorithm)

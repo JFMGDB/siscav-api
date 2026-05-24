@@ -71,8 +71,8 @@ async def recognize_plate_from_image(
             detail=f"Imagem excede {settings.max_file_size_mb} MB.",
         )
 
-    import cv2
-    import numpy as np
+    import cv2  # noqa: PLC0415
+    import numpy as np  # noqa: PLC0415
 
     arr = np.frombuffer(raw, dtype=np.uint8)
     frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)

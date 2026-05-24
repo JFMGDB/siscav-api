@@ -6,11 +6,15 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class UserBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    email: EmailStr = Field(..., description="Email do usuário (usado para login).", example="admin@siscav.com.br")
+    email: EmailStr = Field(
+        ..., description="Email do usuário (usado para login).", example="admin@siscav.com.br"
+    )
 
 
 class UserCreate(UserBase):
-    password: str = Field(..., description="Senha do usuário (será hasheada antes de salvar).", min_length=8)
+    password: str = Field(
+        ..., description="Senha do usuário (será hasheada antes de salvar).", min_length=8
+    )
 
 
 class UserRead(UserBase):

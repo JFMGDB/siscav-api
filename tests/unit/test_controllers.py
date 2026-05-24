@@ -2,23 +2,22 @@
 
 import uuid
 from io import BytesIO
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
 from apps.api.src.api.v1.controllers.device_controller import DeviceController
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
+from apps.api.src.api.v1.core.security import get_password_hash
 from apps.api.src.api.v1.db.base import Base
-from apps.api.src.api.v1.models.access_log import AccessLog
-from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import (
@@ -26,6 +25,7 @@ from apps.api.src.api.v1.repositories.authorized_plate_repository import (
 )
 from apps.api.src.api.v1.schemas.access_log import AccessStatus
 from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
+from apps.api.src.api.v1.schemas.device import ConnectionRequest
 
 
 @pytest.fixture
@@ -37,8 +37,8 @@ def db_session():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = TestingSessionLocal()
+    testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = testing_session_local()
     yield session
     session.close()
 
@@ -46,8 +46,6 @@ def db_session():
 @pytest.fixture
 def sample_user(db_session):
     """Cria um usuário de teste."""
-    from apps.api.src.api.v1.core.security import get_password_hash
-
     user = User(
         email="test@example.com",
         hashed_password=get_password_hash("password123"),
@@ -64,6 +62,7 @@ class TestAuthController:
 
     def test_authenticate_success(self, db_session, sample_user):
         """Testa autenticação bem-sucedida."""
+        _ = sample_user
         controller = AuthController(db_session)
         user = controller.authenticate("test@example.com", "password123")
         assert user is not None
@@ -71,6 +70,7 @@ class TestAuthController:
 
     def test_authenticate_wrong_password(self, db_session, sample_user):
         """Testa autenticação com senha incorreta."""
+        _ = sample_user
         controller = AuthController(db_session)
         user = controller.authenticate("test@example.com", "wrong_password")
         assert user is None
@@ -223,9 +223,6 @@ class TestAccessLogController:
         )
         # Criar arquivo de imagem mock
         file_content = b"fake image content"
-        from fastapi import UploadFile as FastAPIUploadFile
-        from starlette.datastructures import UploadFile as StarletteUploadFile
-        
         file = StarletteUploadFile(
             filename="test.jpg",
             file=BytesIO(file_content),
@@ -246,9 +243,6 @@ class TestAccessLogController:
     def test_create_access_log_denied(self, db_session, upload_dir):
         """Testa criação de log de acesso negado."""
         file_content = b"fake image content"
-        from fastapi import UploadFile as FastAPIUploadFile
-        from starlette.datastructures import UploadFile as StarletteUploadFile
-        
         file = StarletteUploadFile(
             filename="test.jpg",
             file=BytesIO(file_content),
@@ -267,8 +261,6 @@ class TestAccessLogController:
 
     def test_create_access_log_invalid_file_type(self, db_session):
         """Testa criação de log com tipo de arquivo inválido."""
-        from starlette.datastructures import UploadFile as StarletteUploadFile
-        
         file = StarletteUploadFile(
             filename="test.txt",
             file=BytesIO(b"not an image"),
@@ -284,8 +276,6 @@ class TestAccessLogController:
         """Testa criação de log com arquivo muito grande."""
         # Criar arquivo maior que o limite
         large_content = b"x" * (11 * 1024 * 1024)  # 11 MB
-        from starlette.datastructures import UploadFile as StarletteUploadFile
-        
         file = StarletteUploadFile(
             filename="test.jpg",
             file=BytesIO(large_content),
@@ -335,9 +325,7 @@ class TestAccessLogController:
                 image_storage_key=f"uploads/test_{i}.jpg",
             )
         controller = AccessLogController(db_session)
-        logs = controller.get_all(
-            skip=0, limit=10, status_filter=AccessStatus.Authorized
-        )
+        logs = controller.get_all(skip=0, limit=10, status_filter=AccessStatus.Authorized)
         assert len(logs) == 3  # Apenas os com status Authorized
 
 
@@ -346,7 +334,6 @@ class TestGateController:
 
     def test_trigger_gate(self):
         """Testa acionamento do portão (modo simulado sem URL)."""
-        from unittest.mock import MagicMock
 
         settings = MagicMock()
         settings.gate_actuator_url = None
@@ -369,8 +356,6 @@ class TestDeviceController:
 
     def test_connect_device(self):
         """Testa conexão com dispositivo."""
-        from apps.api.src.api.v1.schemas.device import ConnectionRequest
-
         controller = DeviceController()
         request = ConnectionRequest(device_id="test_device")
         response = controller.connect_device(request)
@@ -388,4 +373,3 @@ class TestDeviceController:
         controller = DeviceController()
         response = controller.disconnect_device()
         assert response.status == "disconnected"
-

@@ -2,7 +2,6 @@
 
 import json
 import logging
-import socket
 import urllib.error
 from urllib.request import Request, urlopen
 
@@ -12,6 +11,16 @@ from apps.api.src.api.v1.core.config import Settings
 from apps.api.src.api.v1.schemas.gate_control import GateTriggerResponse
 
 logger = logging.getLogger(__name__)
+
+_HTTP_STATUS_OK_MIN = 200
+_HTTP_STATUS_OK_MAX = 300
+
+
+def _raise_actuator_bad_status(code: int) -> None:
+    raise HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail=f"Atuador retornou status HTTP {code}",
+    )
 
 
 class GateController:
@@ -50,21 +59,18 @@ class GateController:
         try:
             with urlopen(req, timeout=timeout) as resp:
                 code = resp.getcode()
-                if 200 <= code < 300:
-                    return GateTriggerResponse(
-                        integration="live",
-                        message="Atuador respondeu com sucesso (HTTP 2xx).",
-                        acknowledged=True,
-                        downstream_status_code=code,
-                    )
-                logger.warning("Gate actuator returned non-2xx after urlopen: %s", code)
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Atuador retornou status HTTP {code}",
+            if _HTTP_STATUS_OK_MIN <= code < _HTTP_STATUS_OK_MAX:
+                return GateTriggerResponse(
+                    integration="live",
+                    message="Atuador respondeu com sucesso (HTTP 2xx).",
+                    acknowledged=True,
+                    downstream_status_code=code,
                 )
+            logger.warning("Gate actuator returned non-2xx after urlopen: %s", code)
+            _raise_actuator_bad_status(code)
         except HTTPException:
             raise
-        except socket.timeout:
+        except TimeoutError:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Tempo esgotado ao contactar o atuador do portão",

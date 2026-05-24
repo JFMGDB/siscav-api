@@ -1,13 +1,11 @@
 """Controller para lógica de negócio de placas autorizadas."""
 
 import logging
-from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.repositories.authorized_plate_repository import (
     AuthorizedPlateRepository,
 )
@@ -18,6 +16,8 @@ from apps.api.src.api.v1.schemas.authorized_plate import (
 from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
 
 logger = logging.getLogger(__name__)
+
+_PLATE_NOT_FOUND_DETAIL = "Plate not found"
 
 
 class PlateController:
@@ -50,7 +50,7 @@ class PlateController:
         plate = self.plate_repository.get_by_id(self.db, plate_id)
         if not plate:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail=_PLATE_NOT_FOUND_DETAIL
             )
         return AuthorizedPlateRead.model_validate(plate)
 
@@ -83,25 +83,21 @@ class PlateController:
         Raises:
             HTTPException: Se a placa for inválida ou já existir
         """
-        logger.info(f"Tentativa de criar placa autorizada: {plate_data.plate}")
-        
+        logger.info("Creating authorized plate: %s", plate_data.plate)
+
         # Validar formato da placa
         is_valid, error_message = validate_brazilian_plate(plate_data.plate)
         if not is_valid:
-            logger.warning(f"Placa inválida: {plate_data.plate} - {error_message}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=error_message
-            )
+            logger.warning("Invalid plate: %s - %s", plate_data.plate, error_message)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
 
         # Normalizar placa
-        normalized = (
-            plate_data.normalized_plate or normalize_plate(plate_data.plate)
-        )
+        normalized = plate_data.normalized_plate or normalize_plate(plate_data.plate)
 
         # Verificar se já existe
         existing = self.plate_repository.get_by_normalized_plate(self.db, normalized)
         if existing:
-            logger.warning(f"Tentativa de criar placa duplicada: {normalized}")
+            logger.warning("Duplicate plate creation attempt: %s", normalized)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Plate already exists in whitelist",
@@ -115,18 +111,16 @@ class PlateController:
                 normalized_plate=normalized,
                 description=plate_data.description,
             )
-            logger.info(f"Placa autorizada criada com sucesso: {normalized} (ID: {plate.id})")
+            logger.info("Authorized plate created: %s (ID: %s)", normalized, plate.id)
             return AuthorizedPlateRead.model_validate(plate)
         except Exception as e:
-            logger.error(f"Erro ao criar placa autorizada: {e}", exc_info=True)
+            logger.exception("Error creating authorized plate")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erro interno ao criar placa autorizada",
-            )
+            ) from e
 
-    def update(
-        self, plate_id: UUID, plate_data: AuthorizedPlateCreate
-    ) -> AuthorizedPlateRead:
+    def update(self, plate_id: UUID, plate_data: AuthorizedPlateCreate) -> AuthorizedPlateRead:
         """
         Atualiza uma placa autorizada existente.
 
@@ -146,20 +140,16 @@ class PlateController:
         plate = self.plate_repository.get_by_id(self.db, plate_id)
         if not plate:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail=_PLATE_NOT_FOUND_DETAIL
             )
 
         # Validar formato da placa
         is_valid, error_message = validate_brazilian_plate(plate_data.plate)
         if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=error_message
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
 
         # Normalizar placa
-        normalized = (
-            plate_data.normalized_plate or normalize_plate(plate_data.plate)
-        )
+        normalized = plate_data.normalized_plate or normalize_plate(plate_data.plate)
 
         # Verificar se a nova placa normalizada já existe em outro registro
         existing = self.plate_repository.get_by_normalized_plate(self.db, normalized)
@@ -195,12 +185,12 @@ class PlateController:
         plate = self.plate_repository.get_by_id(self.db, plate_id)
         if not plate:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Plate not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail=_PLATE_NOT_FOUND_DETAIL
             )
         self.plate_repository.delete(self.db, plate_id)
         return AuthorizedPlateRead.model_validate(plate)
 
-    def check_authorization(self, plate: str) -> tuple[bool, Optional[UUID]]:
+    def check_authorization(self, plate: str) -> tuple[bool, UUID | None]:
         """
         Verifica se uma placa está autorizada.
 
@@ -213,9 +203,7 @@ class PlateController:
             - authorized_plate_id: ID da placa autorizada se encontrada, None caso contrário
         """
         normalized = normalize_plate(plate)
-        authorized_plate = self.plate_repository.get_by_normalized_plate(
-            self.db, normalized
-        )
+        authorized_plate = self.plate_repository.get_by_normalized_plate(self.db, normalized)
 
         if authorized_plate:
             return True, authorized_plate.id
@@ -229,4 +217,3 @@ class PlateController:
             Número total de placas autorizadas
         """
         return self.plate_repository.count(self.db)
-

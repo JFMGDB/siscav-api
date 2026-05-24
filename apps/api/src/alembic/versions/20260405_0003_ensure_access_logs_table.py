@@ -35,9 +35,7 @@ def upgrade() -> None:
         access_status.create(bind, checkfirst=True)
 
     status_col = (
-        sa.Enum("Authorized", "Denied", name="access_status")
-        if is_postgresql
-        else sa.String(20)
+        sa.Enum("Authorized", "Denied", name="access_status") if is_postgresql else sa.String(20)
     )
 
     op.create_table(

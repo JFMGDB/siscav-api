@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from apps.api.src.api.v1.core.config import (
     Settings,
     _resolve_database_url,
@@ -136,17 +138,15 @@ class TestAssertProductionSecretsValid:
             assert_production_secrets_valid()
 
     def test_raises_when_production_and_default_secret(self):
-        with patch.dict(
-            os.environ,
-            {"ENVIRONMENT": "production", "SECRET_KEY": "change_me_in_development"},
-            clear=False,
+        with (
+            patch.dict(
+                os.environ,
+                {"ENVIRONMENT": "production", "SECRET_KEY": "change_me_in_development"},
+                clear=False,
+            ),
+            pytest.raises(RuntimeError, match="SECRET_KEY"),
         ):
-            try:
-                assert_production_secrets_valid()
-            except RuntimeError as e:
-                assert "SECRET_KEY" in str(e)
-            else:
-                raise AssertionError("expected RuntimeError")
+            assert_production_secrets_valid()
 
     def test_import_main_fails_production_weak_secret_subprocess(self):
         root = Path(__file__).resolve().parents[2]
@@ -157,6 +157,7 @@ class TestAssertProductionSecretsValid:
         env.setdefault("DEVICE_INGEST_KEY", "subprocess-test-key")
         r = subprocess.run(
             [sys.executable, "-c", "import apps.api.src.main"],
+            check=False,
             cwd=str(root),
             env=env,
             capture_output=True,

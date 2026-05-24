@@ -1,7 +1,7 @@
 """Endpoints para gerenciamento de logs de acesso veicular."""
 
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile
 
@@ -57,7 +57,7 @@ def create_access_log(
 def get_access_log_image(
     image_filename: str,
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    current_user: Annotated[User, Depends(get_current_admin_user)],
+    _current_user: Annotated[User, Depends(get_current_admin_user)],
 ) -> Response:
     """
     Servir imagem de acesso veicular.
@@ -87,9 +87,7 @@ def get_access_log_image(
         ".png": "image/png",
         ".webp": "image/webp",
     }
-    content_type = content_type_map.get(
-        image_path.suffix.lower(), "application/octet-stream"
-    )
+    content_type = content_type_map.get(image_path.suffix.lower(), "application/octet-stream")
 
     # Ler e retornar o arquivo
     with image_path.open("rb") as f:
@@ -101,11 +99,11 @@ def get_access_log_image(
 @router.get("/", response_model=list[AccessLogRead])
 def list_access_logs(
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_user)],
     skip: Annotated[int, Query(ge=0, description="Registros a pular (paginação).")] = 0,
-    limit: Annotated[int, Query(ge=1, le=100, description="Máximo de registros (1–100).")] = 100,
+    limit: Annotated[int, Query(ge=1, le=100, description="Máximo de registros (1-100).")] = 100,
     plate: Annotated[
-        Optional[str],
+        str | None,
         Query(
             description=(
                 "Filtro parcial e case-insensitive sobre `plate_string_detected` "
@@ -114,11 +112,11 @@ def list_access_logs(
         ),
     ] = None,
     status: Annotated[
-        Optional[AccessStatus],
+        AccessStatus | None,
         Query(description="Filtrar por status de acesso (Authorized / Denied)."),
     ] = None,
     start_date: Annotated[
-        Optional[datetime],
+        datetime | None,
         Query(
             description=(
                 "Limite inferior **inclusivo** do `timestamp` do registro (ISO 8601, timezone-aware recomendado)."
@@ -126,7 +124,7 @@ def list_access_logs(
         ),
     ] = None,
     end_date: Annotated[
-        Optional[datetime],
+        datetime | None,
         Query(
             description=(
                 "Limite superior **inclusivo** do `timestamp` do registro (ISO 8601, timezone-aware recomendado)."
@@ -144,7 +142,7 @@ def list_access_logs(
     e demonstração do sistema.
 
     **Ordenação padrão:** mais recente primeiro (`timestamp DESC`).
-    
+
     Args:
         access_log_controller: Controller de logs de acesso injetado via dependency injection
         current_user: Usuário autenticado (requerido)
@@ -154,10 +152,10 @@ def list_access_logs(
         status: Filtrar por status de acesso (Authorized/Denied)
         start_date: Data inicial para filtrar (formato ISO 8601)
         end_date: Data final para filtrar (formato ISO 8601)
-        
+
     Returns:
         Lista de registros de acesso ordenados por timestamp (mais recente primeiro)
-        
+
     Example:
         GET /api/v1/access_logs/?limit=10&status=Authorized
         GET /api/v1/access_logs/?plate=ABC1234

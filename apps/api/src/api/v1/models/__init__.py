@@ -8,8 +8,7 @@ from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.models.user import User
 
 __all__ = [
-    "User",
-    "AuthorizedPlate",
     "AccessLog",
+    "AuthorizedPlate",
+    "User",
 ]
-

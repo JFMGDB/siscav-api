@@ -2,6 +2,7 @@
 
 from io import BytesIO
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 import pytest
 from fastapi.testclient import TestClient
@@ -28,7 +29,11 @@ class TestGateControlEndpoints:
 
     @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
     def test_trigger_gate_live_upstream_2xx(
-        self, mock_urlopen: MagicMock, client: TestClient, admin_auth_token: str, monkeypatch: pytest.MonkeyPatch
+        self,
+        mock_urlopen: MagicMock,
+        client: TestClient,
+        admin_auth_token: str,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Com URL e upstream 200 → integration live, acknowledged."""
         mock_resp = MagicMock()
@@ -57,10 +62,12 @@ class TestGateControlEndpoints:
 
     @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
     def test_trigger_gate_live_upstream_500_returns_502(
-        self, mock_urlopen: MagicMock, client: TestClient, admin_auth_token: str, monkeypatch: pytest.MonkeyPatch
+        self,
+        mock_urlopen: MagicMock,
+        client: TestClient,
+        admin_auth_token: str,
+        monkeypatch: pytest.MonkeyPatch,
     ):
-        from urllib.error import HTTPError
-
         mock_urlopen.side_effect = HTTPError(
             "http://actuator.test",
             500,

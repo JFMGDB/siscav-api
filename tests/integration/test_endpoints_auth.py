@@ -2,10 +2,8 @@
 
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
 
-from apps.api.src.api.v1.core.security import get_password_hash
 from apps.api.src.api.v1.models.user import User
 from tests.conftest import TEST_USER_EMAIL, TEST_USER_PASSWORD
 
@@ -15,6 +13,7 @@ class TestAuthEndpoints:
 
     def test_login_success(self, client: TestClient, test_user: User):
         """Testa login bem-sucedido."""
+        _ = test_user
         response = client.post(
             "/api/v1/login/access-token",
             data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
@@ -28,6 +27,7 @@ class TestAuthEndpoints:
 
     def test_login_invalid_credentials(self, client: TestClient, test_user: User):
         """Testa login com credenciais inválidas."""
+        _ = test_user
         response = client.post(
             "/api/v1/login/access-token",
             data={"username": TEST_USER_EMAIL, "password": "wrong_password"},
@@ -72,6 +72,7 @@ class TestAuthEndpoints:
 
     def test_refresh_token_success(self, client: TestClient, test_user: User):
         """Refresh retorna novo par de tokens."""
+        _ = test_user
         login = client.post(
             "/api/v1/login/access-token",
             data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
@@ -91,6 +92,7 @@ class TestAuthEndpoints:
 
     def test_refresh_token_rate_limit(self, client: TestClient, test_user: User):
         """Sexta chamada de refresh no mesmo minuto → 429."""
+        _ = test_user
         login = client.post(
             "/api/v1/login/access-token",
             data={"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
@@ -99,7 +101,7 @@ class TestAuthEndpoints:
         refresh = login.json()["refresh_token"]
 
         last_status = 200
-        for i in range(6):
+        for _ in range(6):
             response = client.post(
                 "/api/v1/login/refresh-token",
                 data={"refresh_token": refresh},
@@ -142,6 +144,7 @@ class TestAuthEndpoints:
         assert "message" in data
 
     def test_password_reset_flow_then_login(self, client: TestClient, test_user: User):
+        _ = test_user
         req = client.post(
             "/api/v1/password-reset/request",
             json={"email": TEST_USER_EMAIL},
@@ -175,4 +178,3 @@ class TestAuthEndpoints:
             json={"token": "invalid.jwt.here", "new_password": "validpass123"},
         )
         assert r.status_code == 403
-

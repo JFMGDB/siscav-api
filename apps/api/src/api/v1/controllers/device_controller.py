@@ -35,7 +35,7 @@ class DeviceController:
             Lista de dispositivos Bluetooth detectados
         """
         logger.debug("Escaneando dispositivos Bluetooth (simulação)")
-        mock_devices = [
+        return [
             BluetoothDevice(
                 id="mock_device_1",
                 name="Smartphone Android",
@@ -49,7 +49,6 @@ class DeviceController:
                 signal_strength=-60,
             ),
         ]
-        return mock_devices
 
     def connect_device(self, request: ConnectionRequest) -> ConnectionResponse:
         """
@@ -64,7 +63,7 @@ class DeviceController:
         Returns:
             ConnectionResponse: Resposta da tentativa de conexão
         """
-        logger.info(f"Tentativa de conexão com dispositivo: {request.device_id}")
+        logger.info("Connecting to device: %s", request.device_id)
         return ConnectionResponse(
             status="connected",
             device_id=request.device_id,
@@ -99,4 +98,3 @@ class DeviceController:
             status="disconnected",
             message="Dispositivo desconectado com sucesso",
         )
-

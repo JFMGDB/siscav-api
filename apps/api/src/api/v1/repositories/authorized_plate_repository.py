@@ -1,6 +1,6 @@
 """Repository para operações de acesso a dados de placas autorizadas."""
 
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -13,7 +13,7 @@ class AuthorizedPlateRepository:
     """Repository para operações de banco de dados relacionadas a placas autorizadas."""
 
     @staticmethod
-    def get_by_id(db: Session, plate_id: UUID) -> Optional[AuthorizedPlate]:
+    def get_by_id(db: Session, plate_id: UUID) -> AuthorizedPlate | None:
         """
         Busca uma placa autorizada por ID.
 
@@ -27,9 +27,7 @@ class AuthorizedPlateRepository:
         return db.scalar(select(AuthorizedPlate).where(AuthorizedPlate.id == plate_id))
 
     @staticmethod
-    def get_by_normalized_plate(
-        db: Session, normalized_plate: str
-    ) -> Optional[AuthorizedPlate]:
+    def get_by_normalized_plate(db: Session, normalized_plate: str) -> AuthorizedPlate | None:
         """
         Busca uma placa autorizada pela versão normalizada.
 
@@ -41,15 +39,11 @@ class AuthorizedPlateRepository:
             AuthorizedPlate se encontrada, None caso contrário
         """
         return db.scalar(
-            select(AuthorizedPlate).where(
-                AuthorizedPlate.normalized_plate == normalized_plate
-            )
+            select(AuthorizedPlate).where(AuthorizedPlate.normalized_plate == normalized_plate)
         )
 
     @staticmethod
-    def get_all(
-        db: Session, skip: int = 0, limit: int = 100
-    ) -> list[AuthorizedPlate]:
+    def get_all(db: Session, skip: int = 0, limit: int = 100) -> list[AuthorizedPlate]:
         """
         Lista placas autorizadas com paginação.
 
@@ -68,7 +62,7 @@ class AuthorizedPlateRepository:
         db: Session,
         plate: str,
         normalized_plate: str,
-        description: Optional[str] = None,
+        description: str | None = None,
     ) -> AuthorizedPlate:
         """
         Cria uma nova placa autorizada.
@@ -82,11 +76,9 @@ class AuthorizedPlateRepository:
         Returns:
             AuthorizedPlate criada
         """
-        from datetime import datetime, timezone
-        
         # Definir timestamps manualmente (necessário para SQLite)
-        now = datetime.now(timezone.utc)
-        
+        now = datetime.now(UTC)
+
         db_plate = AuthorizedPlate(
             plate=plate,
             normalized_plate=normalized_plate,
@@ -109,7 +101,7 @@ class AuthorizedPlateRepository:
         plate: AuthorizedPlate,
         plate_value: str,
         normalized_plate: str,
-        description: Optional[str] = None,
+        description: str | None = None,
     ) -> AuthorizedPlate:
         """
         Atualiza uma placa autorizada existente.
@@ -124,14 +116,12 @@ class AuthorizedPlateRepository:
         Returns:
             AuthorizedPlate atualizada
         """
-        from datetime import datetime, timezone
-        
         plate.plate = plate_value
         plate.normalized_plate = normalized_plate
         plate.description = description
         # Atualizar timestamp manualmente (necessário para SQLite)
-        plate.updated_at = datetime.now(timezone.utc)
-        
+        plate.updated_at = datetime.now(UTC)
+
         try:
             db.commit()
             db.refresh(plate)
@@ -141,7 +131,7 @@ class AuthorizedPlateRepository:
         return plate
 
     @staticmethod
-    def delete(db: Session, plate_id: UUID) -> Optional[AuthorizedPlate]:
+    def delete(db: Session, plate_id: UUID) -> AuthorizedPlate | None:
         """
         Remove uma placa autorizada por ID.
 
@@ -174,4 +164,3 @@ class AuthorizedPlateRepository:
             Número total de placas autorizadas
         """
         return db.scalar(select(func.count(AuthorizedPlate.id))) or 0
-

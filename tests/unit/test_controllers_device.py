@@ -45,4 +45,3 @@ class TestDeviceController:
 
         assert response.status == "disconnected"
         assert response.message is not None
-

@@ -62,6 +62,12 @@ coverage.xml
 .pytest_cache/
 
 # ========================
+# Ruff
+# ========================
+.ruff_cache/
+ruff_output.json
+
+# ========================
 # Mypy / type checking
 # ========================
 .mypy_cache/
@@ -137,4 +143,4 @@ logs/
 # Uploads de imagens (desenvolvimento)
 uploads/
 
-# End
+# Nota: uv.lock deve ser versionado (reprodutibilidade de dependências com uv sync)

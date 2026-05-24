@@ -1,8 +1,6 @@
-import os
-from pathlib import Path
+"""E2E flow: authorized and denied access log ingest with image on disk."""
 
-os.environ.setdefault("DEVICE_INGEST_KEY", "test-device-ingest-key")
-os.environ.setdefault("ENVIRONMENT", "development")
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -11,7 +9,8 @@ from tests.conftest import TEST_DEVICE_INGEST_KEY
 _DEVICE = {"X-Device-Key": TEST_DEVICE_INGEST_KEY}
 
 
-def test_access_log_flow(client: TestClient, auth_token: str):
+def test_access_log_authorized_and_denied_flow(client: TestClient, auth_token: str):
+    """Fluxo completo: whitelist, ingest autorizado e negado, com arquivo persistido."""
     headers = {"Authorization": f"Bearer {auth_token}"}
     client.post(
         "/api/v1/whitelist/",
@@ -27,9 +26,7 @@ def test_access_log_flow(client: TestClient, auth_token: str):
     files = {"file": ("test_image.jpg", file_content, "image/jpeg")}
     data = {"plate": "ABC-1234"}
 
-    response = client.post(
-        "/api/v1/access_logs/", files=files, data=data, headers=_DEVICE
-    )
+    response = client.post("/api/v1/access_logs/", files=files, data=data, headers=_DEVICE)
     assert response.status_code == 200
     log = response.json()
     assert log["status"] == "Authorized"
@@ -44,9 +41,7 @@ def test_access_log_flow(client: TestClient, auth_token: str):
     files = {"file": ("test_image_denied.jpg", file_content, "image/jpeg")}
     data = {"plate": "XYZ-9999"}
 
-    response = client.post(
-        "/api/v1/access_logs/", files=files, data=data, headers=_DEVICE
-    )
+    response = client.post("/api/v1/access_logs/", files=files, data=data, headers=_DEVICE)
     assert response.status_code == 200
     log = response.json()
     assert log["status"] == "Denied"

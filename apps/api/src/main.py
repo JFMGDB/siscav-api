@@ -1,4 +1,5 @@
 import logging
+import os
 import traceback
 
 from apps.api.src.api.v1.core.config import assert_production_secrets_valid
@@ -6,7 +7,6 @@ from apps.api.src.api.v1.core.config import assert_production_secrets_valid
 assert_production_secrets_valid()
 
 from fastapi import FastAPI, Request, status
-from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -79,37 +79,39 @@ app.add_middleware(SlowAPIMiddleware)
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handler global para capturar exceções não tratadas e retornar detalhes úteis."""
-    logger.error(
-        f"Erro não tratado: {type(exc).__name__}: {str(exc)}",
-        exc_info=True,
+    logger.exception(
+        "Unhandled error: %s: %s",
+        type(exc).__name__,
+        exc,
         extra={"path": request.url.path, "method": request.method},
     )
-    
+
     # Retornar detalhes do erro em desenvolvimento
-    import os
     if os.getenv("ENVIRONMENT", "development") == "development":
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
-                "detail": f"Internal server error: {type(exc).__name__}: {str(exc)}",
+                "detail": f"Internal server error: {type(exc).__name__}: {exc!s}",
                 "type": type(exc).__name__,
-                "traceback": traceback.format_exc() if os.getenv("DEBUG", "false").lower() == "true" else None,
+                "traceback": traceback.format_exc()
+                if os.getenv("DEBUG", "false").lower() == "true"
+                else None,
             },
         )
-    else:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Internal server error"},
-        )
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Internal server error"},
+    )
+
 
 # Configuração CORS
 # Permite requisições do frontend em desenvolvimento
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",      # Next.js default
-        "http://localhost:5173",      # Vite default
-        "http://localhost:8000",      # Frontend alternativo
+        "http://localhost:3000",  # Next.js default
+        "http://localhost:5173",  # Vite default
+        "http://localhost:8000",  # Frontend alternativo
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:8000",

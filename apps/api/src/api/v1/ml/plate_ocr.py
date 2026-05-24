@@ -35,8 +35,8 @@ def ml_stack_available() -> bool:
         return _ml_available
     try:
         import cv2  # noqa: F401
-        import numpy  # noqa: F401
         import easyocr  # noqa: F401
+        import numpy as np  # noqa: F401
     except ImportError:
         _ml_available = False
         return False
@@ -47,7 +47,8 @@ def ml_stack_available() -> bool:
 def _get_reader():
     global _reader
     if not ml_stack_available():
-        raise RuntimeError("ML stack not installed")
+        msg = "ML stack not installed"
+        raise RuntimeError(msg)
     with _ml_lock:
         if _reader is None:
             import easyocr
@@ -57,7 +58,7 @@ def _get_reader():
         return _reader
 
 
-def detectar_tipo_cor(placa_img: "np.ndarray") -> str:
+def detectar_tipo_cor(placa_img: np.ndarray) -> str:
     import cv2
     import numpy as np
 
@@ -74,7 +75,7 @@ def detectar_tipo_cor(placa_img: "np.ndarray") -> str:
     return "desconhecida"
 
 
-def preprocess_placa(placa_img: "np.ndarray", tipo: str = "carro") -> tuple["np.ndarray", str]:
+def preprocess_placa(placa_img: np.ndarray, tipo: str = "carro") -> tuple[np.ndarray, str]:
     import cv2
     import numpy as np
 
@@ -104,7 +105,7 @@ def preprocess_placa(placa_img: "np.ndarray", tipo: str = "carro") -> tuple["np.
     return placa_bin, cor
 
 
-def ler_placa(placa_img: "np.ndarray") -> str:
+def ler_placa(placa_img: np.ndarray) -> str:
     reader = _get_reader()
     resultado = reader.readtext(placa_img, detail=0, paragraph=True)
     if not resultado:
@@ -113,7 +114,7 @@ def ler_placa(placa_img: "np.ndarray") -> str:
     return "".join(c for c in texto if c.isalnum())
 
 
-def recognize_plates_from_bgr(frame_bgr: "np.ndarray") -> list[PlateOcrCandidate]:
+def recognize_plates_from_bgr(frame_bgr: np.ndarray) -> list[PlateOcrCandidate]:
     """Procura regiões candidatas (contornos) e devolve placas com 7 caracteres alfanuméricos."""
     import cv2
 
