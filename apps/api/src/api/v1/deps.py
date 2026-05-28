@@ -22,6 +22,7 @@ from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.db.session import get_db
+from apps.api.src.api.v1.ml.classifier import VehicleClassifier, get_vehicle_classifier
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.user_repository import UserRepository
 from apps.api.src.api.v1.schemas.token import TokenPayload
@@ -213,6 +214,12 @@ def get_gate_controller() -> GateController:
         GateController: Instância do controller de controle de portão
     """
     return GateController(get_settings())
+
+
+def get_classifier() -> VehicleClassifier:
+    """Vehicle classifier abstraction for ML integration."""
+
+    return get_vehicle_classifier()
 
 
 def verify_device_demo_api_enabled() -> None:

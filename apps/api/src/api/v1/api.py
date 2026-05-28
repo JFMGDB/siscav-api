@@ -11,6 +11,7 @@ from apps.api.src.api.v1.endpoints.auth import router as auth_router
 from apps.api.src.api.v1.endpoints.devices import router as devices_router
 from apps.api.src.api.v1.endpoints.gate_control import router as gate_control_router
 from apps.api.src.api.v1.endpoints.health import router as health_router
+from apps.api.src.api.v1.endpoints.classification import router as classification_router
 from apps.api.src.api.v1.endpoints.plate_recognition import router as plate_recognition_router
 from apps.api.src.api.v1.endpoints.whitelist import router as whitelist_router
 
@@ -36,3 +37,6 @@ api_router.include_router(gate_control_router, prefix="/gate_control", tags=["ga
 
 # OCR opcional (EasyOCR + OpenCV; requer requirements-ml.txt)
 api_router.include_router(plate_recognition_router, prefix="/ml", tags=["ml"])
+
+# Classificação veicular (stub + integrações futuras)
+api_router.include_router(classification_router, prefix="/ml", tags=["ml"])

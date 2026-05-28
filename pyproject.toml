@@ -29,14 +29,6 @@ dev = [
     "httpx==0.28.1",  # Cliente HTTP para usar nos testes
 ]
 
-[dependency-groups]
-dev = [
-    "pytest==9.0.2",
-    "pytest-cov==7.1.0",
-    "ruff==0.14.6",
-    "httpx==0.28.1",
-]
-
 [tool.pytest.ini_options]
 # Configuração do Pytest para SISCAV-API
 testpaths = ["tests"]

@@ -5,7 +5,7 @@ These scripts are **not** collected by pytest. Use them for manual debugging and
 | Script | Purpose |
 |--------|---------|
 | `auth_flow_debug.py` | Debug JWT authentication flow |
-| `register_endpoint_manual.py` | Manual registration endpoint testing |
+| `debug_token.py` | Decode a JWT and validate user lookup |
 | `server_context_debug.py` | Debug server context and configuration |
 
 Run from repo root with `PYTHONPATH=.`:

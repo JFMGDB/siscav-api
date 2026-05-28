@@ -16,6 +16,12 @@ from apps.api.src.api.v1.schemas.device import (
     ConnectionStatus,
     DisconnectResponse,
 )
+from apps.api.src.api.v1.schemas.classification import (
+    ClassificationConfidence,
+    VehicleCategory,
+    VehicleClassificationRequest,
+    VehicleClassificationResult,
+)
 from apps.api.src.api.v1.schemas.token import Token, TokenPayload
 from apps.api.src.api.v1.schemas.user import UserCreate, UserRead
 
@@ -25,6 +31,7 @@ __all__ = [
     "AuthorizedPlateCreate",
     "AuthorizedPlateRead",
     "BluetoothDevice",
+    "ClassificationConfidence",
     "ConnectionRequest",
     "ConnectionResponse",
     "ConnectionStatus",
@@ -33,4 +40,7 @@ __all__ = [
     "TokenPayload",
     "UserCreate",
     "UserRead",
+    "VehicleCategory",
+    "VehicleClassificationRequest",
+    "VehicleClassificationResult",
 ]
