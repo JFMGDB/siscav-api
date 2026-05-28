@@ -19,7 +19,8 @@ from apps.api.src.api.v1.repositories.user_repository import UserRepository
 def main() -> None:
     token = input("Paste the JWT: ").strip()
     if not token:
-        raise SystemExit("Missing token")
+        msg = "Missing token"
+        raise SystemExit(msg)
 
     settings = get_settings()
 
@@ -48,4 +49,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

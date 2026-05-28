@@ -7,6 +7,7 @@ any real model is integrated.
 
 from __future__ import annotations
 
+import importlib.util
 from typing import Any, Protocol, runtime_checkable
 
 from apps.api.src.api.v1.schemas.classification import (
@@ -22,12 +23,10 @@ def classifier_stack_available() -> bool:
     requires easyocr). A future vehicle classifier may only need numpy + opencv.
     """
 
-    try:
-        import cv2  # noqa: F401
-        import numpy as np  # noqa: F401
-    except ImportError:
-        return False
-    return True
+    return (
+        importlib.util.find_spec("cv2") is not None
+        and importlib.util.find_spec("numpy") is not None
+    )
 
 
 @runtime_checkable
@@ -66,4 +65,3 @@ def get_vehicle_classifier() -> VehicleClassifier:
 
     # Future: switch by env config and availability (local model vs remote service).
     return StubVehicleClassifier()
-

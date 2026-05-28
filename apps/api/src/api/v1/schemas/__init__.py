@@ -9,18 +9,18 @@ from apps.api.src.api.v1.schemas.authorized_plate import (
     AuthorizedPlateCreate,
     AuthorizedPlateRead,
 )
+from apps.api.src.api.v1.schemas.classification import (
+    ClassificationConfidence,
+    VehicleCategory,
+    VehicleClassificationRequest,
+    VehicleClassificationResult,
+)
 from apps.api.src.api.v1.schemas.device import (
     BluetoothDevice,
     ConnectionRequest,
     ConnectionResponse,
     ConnectionStatus,
     DisconnectResponse,
-)
-from apps.api.src.api.v1.schemas.classification import (
-    ClassificationConfidence,
-    VehicleCategory,
-    VehicleClassificationRequest,
-    VehicleClassificationResult,
 )
 from apps.api.src.api.v1.schemas.token import Token, TokenPayload
 from apps.api.src.api.v1.schemas.user import UserCreate, UserRead
