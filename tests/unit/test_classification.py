@@ -1,15 +1,45 @@
-import sys
-from unittest.mock import MagicMock, patch
+import os
+from unittest.mock import patch
 
-from fastapi.testclient import TestClient
+import pytest
+from pydantic import ValidationError
 
+from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.ml.classifier import StubVehicleClassifier, get_vehicle_classifier
-from apps.api.src.api.v1.schemas.classification import VehicleCategory
+from apps.api.src.api.v1.schemas.classification import VehicleCategory, VehicleClassificationResult
 
 
 class TestClassificationContracts:
-    def test_vehicle_category_has_unknown(self):
-        assert VehicleCategory.unknown.value == "unknown"
+    @pytest.mark.parametrize(
+        "category",
+        [
+            VehicleCategory.car,
+            VehicleCategory.motorcycle,
+            VehicleCategory.truck,
+            VehicleCategory.bus,
+            VehicleCategory.van,
+            VehicleCategory.unknown,
+        ],
+    )
+    def test_vehicle_category_values(self, category: VehicleCategory):
+        assert category.value in {c.value for c in VehicleCategory}
+
+    def test_vehicle_classification_result_valid(self):
+        result = VehicleClassificationResult(
+            predicted_category=VehicleCategory.car,
+            confidence=0.85,
+            model_version="test-v1",
+            classifier_backend="stub",
+        )
+        assert result.predicted_category == VehicleCategory.car
+        assert result.confidence == 0.85
+
+    def test_vehicle_classification_result_rejects_invalid_confidence(self):
+        with pytest.raises(ValidationError):
+            VehicleClassificationResult(
+                predicted_category=VehicleCategory.car,
+                confidence=1.5,
+            )
 
     def test_stub_classifier_returns_unknown(self):
         c = StubVehicleClassifier()
@@ -19,63 +49,15 @@ class TestClassificationContracts:
         assert out.model_version
         assert out.classifier_backend
 
-    def test_factory_returns_vehicle_classifier(self):
-        c = get_vehicle_classifier()
-        out = c.classify(None)
+    def test_stub_classifier_accepts_plate_hint(self):
+        c = StubVehicleClassifier()
+        out = c.classify(None, plate_hint="ABC1234")
         assert out.predicted_category == VehicleCategory.unknown
 
-
-class TestClassificationEndpoint:
-    def test_requires_auth(self, client: TestClient):
-        r = client.post(
-            "/api/v1/ml/classify-vehicle",
-            files={"file": ("x.jpg", b"dummy", "image/jpeg")},
-        )
-        assert r.status_code == 401
-
-    def test_stub_works_without_ml_stack(self, client: TestClient, auth_token: str):
-        with patch(
-            "apps.api.src.api.v1.endpoints.classification.classifier_stack_available",
-            return_value=False,
-        ):
-            r = client.post(
-                "/api/v1/ml/classify-vehicle",
-                headers={"Authorization": f"Bearer {auth_token}"},
-                files={"file": ("x.jpg", b"dummy", "image/jpeg")},
-            )
-        assert r.status_code == 200
-        data = r.json()
-        assert data["predicted_category"] == "unknown"
-        assert data["confidence"] == 0.0
-
-    def test_unsupported_media_type(self, client: TestClient, auth_token: str):
-        r = client.post(
-            "/api/v1/ml/classify-vehicle",
-            headers={"Authorization": f"Bearer {auth_token}"},
-            files={"file": ("x.gif", b"dummy", "image/gif")},
-        )
-        assert r.status_code == 400
-
-    def test_decode_fails_400(self, client: TestClient, auth_token: str):
-        fake_cv2 = MagicMock()
-        fake_cv2.IMREAD_COLOR = 1
-        fake_cv2.imdecode = MagicMock(return_value=None)
-
-        fake_np = MagicMock()
-        fake_np.uint8 = MagicMock(name="uint8")
-        fake_np.frombuffer = MagicMock(return_value=MagicMock(name="ndarray"))
-
-        with (
-            patch(
-                "apps.api.src.api.v1.endpoints.classification.classifier_stack_available",
-                return_value=True,
-            ),
-            patch.dict(sys.modules, {"cv2": fake_cv2, "numpy": fake_np}),
-        ):
-            r = client.post(
-                "/api/v1/ml/classify-vehicle",
-                headers={"Authorization": f"Bearer {auth_token}"},
-                files={"file": ("x.jpg", b"not-a-real-jpeg", "image/jpeg")},
-            )
-        assert r.status_code == 400
-
+    def test_factory_returns_stub_backend(self):
+        get_settings.cache_clear()
+        with patch.dict(os.environ, {"VEHICLE_CLASSIFIER_BACKEND": "stub"}, clear=False):
+            c = get_vehicle_classifier()
+        assert c.backend_name == "stub"
+        out = c.classify(None)
+        assert out.predicted_category == VehicleCategory.unknown

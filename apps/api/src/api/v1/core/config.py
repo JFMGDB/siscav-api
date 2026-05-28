@@ -15,10 +15,15 @@ Esse comportamento permite alternar entre Supabase, Postgres local (Docker) e um
 fallback de desenvolvimento sem alterar código.
 """
 
+import logging
 import os
 from functools import lru_cache
 
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
+
+_SUPPORTED_VEHICLE_CLASSIFIER_BACKENDS = frozenset({"stub"})
 
 
 def _read_secret_key() -> str:
@@ -114,6 +119,20 @@ def _read_iot_device_demo_api() -> bool:
     return env not in ("production", "prod")
 
 
+def _read_vehicle_classifier_backend() -> str:
+    """Vehicle classifier backend id (default: stub until a real model is integrated)."""
+    raw = (os.getenv("VEHICLE_CLASSIFIER_BACKEND") or "stub").strip().lower()
+    if not raw:
+        return "stub"
+    if raw not in _SUPPORTED_VEHICLE_CLASSIFIER_BACKENDS:
+        logger.warning(
+            "Unknown VEHICLE_CLASSIFIER_BACKEND=%r; falling back to stub",
+            raw,
+        )
+        return "stub"
+    return raw
+
+
 def assert_production_secrets_valid() -> None:
     """Abort startup in production if JWT signing secret is missing or default."""
     env = (os.getenv("ENVIRONMENT") or "development").strip().lower()
@@ -153,6 +172,7 @@ class Settings(BaseModel):
     )
     upload_dir: str = Field(default_factory=_read_upload_dir)
     max_file_size_mb: int = Field(default_factory=_read_max_file_size_mb)
+    vehicle_classifier_backend: str = Field(default_factory=_read_vehicle_classifier_backend)
 
 
 @lru_cache

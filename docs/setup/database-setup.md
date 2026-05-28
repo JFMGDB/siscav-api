@@ -90,7 +90,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=60
 
 ```powershell
 # Executar script PowerShell
-.\run_migrations.ps1
+.\scripts\run_migrations.ps1
 ```
 
 Ou manualmente:

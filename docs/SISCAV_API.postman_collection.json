@@ -707,9 +707,51 @@
 						"description": "`POST /api/v1/ml/recognize-plate` — **JWT Bearer** (qualquer utilizador autenticado). `multipart/form-data`, campo **`file`**.\n\n**Servidor:** requer `pip install -r requirements-ml.txt`; sem dependências ML → **503**.\n\n**Resposta 200:** `{ \"candidates\": [ { \"plate_raw\", \"normalized_plate\", \"plate_color_hint\" } ] }`.\n\n**Erros:** 400 tipo/imagem inválida; 413 acima de `MAX_FILE_SIZE_MB`.\n\nDocumentação: `docs/api/frontend-integration.md` (secção OCR)."
 					},
 					"response": []
+				},
+				{
+					"name": "Classificar veículo (multipart)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Frame ou recorte JPEG/PNG/WebP"
+								},
+								{
+									"key": "plate_hint",
+									"value": "ABC1234",
+									"type": "text",
+									"description": "Opcional — contexto de placa (ignorado pelo stub)",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ml/classify-vehicle",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "ml", "classify-vehicle"]
+						},
+						"description": "`POST /api/v1/ml/classify-vehicle` — **JWT Bearer**. `multipart/form-data`: **`file`** (obrigatório), **`plate_hint`** (opcional).\n\n**Backend:** `VEHICLE_CLASSIFIER_BACKEND=stub` (padrão) — funciona sem `requirements-ml.txt`.\n\n**Resposta 200 (stub):** `{ \"predicted_category\": \"unknown\", \"confidence\": 0.0, \"model_version\": \"stub-v0\", \"classifier_backend\": \"stub\" }`.\n\n**Erros:** 400 tipo/imagem inválida; 413 acima de `MAX_FILE_SIZE_MB`; 503 se classificador real sem stack ML.\n\nDocumentação: `docs/api/frontend-integration.md` (classificação veicular); ADR 002."
+					},
+					"response": []
 				}
 			],
-			"description": "OCR opcional no servidor (OpenCV + EasyOCR) para integração com frontend do operador"
+			"description": "OCR opcional e classificação veicular no servidor para integração com frontend do operador"
 		},
 		{
 			"name": "Gate Control - Controle de Portão",

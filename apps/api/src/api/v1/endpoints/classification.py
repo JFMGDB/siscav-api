@@ -3,7 +3,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.deps import get_classifier, get_current_user
@@ -34,11 +34,16 @@ async def classify_vehicle_from_image(
     file: Annotated[UploadFile, File(description="Frame or crop with vehicle visible")],
     current_user: Annotated[User, Depends(get_current_user)],
     classifier=Depends(get_classifier),
+    plate_hint: Annotated[
+        str | None,
+        Form(description="Optional plate string for additional context (ignored by stub)"),
+    ] = None,
 ) -> VehicleClassificationResult:
     """
     Executes vehicle classification using a backend-owned classifier abstraction.
 
     - Auth: JWT Bearer (any authenticated user).
+    - Multipart: `file` (required), `plate_hint` (optional).
     - Dependencies: real classifiers may require optional ML deps; stub works without them.
     """
 
@@ -62,7 +67,7 @@ async def classify_vehicle_from_image(
     # Stub classifier must work even when the optional ML stack is not installed.
     if not classifier_stack_available():
         if isinstance(classifier, StubVehicleClassifier):
-            return classifier.classify(None)
+            return classifier.classify(None, plate_hint=plate_hint)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
@@ -83,7 +88,7 @@ async def classify_vehicle_from_image(
         )
 
     try:
-        return classifier.classify(frame)
+        return classifier.classify(frame, plate_hint=plate_hint)
     except HTTPException:
         raise
     except Exception:
@@ -92,4 +97,3 @@ async def classify_vehicle_from_image(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to process vehicle classification.",
         ) from None
-

@@ -6,12 +6,13 @@ Esta documentação descreve como integrar **autenticação JWT** e **recursos d
 
 1. [Visão Geral](#visão-geral)
 2. [OCR de placa no servidor (operador)](#ocr-de-placa-no-servidor-operador)
-3. [Endpoints de Autenticação](#endpoints-de-autenticação)
-4. [Fluxo de Autenticação](#fluxo-de-autenticação)
-5. [Gerenciamento de Tokens](#gerenciamento-de-tokens)
-6. [Exemplos de Implementação](#exemplos-de-implementação)
-7. [Tratamento de Erros](#tratamento-de-erros)
-8. [Segurança](#segurança)
+3. [Classificação veicular (operador)](#classificação-veicular-operador)
+4. [Endpoints de Autenticação](#endpoints-de-autenticação)
+5. [Fluxo de Autenticação](#fluxo-de-autenticação)
+6. [Gerenciamento de Tokens](#gerenciamento-de-tokens)
+7. [Exemplos de Implementação](#exemplos-de-implementação)
+8. [Tratamento de Erros](#tratamento-de-erros)
+9. [Segurança](#segurança)
 
 ## Visão Geral
 
@@ -150,6 +151,92 @@ Fluxo típico: **login** → capturar frame (por exemplo `drawImage` de `<video>
 ### Documentação interativa
 
 No servidor em execução: tag **`ml`** em [Swagger UI](http://127.0.0.1:8000/docs) ou ReDoc.
+
+## Classificação veicular (operador)
+
+O frontend pode enviar um **frame ou recorte** (JPEG, PNG ou WebP) para a API classificar o tipo de veículo (`car`, `motorcycle`, `truck`, `bus`, `van`, `unknown`). O backend expõe um contrato estável (`VehicleClassificationResult`); a implementação atual é um **stub** que devolve `unknown` com confiança `0.0`, útil para integrar a UI antes do modelo real.
+
+### Configuração no servidor
+
+| Variável | Valores (hoje) | Efeito |
+|----------|----------------|--------|
+| `VEHICLE_CLASSIFIER_BACKEND` | `stub` (padrão) | Usa `StubVehicleClassifier` (sem ML) |
+
+Valores desconhecidos fazem fallback para `stub` com aviso no log. Modelos futuros (`onnx`, `torch`, etc.) serão ligados nesta variável.
+
+### Endpoint
+
+| Método | Caminho | Autenticação |
+|--------|---------|--------------|
+| `POST` | `/api/v1/ml/classify-vehicle` | `Authorization: Bearer {access_token}` |
+
+### Pedido
+
+- **Content-Type:** `multipart/form-data`
+- **Campo do ficheiro:** `file` (obrigatório)
+- **Campo opcional:** `plate_hint` — texto de placa para contexto futuro (ignorado pelo stub)
+- **Tipos MIME aceites:** `image/jpeg`, `image/jpg`, `image/png`, `image/webp`
+- **Tamanho máximo:** `MAX_FILE_SIZE_MB` (predefinição **10** MB)
+
+### Resposta de sucesso (200) — stub
+
+```json
+{
+  "predicted_category": "unknown",
+  "confidence": 0.0,
+  "model_version": "stub-v0",
+  "classifier_backend": "stub"
+}
+```
+
+### Erros relevantes
+
+| HTTP | Situação |
+|------|----------|
+| **401** | Sem `Authorization` ou token inválido |
+| **400** | Tipo de ficheiro não suportado ou imagem que o OpenCV não consegue decodificar |
+| **413** | Ficheiro acima do limite configurado |
+| **503** | Classificador real configurado mas stack ML indisponível (stub continua a funcionar sem `requirements-ml.txt`) |
+| **500** | Falha interna no pipeline de classificação |
+
+### Exemplo TypeScript (fetch + FormData)
+
+```typescript
+export type VehicleClassificationResult = {
+  predicted_category: string;
+  confidence: number;
+  model_version: string;
+  classifier_backend: string;
+};
+
+export async function classifyVehicleFromImage(
+  accessToken: string,
+  imageBlob: Blob,
+  plateHint?: string,
+  fileName = 'frame.jpg'
+): Promise<VehicleClassificationResult> {
+  const form = new FormData();
+  form.append('file', imageBlob, fileName);
+  if (plateHint) {
+    form.append('plate_hint', plateHint);
+  }
+
+  const res = await fetch(`${baseUrl}/api/v1/ml/classify-vehicle`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: form,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(typeof err.detail === 'string' ? err.detail : `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+```
+
+Documentação de arquitetura: `docs/architecture/adr/002-vehicle-classification-layer.md`.
 
 ## Endpoints de Autenticação
 
@@ -731,9 +818,10 @@ export function LoginForm() {
 3. **Armazenamento**: Guarde access_token e refresh_token de forma segura
 4. **Requisições**: Inclua `Authorization: Bearer {access_token}` em todas as requisições protegidas
 5. **OCR (operador)**: `POST /api/v1/ml/recognize-plate` com `multipart/form-data` campo `file` — requer JWT e `requirements-ml.txt` no servidor
-6. **Renovação**: Use `POST /api/v1/login/refresh-token` quando access_token expirar
-7. **Erros**: Trate 401/403 renovando tokens ou fazendo logout; trate 503 no OCR conforme mensagem do servidor
-8. **Segurança**: Use HTTPS, valide tokens e implemente proteções adequadas
+6. **Classificação veicular**: `POST /api/v1/ml/classify-vehicle` com `file` e `plate_hint` opcional — requer JWT; stub funciona sem ML (`VEHICLE_CLASSIFIER_BACKEND=stub`)
+7. **Renovação**: Use `POST /api/v1/login/refresh-token` quando access_token expirar
+8. **Erros**: Trate 401/403 renovando tokens ou fazendo logout; trate 503 no OCR conforme mensagem do servidor
+9. **Segurança**: Use HTTPS, valide tokens e implemente proteções adequadas
 
 ## Suporte
 

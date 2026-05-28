@@ -90,6 +90,25 @@ class TestSettings:
             assert settings.database_url == "sqlite:///./siscav_dev.db"
             assert settings.environment == "development"
             assert settings.device_ingest_key is None
+            assert settings.vehicle_classifier_backend == "stub"
+
+    def test_vehicle_classifier_backend_default(self):
+        get_settings.cache_clear()
+        with patch.dict(os.environ, {}, clear=True):
+            settings = Settings()
+            assert settings.vehicle_classifier_backend == "stub"
+
+    def test_vehicle_classifier_backend_explicit_stub(self):
+        get_settings.cache_clear()
+        with patch.dict(os.environ, {"VEHICLE_CLASSIFIER_BACKEND": "stub"}, clear=False):
+            settings = Settings()
+            assert settings.vehicle_classifier_backend == "stub"
+
+    def test_vehicle_classifier_backend_unknown_falls_back_to_stub(self):
+        get_settings.cache_clear()
+        with patch.dict(os.environ, {"VEHICLE_CLASSIFIER_BACKEND": "onnx"}, clear=False):
+            settings = Settings()
+            assert settings.vehicle_classifier_backend == "stub"
 
     def test_settings_from_env_vars(self):
         """Testa carregamento de configurações de variáveis de ambiente."""

@@ -8,12 +8,16 @@ any real model is integrated.
 from __future__ import annotations
 
 import importlib.util
+import logging
 from typing import Any, Protocol, runtime_checkable
 
+from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.schemas.classification import (
     VehicleCategory,
     VehicleClassificationResult,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def classifier_stack_available() -> bool:
@@ -37,7 +41,9 @@ class VehicleClassifier(Protocol):
     @property
     def backend_name(self) -> str: ...
 
-    def classify(self, frame_bgr: Any) -> VehicleClassificationResult: ...
+    def classify(
+        self, frame_bgr: Any, *, plate_hint: str | None = None
+    ) -> VehicleClassificationResult: ...
 
 
 class StubVehicleClassifier:
@@ -51,7 +57,10 @@ class StubVehicleClassifier:
     def backend_name(self) -> str:
         return "stub"
 
-    def classify(self, _frame_bgr: Any) -> VehicleClassificationResult:
+    def classify(
+        self, _frame_bgr: Any, *, plate_hint: str | None = None
+    ) -> VehicleClassificationResult:
+        _ = plate_hint  # reserved for future model context
         return VehicleClassificationResult(
             predicted_category=VehicleCategory.unknown,
             confidence=0.0,
@@ -63,5 +72,9 @@ class StubVehicleClassifier:
 def get_vehicle_classifier() -> VehicleClassifier:
     """Factory: returns the best available classifier implementation."""
 
-    # Future: switch by env config and availability (local model vs remote service).
+    backend = get_settings().vehicle_classifier_backend
+    if backend == "stub":
+        return StubVehicleClassifier()
+    # Future: onnx, torch, remote HTTP service, etc.
+    logger.warning("Unsupported vehicle_classifier_backend=%r; using stub", backend)
     return StubVehicleClassifier()

@@ -91,8 +91,9 @@ Gerenciamento de placas autorizadas. Acesso restrito a administradores autentica
 Processamento **no servidor** (OpenCV + EasyOCR) para interfaces de operador ou integrações que enviam um frame/recorte em imagem. **Dependências opcionais:** ficheiro `requirements-ml.txt` na raiz do repositório; sem instalação, a rota responde **503** e o restante da API continua operacional.
 
 *   **POST /recognize-plate**: `multipart/form-data`, campo **`file`** (JPEG, PNG ou WebP). Autenticação **JWT** (`Authorization: Bearer`). Resposta JSON com lista `candidates` (`plate_raw`, `normalized_plate`, `plate_color_hint`). Limite de tamanho alinhado com `MAX_FILE_SIZE_MB`.
+*   **POST /classify-vehicle**: `multipart/form-data`, campos **`file`** (obrigatório) e **`plate_hint`** (opcional). Autenticação **JWT**. Resposta `VehicleClassificationResult` (`predicted_category`, `confidence`, `model_version`, `classifier_backend`). Backend configurável via `VEHICLE_CLASSIFIER_BACKEND` (padrão **stub**, sem dependências ML). Implementações futuras podem exigir `requirements-ml.txt`; sem stack e sem stub → **503**.
 
-Documentação orientada ao frontend: `docs/api/frontend-integration.md` (secção OCR).
+Documentação orientada ao frontend: `docs/api/frontend-integration.md` (secções OCR e classificação veicular).
 
 ## 6. Modelagem de Dados (Resumo)
 

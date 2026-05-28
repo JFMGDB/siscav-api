@@ -52,16 +52,28 @@ This section is a checklist for the engineer who will integrate the real classif
 - `apps/api/src/api/v1/ml/classifier.py`
 - `apps/api/src/api/v1/endpoints/classification.py`
 - `tests/unit/test_classification.py`
+- `tests/integration/test_classification.py`
 - `tests/manual/debug_token.py`
 - `docs/architecture/adr/002-vehicle-classification-layer.md`
 
 ### Modified
 
 - `apps/api/src/api/v1/api.py` (router registration under `/api/v1/ml/*`)
+- `apps/api/src/api/v1/core/config.py` (`VEHICLE_CLASSIFIER_BACKEND`, `Settings.vehicle_classifier_backend`)
 - `apps/api/src/api/v1/deps.py` (added `get_classifier()` dependency)
+- `apps/api/src/api/v1/ml/classifier.py` (factory reads config; `plate_hint` on `classify()`)
+- `apps/api/src/api/v1/endpoints/classification.py` (optional `plate_hint` form field)
 - `apps/api/src/api/v1/schemas/__init__.py` (exports for the new classification schemas)
+- `apps/api/src/main.py` (OpenAPI description bullet for `classify-vehicle`)
+- `env.local.example` (`VEHICLE_CLASSIFIER_BACKEND` comment)
 - `pyproject.toml` (removed duplicated `[dependency-groups]` section)
+- `tests/unit/test_core_config.py` (config tests for classifier backend)
 - `tests/manual/README.md` (updated manual helper list)
+- `docs/api/frontend-integration.md` (classificação veicular)
+- `docs/api/technical-documentation.md` (`POST /classify-vehicle`)
+- `docs/SISCAV_API.postman_collection.json` (request `classify-vehicle`)
+- `docs/setup/database-setup.md` (`scripts/run_migrations.ps1` path)
+- `.planning/codebase/STRUCTURE.md` (`tests/manual/`, ML classifier files)
 - `docs/architecture/adr/README.md` (linked ADR 002)
 
 ### Removed

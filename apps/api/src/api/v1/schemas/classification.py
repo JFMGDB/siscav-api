@@ -39,4 +39,3 @@ class VehicleClassificationResult(BaseModel):
     all_scores: list[ClassificationConfidence] = Field(default_factory=list)
     model_version: str = Field(default="stub-v0")
     classifier_backend: str = Field(default="stub")
-

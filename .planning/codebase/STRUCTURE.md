@@ -25,12 +25,12 @@ siscav-api/                          # Repository root (Python project: pyprojec
 │                   ├── core/      # config, security, limiter
 │                   ├── db/        # Base, session, engine
 │                   ├── utils/
-│                   └── ml/        # Auxiliary script(s), not wired as HTTP layer
+│                   └── ml/        # plate_ocr.py, classifier.py (HTTP via endpoints/)
 ├── tests/                           # Pytest root (see pyproject.toml testpaths)
 │   ├── conftest.py
 │   ├── integration/
 │   ├── unit/
-│   └── scripts/                     # Manual/debug helpers
+│   └── manual/                      # Manual/debug helpers (e.g. debug_token.py)
 ├── db/
 │   └── sql/                         # Reference SQL (e.g. Supabase setup scripts)
 ├── docs/                            # API docs, Postman, guides
@@ -52,7 +52,7 @@ siscav-api/                          # Repository root (Python project: pyprojec
 
 **`apps/api/src/api/v1/endpoints/`:**
 - Purpose: HTTP route modules; each file defines one `APIRouter`.
-- Key files: `auth.py`, `whitelist.py`, `access_logs.py`, `gate_control.py`, `devices.py`, `health.py`, `__init__.py` (re-exports routers)
+- Key files: `auth.py`, `whitelist.py`, `access_logs.py`, `gate_control.py`, `devices.py`, `health.py`, `plate_recognition.py`, `classification.py`, `__init__.py` (re-exports routers)
 
 **`apps/api/src/api/v1/controllers/`:**
 - Purpose: Per-domain orchestration and rules invoked from endpoints.
@@ -81,6 +81,10 @@ siscav-api/                          # Repository root (Python project: pyprojec
 **`apps/api/src/api/v1/utils/`:**
 - Purpose: Pure helpers (e.g. plate normalization).
 - Key file: `utils/plate.py`
+
+**`apps/api/src/api/v1/ml/`:**
+- Purpose: ML integration seams (OCR pipeline, vehicle classifier factory/stub).
+- Key files: `plate_ocr.py`, `classifier.py`; HTTP routes in `endpoints/plate_recognition.py`, `endpoints/classification.py`
 
 **`tests/`:**
 - Purpose: Automated tests; mirrors domains with `unit/` and `integration/` packages.
