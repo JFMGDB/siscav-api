@@ -51,10 +51,16 @@ DEMO_PLATES = [
 
 
 def seed_user(db):
-    """Create admin user if it does not exist."""
+    """Create admin user if it does not exist; promote existing demo user to admin."""
     existing = db.query(User).filter(User.email == DEMO_USER["email"]).first()
     if existing:
-        print(f"[OK] User already exists: {DEMO_USER['email']}")
+        if not existing.is_admin:
+            existing.is_admin = True
+            db.commit()
+            db.refresh(existing)
+            print(f"[OK] User promoted to admin: {DEMO_USER['email']}")
+        else:
+            print(f"[OK] User already exists: {DEMO_USER['email']}")
         return existing
 
     now = datetime.now(UTC)
