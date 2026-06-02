@@ -28,7 +28,10 @@ class TestLoadDotenvFiles:
             config._load_dotenv_files()
             assert mock_load.call_count == 2
             first_path, first_kw = mock_load.call_args_list[0][0][0], mock_load.call_args_list[0][1]
-            second_path, second_kw = mock_load.call_args_list[1][0][0], mock_load.call_args_list[1][1]
+            second_path, second_kw = (
+                mock_load.call_args_list[1][0][0],
+                mock_load.call_args_list[1][1],
+            )
             assert first_path == tmp_path / ".env"
             assert first_kw["override"] is False
             assert second_path == tmp_path / ".env.local"
