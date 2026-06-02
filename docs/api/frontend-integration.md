@@ -312,7 +312,33 @@ password: string (senha do usuário)
 - **401 Unauthorized**: Credenciais inválidas
 - **429 Too Many Requests**: Rate limit excedido (5 tentativas/minuto)
 
-### 3. Refresh Token - Renovar Tokens
+### 3. Usuário autenticado — `GET /users/me`
+
+**Endpoint:** `GET /api/v1/users/me`
+
+**Descrição:** Retorna o usuário associado ao access token (id, email, timestamps). Use após login ou refresh para popular o perfil no frontend — **não decodifique o JWT no client** para obter `sub`/email.
+
+**Headers:**
+```
+Authorization: Bearer {access_token}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "usuario@example.com",
+  "created_at": "2025-01-15T10:30:00Z",
+  "updated_at": "2025-01-15T10:30:00Z"
+}
+```
+
+**Respostas de Erro:**
+
+- **401 Unauthorized**: Token ausente
+- **403 Forbidden**: Token inválido, expirado ou refresh token usado no lugar do access token
+
+### 4. Refresh Token - Renovar Tokens
 
 **Endpoint:** `POST /api/v1/login/refresh-token`
 
@@ -363,8 +389,9 @@ refresh_token: string (refresh token obtido no login)
 2. Frontend envia POST /api/v1/login/access-token
 3. API valida credenciais
 4. API retorna access_token e refresh_token
-5. Frontend armazena ambos os tokens (localStorage/sessionStorage)
-6. Frontend usa access_token em requisições subsequentes
+5. Frontend armazena ambos os tokens (cookies no Mantis web; ver ADR 0003)
+6. Frontend chama `GET /api/v1/users/me` com o access token para obter `id` e `email`
+7. Frontend usa access_token em requisições subsequentes
 ```
 
 ### Fluxo de Renovação (Refresh)

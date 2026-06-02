@@ -44,10 +44,20 @@ class TestAuthEndpoints:
 
         assert response.status_code == 401
 
+    def test_read_users_me_success(self, client: TestClient, auth_token: str, test_user: User):
+        """GET /users/me retorna o usuário do access token."""
+        response = client.get(
+            "/api/v1/users/me",
+            headers={"Authorization": f"Bearer {auth_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["email"] == test_user.email
+        assert data["id"] == str(test_user.id)
+
     def test_get_current_user_success(self, client: TestClient, auth_token: str):
         """Testa obtenção de usuário atual com token válido."""
-        # Este teste é indireto através de um endpoint protegido
-        # Vamos usar o endpoint de whitelist que requer autenticação
         response = client.get(
             "/api/v1/whitelist/",
             headers={"Authorization": f"Bearer {auth_token}"},

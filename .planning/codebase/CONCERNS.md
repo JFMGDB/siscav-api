@@ -4,12 +4,6 @@
 
 ## Tech Debt
 
-**Public registration rate limit tuned for tests:**
-- Issue: `POST /api/v1/register` uses `@limiter.limit("100/minute")` with an inline comment stating it was temporarily increased for tests.
-- Files: `apps/api/src/api/v1/endpoints/auth.py`
-- Impact: Easier account-creation abuse and mailbox flooding relative to a stricter production default (e.g. aligned with login at `5/minute`).
-- Fix approach: Lower the limit for non-development environments (or use configuration via `Settings`) and document the intended production value.
-
 **Gate actuator HTTP client:**
 - Issue: `GateController` uses `urllib.request.urlopen` instead of a shared async-capable client with structured timeouts/retries.
 - Files: `apps/api/src/api/v1/controllers/gate_controller.py`

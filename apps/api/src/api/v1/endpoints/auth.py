@@ -14,7 +14,8 @@ from apps.api.src.api.v1.controllers.auth_controller import AuthController
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.limiter import limiter
 from apps.api.src.api.v1.core.security import create_access_token, create_refresh_token
-from apps.api.src.api.v1.deps import get_auth_controller, get_db
+from apps.api.src.api.v1.deps import get_auth_controller, get_current_user, get_db
+from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.user_repository import UserRepository
 from apps.api.src.api.v1.schemas.password_reset import (
     PasswordResetConfirm,
@@ -168,6 +169,14 @@ def refresh_access_token(
     return _create_token_pair(user.id)
 
 
+@router.get("/users/me", response_model=UserRead)
+def read_users_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> UserRead:
+    """Retorna o usuário autenticado (requer Bearer access token)."""
+    return UserRead.model_validate(current_user)
+
+
 @router.post(
     "/password-reset/request",
     response_model=PasswordResetRequested,
@@ -212,7 +221,7 @@ def password_reset_confirm(
 
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-@limiter.limit("100/minute")  # Temporariamente aumentado para testes
+@limiter.limit("3/minute")
 def register(
     request: Request,  # noqa: ARG001
     user_data: UserCreate,
@@ -224,7 +233,7 @@ def register(
     Cria uma nova conta de usuário com email e senha.
     O email deve ser único e a senha deve ter no mínimo 8 caracteres.
 
-    **Rate Limiting:** Máximo de 100 tentativas por minuto por IP (temporariamente aumentado para testes)
+    **Rate Limiting:** Máximo de 3 tentativas por minuto por IP
     para prevenir criação de contas em massa.
 
     **Validações:**
