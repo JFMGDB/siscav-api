@@ -121,7 +121,7 @@ alembic upgrade head
 Para desenvolvimento com **SQLite** (sem Supabase/PostgreSQL):
 
 - O schema vem **somente do Alembic**, não da importação da API.
-- Na **raiz do repositório** (onde está `alembic.ini`), defina `DATABASE_URL` (ex.: `sqlite:///./siscav_dev.db`), configure `PYTHONPATH` para a raiz se precisar, e execute **`alembic upgrade head`** antes de esperar tabelas ao subir o servidor.
+- Na **raiz do repositório** (onde está `alembic.ini`), defina `DATABASE_URL` (ex.: `sqlite:///./siscav_dev.db` ou Supabase), configure `PYTHONPATH` para a raiz se precisar, e execute **`alembic upgrade head`** antes de esperar tabelas ao subir o servidor. Para Supabase, carregue `.env.supabase` com `./scripts/run_migrations.sh` ou o equivalente PowerShell.
 - Testes continuam usando banco em memória com `create_all` em `tests/conftest.py`, separado do bootstrap de produção.
 
 ## Opção 3: Executar Scripts Individuais

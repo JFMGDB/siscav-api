@@ -5,8 +5,9 @@
 -- ============================================
 -- 1. HABILITAR EXTENSÕES
 -- ============================================
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA extensions;
 
 -- ============================================
 -- 2. CRIAR TIPOS ENUM
@@ -73,12 +74,36 @@ CREATE INDEX IF NOT EXISTS idx_access_logs_plate_textpattern
 CREATE INDEX IF NOT EXISTS idx_access_logs_authorized_plate_id
   ON access_logs (authorized_plate_id);
 
--- Índice opcional: busca fuzzy com pg_trgm (requer extensão pg_trgm)
+-- Índice opcional: busca fuzzy com pg_trgm (extensão em schema extensions)
 CREATE INDEX IF NOT EXISTS idx_access_logs_plate_trgm
-  ON access_logs USING GIN (plate_string_detected gin_trgm_ops);
+  ON access_logs USING GIN (plate_string_detected extensions.gin_trgm_ops);
 
 -- ============================================
--- 5. VERIFICAÇÃO
+-- 5. SEGURANÇA (RLS + REVOKE para roles da API Supabase)
+-- ============================================
+-- Ver também: db/sql/supabase/05_security_hardening.sql
+
+REVOKE ALL ON TABLE public.users FROM anon, authenticated;
+REVOKE ALL ON TABLE public.authorized_plates FROM anon, authenticated;
+REVOKE ALL ON TABLE public.access_logs FROM anon, authenticated;
+
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.authorized_plates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.access_logs ENABLE ROW LEVEL SECURITY;
+
+-- After Alembic creates public.alembic_version, run 05_security_hardening.sql (or alembic upgrade head).
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE SELECT, INSERT, UPDATE, DELETE ON TABLES FROM anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE EXECUTE ON FUNCTIONS FROM anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE USAGE, SELECT ON SEQUENCES FROM anon, authenticated, service_role;
+
+-- ============================================
+-- 6. VERIFICAÇÃO
 -- ============================================
 -- Execute estas queries para verificar se tudo foi criado corretamente:
 

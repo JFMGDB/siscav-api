@@ -3,12 +3,13 @@ from collections.abc import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from apps.api.src.api.v1.core.config import get_settings
+from apps.api.src.api.v1.core.config import get_settings, log_database_target
 
 settings = get_settings()
 
 # Engine e fábrica de sessões para o SQLAlchemy.
 engine = create_engine(settings.database_url, pool_pre_ping=True)
+log_database_target(settings.database_url)
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=Session)
 

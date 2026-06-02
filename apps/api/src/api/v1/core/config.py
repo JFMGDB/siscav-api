@@ -1,23 +1,20 @@
 """Configuração central da aplicação.
 
 Resolução do DATABASE_URL (prioridade):
-1. Se a variável de ambiente `DATABASE_URL` estiver definida, ela é usada como está.
-   - Ex.: `.env.supabase` define um `DATABASE_URL` do Supabase com `sslmode=require`.
-   - Ex.: `.env.local` também pode definir `DATABASE_URL` apontando para o serviço Docker `db`.
+1. Se a variável de ambiente `DATABASE_URL` estiver definida (não vazia), ela é usada como está.
+   - Ex.: `.env.supabase` — Supabase pooler session mode (`:5432`) com `sslmode=require`.
+   - Ex.: `sqlite:///./siscav_dev.db` para desenvolvimento local explícito.
 2. Caso contrário, se `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` estiverem
-   presentes, a URL é montada automaticamente usando `POSTGRES_HOST` (padrão: `db`) e
-   `POSTGRES_PORT` (padrão: `5432`).
-   - Ex.: ambiente Docker local com profile `local`.
-3. Caso nenhuma das opções acima esteja disponível, usa-se um fallback local SQLite
-   (`sqlite:///./siscav_dev.db`) útil para execuções bare sem `.env` e sem Docker.
+   presentes, a URL é montada com `POSTGRES_HOST` (padrão: `db`) e `POSTGRES_PORT` (5432).
+3. Se nenhuma opção estiver disponível, levanta `RuntimeError` (sem fallback silencioso).
 
-Esse comportamento permite alternar entre Supabase, Postgres local (Docker) e um
-fallback de desenvolvimento sem alterar código.
+Carregue variáveis via shell, Docker ou scripts (`run_migrations.sh`) antes de subir a API.
 """
 
 import logging
 import os
 from functools import lru_cache
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 
@@ -82,8 +79,20 @@ def _resolve_database_url() -> str:
         pg_port = os.getenv("POSTGRES_PORT", "5432")
         return f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
 
-    # Fallback: SQLite para execuções locais simples (sem Docker/.env)
-    return "sqlite:///./siscav_dev.db"
+    msg = (
+        "Database URL is not configured. Set DATABASE_URL (e.g. postgresql+psycopg2://... "
+        "or sqlite:///./siscav_dev.db for local dev) or POSTGRES_USER, POSTGRES_PASSWORD, "
+        "and POSTGRES_DB."
+    )
+    raise RuntimeError(msg)
+
+
+def log_database_target(database_url: str) -> None:
+    """Log dialect and host for startup diagnostics (never logs credentials)."""
+    parsed = urlparse(database_url)
+    dialect = parsed.scheme.split("+", 1)[0] if parsed.scheme else "unknown"
+    host = parsed.hostname or "(local)"
+    logger.info("Database target: dialect=%s host=%s", dialect, host)
 
 
 def _read_environment() -> str:
@@ -134,7 +143,7 @@ def _read_vehicle_classifier_backend() -> str:
 
 
 def assert_production_secrets_valid() -> None:
-    """Abort startup in production if JWT signing secret is missing or default."""
+    """Abort startup in production if secrets or database URL are misconfigured."""
     env = (os.getenv("ENVIRONMENT") or "development").strip().lower()
     if env not in ("production", "prod"):
         return
@@ -143,6 +152,13 @@ def assert_production_secrets_valid() -> None:
         msg = (
             "SECRET_KEY must be set to a strong, non-default value when "
             "ENVIRONMENT is production or prod"
+        )
+        raise RuntimeError(msg)
+    database_url = _resolve_database_url().strip().lower()
+    if not database_url.startswith("postgresql"):
+        msg = (
+            "DATABASE_URL must be a PostgreSQL URL when ENVIRONMENT is production or prod "
+            "(sqlite and other drivers are not allowed)"
         )
         raise RuntimeError(msg)
 

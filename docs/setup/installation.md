@@ -236,7 +236,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=30
 
 **Opção C: SQLite (Desenvolvimento rápido)**
 
-Defina `DATABASE_URL` apontando para SQLite (ex.: `sqlite:///./siscav_dev.db`). Você pode usar `.env.local` ou exportar a variável; sem `DATABASE_URL`, a aplicação pode usar o fallback configurado em código.
+Defina `DATABASE_URL` apontando para SQLite (ex.: `sqlite:///./siscav_dev.db`). Você deve exportar a variável explicitamente; sem `DATABASE_URL` nem `POSTGRES_*`, a API falha na subida com erro de configuração.
 
 Na **primeira execução**, o schema **não** é criado ao importar a API. Com o repositório como diretório atual (onde está `alembic.ini`), execute:
 

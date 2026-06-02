@@ -47,6 +47,9 @@ Manual migration scripts are in `db/sql/supabase/`:
 - `02_types.sql` (ENUM `access_status`)
 - `03_tables.sql` (`users`, `authorized_plates`, `access_logs`)
 - `04_indexes.sql` (recommended and optional pg_trgm indexes)
+- `05_security_hardening.sql` (RLS, REVOKE for `anon`/`authenticated`, `pg_trgm` in `extensions`)
+
+Or apply the same rules via Alembic revision `20260602_0004` (`alembic upgrade head`).
 
 ## References
 

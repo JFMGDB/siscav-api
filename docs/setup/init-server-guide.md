@@ -138,7 +138,7 @@ uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8001
 **Solução:** 
 - Verifique se o banco de dados está rodando (se usar Docker)
 - Verifique as variáveis de ambiente no arquivo `.env`
-- Para desenvolvimento local, o sistema usa SQLite automaticamente se não houver configuração de PostgreSQL
+- Defina `DATABASE_URL` (PostgreSQL ou `sqlite:///...`) ou `POSTGRES_*`; sem configuração a API não inicia
 
 ### Erro: "Permission denied" ao ativar venv (Linux/Mac)
 **Solução:**
@@ -151,12 +151,15 @@ source venv/bin/activate
 
 ## Variáveis de Ambiente (Opcional)
 
-Para desenvolvimento local simples, você não precisa configurar variáveis de ambiente. O sistema usa valores padrão:
-- Banco de dados: SQLite local (`siscav_dev.db`)
-- Secret Key: `change_me_in_development`
-- Porta: 8000
+Para desenvolvimento local, configure pelo menos o banco de dados. Exemplo SQLite:
 
-Para usar PostgreSQL ou outras configurações, crie um arquivo `.env` na raiz:
+```ini
+DATABASE_URL=sqlite:///./siscav_dev.db
+```
+
+Outros padrões de desenvolvimento: `SECRET_KEY=change_me_in_development`, porta Uvicorn `8000`.
+
+Para PostgreSQL, Supabase ou outras configurações, crie um arquivo `.env` na raiz:
 
 ```ini
 DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/siscav_db

@@ -1,5 +1,7 @@
 # Script to run Alembic migrations against Supabase
 # Usage (from repo root): .\scripts\run_migrations.ps1
+# Linux/macOS equivalent: ./scripts/run_migrations.sh
+# Loads .env.supabase so DATABASE_URL (including URL-encoded passwords) is set before alembic runs.
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot

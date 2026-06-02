@@ -57,9 +57,21 @@ class TestResolveDatabaseUrl:
             result = _resolve_database_url()
             assert result == "postgresql+psycopg2://testuser:testpass@db:5432/testdb"
 
-    def test_resolve_fallback_sqlite(self):
-        """Testa fallback para SQLite quando nenhuma variável está definida."""
-        with patch.dict(os.environ, {}, clear=True):
+    def test_resolve_raises_when_unconfigured(self):
+        """Sem DATABASE_URL nem POSTGRES_* completos, falha com mensagem clara."""
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            pytest.raises(RuntimeError, match="Database URL is not configured"),
+        ):
+            _resolve_database_url()
+
+    def test_resolve_explicit_sqlite_url(self):
+        """SQLite apenas quando DATABASE_URL aponta explicitamente para sqlite."""
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "sqlite:///./siscav_dev.db"},
+            clear=True,
+        ):
             result = _resolve_database_url()
             assert result == "sqlite:///./siscav_dev.db"
 
@@ -81,20 +93,28 @@ class TestSettings:
 
     def test_settings_default_values(self):
         """Testa valores padrão das configurações."""
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "sqlite:///:memory:"},
+            clear=True,
+        ):
             settings = Settings()
             assert settings.secret_key == "change_me_in_development"
             assert settings.algorithm == "HS256"
             assert settings.access_token_expire_minutes == 15
             assert settings.refresh_token_expire_days == 30
-            assert settings.database_url == "sqlite:///./siscav_dev.db"
+            assert settings.database_url == "sqlite:///:memory:"
             assert settings.environment == "development"
             assert settings.device_ingest_key is None
             assert settings.vehicle_classifier_backend == "stub"
 
     def test_vehicle_classifier_backend_default(self):
         get_settings.cache_clear()
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "sqlite:///:memory:"},
+            clear=True,
+        ):
             settings = Settings()
             assert settings.vehicle_classifier_backend == "stub"
 
@@ -143,10 +163,15 @@ class TestSettings:
 
     def test_get_settings_cached(self):
         """Testa que get_settings() retorna instância cached."""
-        settings1 = get_settings()
-        settings2 = get_settings()
-        # Mesma instância devido ao @lru_cache
-        assert settings1 is settings2
+        get_settings.cache_clear()
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "sqlite:///:memory:"},
+            clear=False,
+        ):
+            settings1 = get_settings()
+            settings2 = get_settings()
+            assert settings1 is settings2
 
 
 class TestAssertProductionSecretsValid:
@@ -160,10 +185,29 @@ class TestAssertProductionSecretsValid:
         with (
             patch.dict(
                 os.environ,
-                {"ENVIRONMENT": "production", "SECRET_KEY": "change_me_in_development"},
+                {
+                    "ENVIRONMENT": "production",
+                    "SECRET_KEY": "change_me_in_development",
+                    "DATABASE_URL": "postgresql://u:p@host:5432/db",
+                },
                 clear=False,
             ),
             pytest.raises(RuntimeError, match="SECRET_KEY"),
+        ):
+            assert_production_secrets_valid()
+
+    def test_raises_when_production_and_sqlite_database(self):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "ENVIRONMENT": "production",
+                    "SECRET_KEY": "a-strong-production-secret",
+                    "DATABASE_URL": "sqlite:///./siscav_dev.db",
+                },
+                clear=False,
+            ),
+            pytest.raises(RuntimeError, match="PostgreSQL"),
         ):
             assert_production_secrets_valid()
 
