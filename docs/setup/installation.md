@@ -275,15 +275,7 @@ export $(cat .env.supabase | grep -v '^#' | xargs)
 export $(cat .env.local | grep -v '^#' | xargs)
 ```
 
-**Alternativa (usando python-dotenv):**
-
-Se preferir, instale `python-dotenv` e crie um arquivo `.env` na raiz:
-
-```bash
-pip install python-dotenv
-```
-
-Crie `.env` com o conteúdo de `.env.supabase` ou `.env.local`.
+**Carregamento automático (desenvolvimento):** `python-dotenv` já está em `requirements.txt`. Copie `env.supabase.example` para `.env.local` na raiz do `siscav-api` (onde está `alembic.ini`). Ao subir a API ou rodar Alembic, `.env` e `.env.local` são lidos automaticamente (exceto em `ENVIRONMENT=production|prod`). `source .env.local` continua opcional e compatível.
 
 ---
 

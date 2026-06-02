@@ -23,7 +23,19 @@ We identified three related problems:
 3. In `ENVIRONMENT=production|prod`, startup fails unless `DATABASE_URL` (or composed URL) is a PostgreSQL URL and `SECRET_KEY` is non-default.
 4. Log dialect and host at engine creation (`log_database_target`); never log credentials.
 
-Environment variables must be exported by the shell, Docker, or `scripts/run_migrations.sh` / `.ps1` before `uvicorn` or `alembic`.
+In production, environment variables must be injected by the platform (Docker, K8s, etc.).
+
+### Local `.env` loading
+
+On import of `apps.api.src.api.v1.core.config` (non-production only):
+
+1. Resolve repo root via `alembic.ini` next to this package.
+2. If `.env` exists: `load_dotenv(path, override=False)` — does not override variables already set in the process.
+3. If `.env.local` exists: `load_dotenv(path, override=True)` — local values override `.env` and unset process keys.
+
+Skipped when `ENVIRONMENT` is `production` or `prod`. Tests and CI set `PYTHON_DOTENV_DISABLED=1` (python-dotenv built-in) before importing application code so a developer’s `.env.local` cannot override `DATABASE_URL=sqlite:///:memory:`.
+
+`source .env.local` and `scripts/run_migrations.sh` remain valid and idempotent with this behavior.
 
 ### Alembic and URL-encoded passwords
 

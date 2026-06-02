@@ -8,19 +8,54 @@ Resolução do DATABASE_URL (prioridade):
    presentes, a URL é montada com `POSTGRES_HOST` (padrão: `db`) e `POSTGRES_PORT` (5432).
 3. Se nenhuma opção estiver disponível, levanta `RuntimeError` (sem fallback silencioso).
 
-Carregue variáveis via shell, Docker ou scripts (`run_migrations.sh`) antes de subir a API.
+Em desenvolvimento, `.env` e `.env.local` na raiz do repositório (onde está `alembic.ini`)
+são carregados automaticamente na importação deste módulo. Shell/Docker/`source` e
+`run_migrations.sh` continuam válidos. Em produção (`ENVIRONMENT=production|prod`)
+arquivos `.env` não são lidos — use variáveis da plataforma.
 """
 
 import logging
 import os
 from functools import lru_cache
+from pathlib import Path
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None  # type: ignore[misc, assignment]
+
 logger = logging.getLogger(__name__)
 
 _SUPPORTED_VEHICLE_CLASSIFIER_BACKENDS = frozenset({"stub"})
+
+
+def _find_repo_root() -> Path:
+    """Repository root (directory containing alembic.ini)."""
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "alembic.ini").is_file():
+            return parent
+    return Path.cwd()
+
+
+def _load_dotenv_files() -> None:
+    """Load .env then .env.local from repo root (non-production only)."""
+    env = (os.getenv("ENVIRONMENT") or "development").strip().lower()
+    if env in ("production", "prod"):
+        return
+    if load_dotenv is None:
+        logger.debug("python-dotenv not installed; skipping .env file load")
+        return
+    root = _find_repo_root()
+    for name, override in ((".env", False), (".env.local", True)):
+        path = root / name
+        if path.is_file():
+            load_dotenv(path, override=override)
+
+
+_load_dotenv_files()
 
 
 def _read_secret_key() -> str:

@@ -19,6 +19,7 @@ dependencies = [
     "slowapi==0.1.9",  # Para limitação de taxa (rate limiting) no login
     "email-validator==2.3.0",  # Necessário para validação robusta de EmailStr do Pydantic
     "python-multipart==0.0.20",  # Upload multipart (FastAPI)
+    "python-dotenv==1.2.2",  # Carregamento automático de .env / .env.local em desenvolvimento
 ]
 
 [project.optional-dependencies]

@@ -44,6 +44,7 @@ jobs:
       - name: Run tests (pytest)
         env:
           DATABASE_URL: "sqlite:///:memory:"
+          PYTHON_DOTENV_DISABLED: "1"
         run: |
           pytest -v --cov=apps --cov-report=term-missing --cov-report=xml:coverage.xml
 

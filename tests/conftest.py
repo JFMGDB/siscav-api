@@ -4,6 +4,7 @@ import os
 import uuid
 
 # Antes de importar a app: garantir chave de ingestão e ambiente de teste
+os.environ.setdefault("PYTHON_DOTENV_DISABLED", "1")
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("DEVICE_INGEST_KEY", "test-device-ingest-key")
 os.environ.setdefault("ENVIRONMENT", "development")

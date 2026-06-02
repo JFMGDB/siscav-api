@@ -149,7 +149,9 @@ source venv/bin/activate
 
 ---
 
-## Variáveis de Ambiente (Opcional)
+## Variáveis de Ambiente
+
+Em desenvolvimento, a API carrega automaticamente `.env` e `.env.local` na raiz do repositório. Copie `env.supabase.example` para `.env.local` ou defina variáveis no IDE; `source .env.local` é opcional.
 
 Para desenvolvimento local, configure pelo menos o banco de dados. Exemplo SQLite:
 
