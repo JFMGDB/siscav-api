@@ -23,9 +23,9 @@ source venv/bin/activate
 
 ### Passo 2: Instalar Dependências (se ainda não instalou)
 
-```bash
-pip install -r requirements-dev.txt
-```
+**pip:** `pip install -r requirements-dev.txt`
+
+**uv:** `uv sync --locked --extra dev`
 
 ### Passo 3: Executar o Servidor
 
@@ -123,10 +123,7 @@ O script define `PYTHONPATH` na raiz do repo, tenta ativar `venv\` e executa `uv
    ```
 
 ### Erro: "ModuleNotFoundError"
-**Solução:** Instale as dependências:
-```bash
-pip install -r requirements-dev.txt
-```
+**Solução:** Instale as dependências: `pip install -r requirements-dev.txt` ou `uv sync --locked --extra dev`
 
 ### Erro: "Port 8000 already in use"
 **Solução:** Use outra porta:

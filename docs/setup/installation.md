@@ -164,21 +164,57 @@ source venv/bin/activate
 
 ### 3. Instalar Dependências
 
-**Para desenvolvimento (recomendado):**
+A **fonte de verdade** é [`pyproject.toml`](../pyproject.toml) (ver [ADR 004](../architecture/adr/004-dependency-management.md)). Os ficheiros `requirements*.txt` são exportados a partir do `pyproject.toml` para **pip** e para o **CI**. Quem usa **uv** localmente pode opcionalmente usar [`uv.lock`](../uv.lock).
+
+Escolha **um** dos fluxos abaixo (equivalentes para desenvolvimento). O **CI** usa apenas **pip** + `requirements-dev.txt`.
+
+#### Com pip (Python + venv)
+
 ```bash
 pip install --upgrade pip
 pip install -r requirements-dev.txt
+# ou instalável editável:
+pip install -e ".[dev]"
 ```
 
-**Para produção:**
+Produção (runtime): `pip install -r requirements.txt`
+
+#### Com uv
+
+Requer [uv instalado](https://docs.astral.sh/uv/getting-started/installation/):
+
 ```bash
-pip install --upgrade pip
-pip install -r requirements.txt
+uv sync --locked --extra dev
 ```
 
-**Diferença entre os arquivos:**
-- `requirements.txt`: Dependências de execução da API com versões fixas (`==`) para instalações reproduzíveis
-- `requirements-dev.txt`: Inclui `requirements.txt` + ferramentas de desenvolvimento (pytest, pytest-cov, ruff, httpx), também pinadas
+Produção (runtime): `uv sync --locked`
+
+#### ML / OCR opcional (`POST /api/v1/ml/recognize-plate`)
+
+| Ferramenta | Comando |
+|------------|---------|
+| pip | `pip install -r requirements-ml.txt` (com a API já instalada) |
+| uv | `uv sync --locked --extra ml` |
+
+#### Comandos equivalentes (lint, testes, servidor)
+
+Com `PYTHONPATH=.` na raiz do repositório (onde está `alembic.ini`):
+
+| Tarefa | pip / venv | uv |
+|--------|------------|-----|
+| Lint | `ruff check .` | `uv run ruff check .` |
+| Formatação (verificar) | `ruff format --check .` | `uv run ruff format --check .` |
+| Formatação (aplicar) | `ruff format .` | `uv run ruff format .` |
+| Testes | `pytest -v` | `uv run pytest -v` |
+| Migrações | `alembic upgrade head` | `uv run alembic upgrade head` |
+| Servidor | `uvicorn apps.api.src.main:app --reload` | `uv run uvicorn apps.api.src.main:app --reload` |
+| Simular CI local | `ruff check . && ruff format --check . && pytest -v` | `uv run ruff check . && uv run ruff format --check . && uv run pytest -v` |
+
+**Ficheiros `requirements*.txt`** (manter alinhados com `pyproject.toml` quando alterar dependências):
+
+- `requirements.txt` — runtime (grafo pinado para `pip install -r`)
+- `requirements-dev.txt` — runtime + `dev` (usado no **CI**)
+- `requirements-ml.txt` — linhas diretas do extra `ml` (instalação aditiva)
 
 O pipeline de CI (`.github/workflows/ci.yml`) usa **Python 3.13** e `pip install -r requirements-dev.txt` antes de `ruff` e `pytest`.
 
@@ -507,7 +543,7 @@ Use a documentação interativa do Swagger em http://localhost:8000/docs para te
 - Defina `PYTHONPATH` para a **raiz** do repositório ao usar `uvicorn apps.api.src.main:app`
 - Ou execute a partir de `apps/api/src` com `uvicorn main:app`
 - Use `.\scripts\start_server.ps1` no Windows a partir da raiz
-- Verifique se o ambiente virtual está ativado e rode `pip install -r requirements-dev.txt`
+- Verifique se o ambiente virtual está ativado e rode `pip install -r requirements-dev.txt` (ou `uv sync --locked --extra dev` se usar uv)
 
 #### 3. Token JWT Inválido
 

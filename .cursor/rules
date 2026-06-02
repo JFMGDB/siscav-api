@@ -22,9 +22,9 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - **SQL** — Schema and Supabase-oriented scripts in `db/sql/supabase/` (e.g. `db/sql/supabase/00_complete_setup.sql`).
 ## Runtime
 - CPython (see CI `python-version: '3.13'` in `.github/workflows/ci.yml`).
-- **pip** — Primary install path via `requirements.txt` and `requirements-dev.txt`.
-- **`pyproject.toml`** — Declares project metadata and optional `[project.optional-dependencies] dev` (pytest, pytest-cov, ruff, httpx); align installs with `pip install -e ".[dev]"` when using editable installs.
-- **Lockfile:** No `requirements.lock` or `poetry.lock` in repo; dependency versions are unpinned in `requirements.txt` except implicit resolution at install time.
+- **`pyproject.toml`** — Single source of truth for direct dependencies (runtime, `dev`, optional `ml`); see `docs/architecture/adr/004-dependency-management.md`.
+- **pip** — CI and default local path: `pip install -r requirements-dev.txt` (exported from pyproject).
+- **uv** — Optional local path: `uv sync --locked --extra dev`; `uv.lock` versioned for those who use uv. Document both pip and `uv run` for lint/test/server commands.
 ## Frameworks
 - **FastAPI** — HTTP API and OpenAPI docs; app factory and middleware in `apps/api/src/main.py`.
 - **Uvicorn** (`uvicorn[standard]` in `pyproject.toml` / `requirements.txt`) — ASGI server for production/dev.
@@ -41,14 +41,14 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - **python-jose[cryptography]** — JWT encode/decode in `apps/api/src/api/v1/core/security.py` and `apps/api/src/api/v1/endpoints/auth.py`.
 - **passlib[argon2]** — Password hashing in `apps/api/src/api/v1/core/security.py`.
 - **email-validator** — Supports Pydantic `EmailStr` validation (declared in `pyproject.toml`).
-- **SQLite** — Fallback URL `sqlite:///./siscav_dev.db` when neither `DATABASE_URL` nor full `POSTGRES_*` set (`config.py`); Alembic default `sqlalchemy.url` in `alembic.ini` matches SQLite for local migration workflows.
+- **SQLite** — Only when `DATABASE_URL` explicitly uses `sqlite:` (see ADR 003); `alembic.ini` `sqlalchemy.url` is a placeholder — migrations use `get_migration_database_url()`.
 ## Configuration
 - **No pydantic-settings** — `Settings` reads `os.getenv` directly in `apps/api/src/api/v1/core/config.py`.
 - **Template (do not commit secrets):** `env.local.example` documents variable names; runtime also honors `DATABASE_URL`, `POSTGRES_*`, `SECRET_KEY`, `ALGORITHM`, token TTLs, `UPLOAD_DIR`, `MAX_FILE_SIZE_MB`, and `ENVIRONMENT` / `DEBUG` (see `main.py` for error detail behavior).
 - **`alembic.ini`** — Alembic entry config.
 - **`pyproject.toml`** — Project and tool configuration (pytest, coverage).
 ## Platform Requirements
-- Python 3.10+ (documented) / 3.13 in CI; pip; optional PostgreSQL or Supabase-compatible `DATABASE_URL`; Ruff and pytest from `requirements-dev.txt`.
+- Python >=3.13 (`pyproject.toml`); CI uses pip + `requirements-dev.txt`; optional PostgreSQL or Supabase-compatible `DATABASE_URL`.
 - ASGI host (typically Uvicorn behind a reverse proxy); PostgreSQL or compatible cloud Postgres (e.g. Supabase) with `sslmode=require` when applicable; writable directory for `UPLOAD_DIR` if file uploads are used.
 ## Other repository artifacts
 - Demo seed script: `scripts/seed_demo.py` (run manually, not part of the request path).

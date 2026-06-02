@@ -59,7 +59,7 @@
 - Not defined in repository (no `Dockerfile` or `docker-compose*.yml` detected at workspace root).
 
 **CI Pipeline:**
-- GitHub Actions — `.github/workflows/ci.yml`: checkout, Python 3.13, `pip install -r requirements-dev.txt`, `ruff check` / `ruff format --check`, `pytest` with `DATABASE_URL: ""` to exercise SQLite fallback in tests.
+- GitHub Actions — `.github/workflows/ci.yml`: checkout, Python 3.13, `pip install -r requirements-dev.txt`, `ruff` / `pytest` with `DATABASE_URL=sqlite:///:memory:`.
 
 ## Environment Configuration
 

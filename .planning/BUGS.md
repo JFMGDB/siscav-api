@@ -27,7 +27,7 @@ This document is the **authoritative inventory** of known issues for the current
 
 | ID | Severity | Type | Summary | Primary locations |
 |----|----------|------|---------|-------------------|
-| BUG-001 | P2 | debt | `pyproject.toml` may list `passlib[bcrypt]` while runtime uses Argon2 via `passlib[argon2]` in `requirements.txt` / `security.py` | `pyproject.toml`, `requirements.txt`, `apps/api/src/api/v1/core/security.py` |
+| BUG-001 | P2 | debt | ~~Resolved~~ ADR 004: `pyproject.toml` uses `passlib[argon2]` aligned with `security.py` | `pyproject.toml`, `apps/api/src/api/v1/core/security.py` |
 | BUG-003 | P0 | hardening | Default `SECRET_KEY` is predictable when unset (`change_me_in_development`) | `apps/api/src/api/v1/core/config.py` |
 | BUG-004 | P0 | hardening | `POST /api/v1/access_logs/` accepts uploads without authentication when `DEVICE_INGEST_KEY` is unset in development | `apps/api/src/api/v1/endpoints/access_logs.py`, `access_log_controller.py` |
 | BUG-005 | P1 | hardening | Upload path trusts client `content_type`; no image magic-byte / decode validation | `apps/api/src/api/v1/controllers/access_log_controller.py` |
@@ -35,7 +35,7 @@ This document is the **authoritative inventory** of known issues for the current
 | BUG-007 | P1 | defect | CORS allowlist hardcoded to localhost; production frontends need env-driven config | `apps/api/src/main.py` |
 | BUG-008 | P1 | hardening | Whitelist routes accessible to any authenticated user (not admin-only) | `models/user.py`, `whitelist.py`, etc. |
 | BUG-011 | P2 | ops | Alembic DB URL vs app `DATABASE_URL` mismatch risk if env differs | `apps/api/src/alembic/env.py`, `config.py` |
-| BUG-012 | P2 | ops | Unpinned runtime deps; CI can drift between runs | `requirements.txt`, CI workflow |
+| BUG-012 | P2 | ops | ~~Resolved~~ ADR 004: `uv.lock` + CI export check | `uv.lock`, `.github/workflows/ci.yml` |
 
 ## Resolved / removed (2026-05-23 cleanup)
 

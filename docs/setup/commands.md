@@ -2,17 +2,39 @@
 
 Quick reference for the most common day-to-day commands.
 
+**CI** uses **pip** + `requirements-dev.txt` (Python 3.13). Locally you may use **pip** or **uv** — equivalent commands below.
+
 ---
 
 ## Local Verification (Before Opening a PR)
 
-```bash
-# Full command that simulates CI
-ruff check . && ruff format --check . && pytest -v
+**pip** (with venv active and deps from `pip install -r requirements-dev.txt`):
 
-# PowerShell (with better visibility)
+```bash
+ruff check . && ruff format --check . && pytest -v
+```
+
+**uv**:
+
+```bash
+uv run ruff check . && uv run ruff format --check . && uv run pytest -v
+```
+
+**PowerShell** (pip):
+
+```powershell
 ruff check . ; if ($?) { ruff format --check . } ; if ($?) { pytest -v }
 ```
+
+---
+
+## Install Dependencies
+
+| Goal | pip | uv |
+|------|-----|-----|
+| Development | `pip install -r requirements-dev.txt` | `uv sync --locked --extra dev` |
+| Production runtime | `pip install -r requirements.txt` | `uv sync --locked` |
+| Optional ML/OCR | `pip install -r requirements-ml.txt` | `uv sync --locked --extra ml` |
 
 ---
 

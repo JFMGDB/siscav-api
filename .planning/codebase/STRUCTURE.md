@@ -37,8 +37,10 @@ siscav-api/                          # Repository root (Python project: pyprojec
 ├── scripts/                         # Repo-level utilities (e.g. token debug)
 ├── .github/workflows/               # CI (pytest, ruff)
 ├── pyproject.toml                   # Project metadata, pytest, coverage, deps
-├── requirements.txt               # Runtime pins (used by CI per workflow)
-├── requirements-dev.txt
+├── requirements.txt               # Pinned runtime graph for pip/CI (keep aligned with pyproject.toml)
+├── requirements-dev.txt           # Exported runtime + dev extra
+├── requirements-ml.txt            # Direct ml extra pins (additive install)
+├── uv.lock                        # Optional lockfile for local uv; CI uses pip + requirements-dev.txt
 ├── ruff.toml
 └── pyrightconfig.json               # include: apps, extraPaths for editors
 ```

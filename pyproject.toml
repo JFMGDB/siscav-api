@@ -29,6 +29,20 @@ dev = [
     "ruff==0.14.6",  # Para linting rápido
     "httpx==0.28.1",  # Cliente HTTP para usar nos testes
 ]
+ml = [
+    # Optional OCR / plate recognition (POST /api/v1/ml/recognize-plate). Pulls PyTorch via easyocr.
+    "numpy>=1.24",
+    "opencv-python-headless>=4.8",
+    "easyocr>=1.7",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apps*"]
 
 [tool.pytest.ini_options]
 # Configuração do Pytest para SISCAV-API

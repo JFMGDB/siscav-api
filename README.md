@@ -17,14 +17,26 @@ Live project documentation is in **[`docs/`](docs/README.md)**:
 
 ## Quick Start
 
+Use **pip** (same as CI) or **uv** — see [ADR 004](docs/architecture/adr/004-dependency-management.md).
+
+**pip + venv:**
+
 ```bash
-python -m venv venv
-# Windows: .\venv\Scripts\Activate.ps1
+python -m venv .venv
+source .venv/bin/activate   # Windows: .\.venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
-# At repo root (where alembic.ini lives):
-set PYTHONPATH=.   # Linux/Mac: export PYTHONPATH=.
+export PYTHONPATH=.         # Windows: set PYTHONPATH=.
 alembic upgrade head
 uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**uv:**
+
+```bash
+uv sync --locked --extra dev
+export PYTHONPATH=.
+uv run alembic upgrade head
+uv run uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 On Windows, from the repo root: `.\scripts\start_server.ps1`.

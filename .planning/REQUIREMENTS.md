@@ -10,7 +10,7 @@
 
 ### Configuration & dependency honesty
 
-- [ ] **CFG-01**: `pyproject.toml` `[project.dependencies]` matches actual runtime hashing stack (`passlib[argon2]` per `requirements.txt` / `security.py`) — closes BUG-001.
+- [x] **CFG-01**: `pyproject.toml` `[project.dependencies]` matches actual runtime hashing stack (`passlib[argon2]` per `security.py`); ADR 004 — closes BUG-001.
 - [x] **CFG-02**: Refresh-token issuance and OpenAPI flows — `POST /api/v1/login/refresh-token` implemented — closes BUG-002 (resolved).
 
 ### Security & authentication
@@ -33,7 +33,7 @@
 
 - [x] **OPS-01**: No `docker-compose.yml` in repo — intentional; local Postgres documented in `docs/setup/installation.md` — closes BUG-010 (resolved/irrelevant).
 - [ ] **OPS-02**: Deployment docs or scripts state how to keep Alembic and app `DATABASE_URL` aligned — closes BUG-011.
-- [ ] **OPS-03**: Introduce repeatable dependency pinning strategy (e.g. lockfile or pinned ranges) for `requirements.txt` — closes BUG-012.
+- [x] **OPS-03**: Exported pinned `requirements*.txt` from `pyproject.toml` for CI pip installs (ADR 004) — closes BUG-012.
 
 ## v2 Requirements
 

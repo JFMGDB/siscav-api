@@ -40,7 +40,7 @@ This prepares the backend for a real classifier integration while keeping the cu
 
 - The API gains a new route under the existing `/ml` namespace.
 - The backend gains a new integration seam for ML inference without introducing heavy dependencies.
-- A future real model integration can be added by extending `get_vehicle_classifier()` (e.g., switch by environment variable or configuration) and by adding optional dependencies to `requirements-ml.txt`.
+- A future real model integration can be added by extending `get_vehicle_classifier()` (e.g., switch by environment variable or configuration) and by adding optional dependencies to the `ml` extra in `pyproject.toml` / `requirements-ml.txt`.
 
 ## Implementation inventory (what was changed)
 

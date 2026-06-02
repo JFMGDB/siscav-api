@@ -74,7 +74,7 @@ This repository delivers the **central API**: JWT authentication with refresh to
 
 ## Stack (quick reference)
 
-Pinned values in [`pyproject.toml`](../pyproject.toml): FastAPI, Uvicorn, SQLAlchemy 2.x, Alembic, Pydantic, Argon2, JWT (`python-jose`), SlowAPI. CI uses Python 3.13 with `requirements-dev.txt` (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
+Direct dependencies in [`pyproject.toml`](../pyproject.toml); CI uses Python 3.13 + `pip install -r requirements-dev.txt` (ADR 004). Local dev may use pip or uv — see [installation](setup/installation.md).
 
 ## Maintenance
 

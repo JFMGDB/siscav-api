@@ -16,8 +16,8 @@
 - CPython — GitHub Actions uses 3.13 (`.github/workflows/ci.yml`); `ruff.toml` sets `target-version = "py313"`.
 
 **Package Manager:**
-- pip — primary install path documented via `requirements.txt` / `requirements-dev.txt` and CI.
-- Lockfile: **Not detected** for Python (no `poetry.lock` / `Pipfile.lock`); versions are pinned in `pyproject.toml` `[project.dependencies]` and mirrored in `requirements.txt`.
+- **pip** — CI and default install: `requirements-dev.txt` (exported from `pyproject.toml`, ADR 004).
+- **uv** — optional local install: `uv sync --locked --extra dev`; `uv.lock` versioned for reproducibility when using uv.
 
 ## Frameworks
 
