@@ -50,7 +50,7 @@ Após criar as tabelas manualmente, sincronize o Alembic para que ele reconheça
 
 ```powershell
 # Carregar variáveis de ambiente
-Get-Content .env.supabase | ForEach-Object {
+Get-Content .env.local | ForEach-Object {
     if ($_ -match '^([^#][^=]+)=(.*)$') {
         [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
     }
@@ -72,7 +72,7 @@ Se você tem conectividade com o Supabase, pode executar as migrações diretame
 
 ### Passo 1: Verificar Configuração
 
-Certifique-se de que o arquivo `.env.supabase` está configurado corretamente:
+Certifique-se de que o arquivo `.env.local` está configurado corretamente:
 
 ```env
 DATABASE_URL=postgresql+psycopg2://postgres:[SUA_SENHA]@db.[ID_PROJETO].supabase.co:5432/postgres?sslmode=require
@@ -97,7 +97,7 @@ Ou manualmente:
 
 ```powershell
 # Carregar variáveis de ambiente
-Get-Content .env.supabase | ForEach-Object {
+Get-Content .env.local | ForEach-Object {
     if ($_ -match '^([^#][^=]+)=(.*)$') {
         [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
     }
@@ -121,7 +121,7 @@ alembic upgrade head
 Para desenvolvimento com **SQLite** (sem Supabase/PostgreSQL):
 
 - O schema vem **somente do Alembic**, não da importação da API.
-- Na **raiz do repositório** (onde está `alembic.ini`), defina `DATABASE_URL` (ex.: `sqlite:///./siscav_dev.db` ou Supabase), configure `PYTHONPATH` para a raiz se precisar, e execute **`alembic upgrade head`** antes de esperar tabelas ao subir o servidor. Para Supabase, carregue `.env.supabase` com `./scripts/run_migrations.sh` ou o equivalente PowerShell.
+- Na **raiz do repositório** (onde está `alembic.ini`), defina `DATABASE_URL` em `.env.local` (ex.: `sqlite:///./siscav_dev.db` ou Supabase), configure `PYTHONPATH` para a raiz se precisar, e execute **`alembic upgrade head`** antes de esperar tabelas ao subir o servidor. Para Supabase, use `./scripts/run_migrations.sh` ou `.\scripts\run_migrations.ps1` (carregam `.env.local` por padrão).
 - Testes continuam usando banco em memória com `create_all` em `tests/conftest.py`, separado do bootstrap de produção.
 
 ## Opção 3: Executar Scripts Individuais
@@ -148,7 +148,7 @@ Após executar qualquer uma das opções acima, verifique se tudo está funciona
 ```powershell
 # Testar conexão e listar tabelas
 $env:PYTHONPATH = $PWD
-Get-Content .env.supabase | ForEach-Object {
+Get-Content .env.local | ForEach-Object {
     if ($_ -match '^([^#][^=]+)=(.*)$') {
         [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
     }
@@ -173,7 +173,7 @@ db.close()
 
 ### Erro: "could not translate host name"
 
-- Verifique se o hostname no `.env.supabase` está correto
+- Verifique se o hostname no `.env.local` está correto
 - Verifique sua conexão com a internet
 - Tente executar via Supabase Studio (Opção 1)
 

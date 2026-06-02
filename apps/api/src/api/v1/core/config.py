@@ -2,7 +2,7 @@
 
 Resolução do DATABASE_URL (prioridade):
 1. Se a variável de ambiente `DATABASE_URL` estiver definida (não vazia), ela é usada como está.
-   - Ex.: `.env.supabase` — Supabase pooler session mode (`:5432`) com `sslmode=require`.
+   - Ex.: `.env.local` — Supabase pooler session mode (`:5432`) com `sslmode=require`.
    - Ex.: `sqlite:///./siscav_dev.db` para desenvolvimento local explícito.
 2. Caso contrário, se `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` estiverem
    presentes, a URL é montada com `POSTGRES_HOST` (padrão: `db`) e `POSTGRES_PORT` (5432).

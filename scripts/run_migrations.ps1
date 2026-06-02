@@ -1,7 +1,7 @@
 # Script to run Alembic migrations against Supabase
 # Usage (from repo root): .\scripts\run_migrations.ps1
 # Linux/macOS equivalent: ./scripts/run_migrations.sh
-# Loads .env.supabase so DATABASE_URL (including URL-encoded passwords) is set before alembic runs.
+# Loads .env.local so DATABASE_URL (including URL-encoded passwords) is set before alembic runs.
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot
@@ -12,10 +12,10 @@ Write-Host "=== Running Alembic Migrations ===" -ForegroundColor Cyan
 $env:PYTHONPATH = $RepoRoot
 Write-Host "PYTHONPATH configured: $env:PYTHONPATH" -ForegroundColor Gray
 
-# Load environment variables from .env.supabase
-if (Test-Path ".env.supabase") {
-    Write-Host "Loading environment variables from .env.supabase..." -ForegroundColor Yellow
-    Get-Content .env.supabase | ForEach-Object {
+# Load environment variables from .env.local
+if (Test-Path ".env.local") {
+    Write-Host "Loading environment variables from .env.local..." -ForegroundColor Yellow
+    Get-Content .env.local | ForEach-Object {
         if ($_ -match '^([^#][^=]+)=(.*)$') {
             $key = $matches[1].Trim()
             $value = $matches[2].Trim()
@@ -24,7 +24,7 @@ if (Test-Path ".env.supabase") {
         }
     }
 } else {
-    Write-Host "WARNING: .env.supabase file not found!" -ForegroundColor Red
+    Write-Host "WARNING: .env.local file not found!" -ForegroundColor Red
     Write-Host "Make sure the file exists and is configured correctly." -ForegroundColor Yellow
     exit 1
 }

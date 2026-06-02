@@ -184,59 +184,22 @@ O pipeline de CI (`.github/workflows/ci.yml`) usa **Python 3.13** e `pip install
 
 ### 4. Configurar Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto baseado nos exemplos fornecidos:
-
-**Opção A: Usando Supabase (Recomendado para produção)**
-
-Copie `env.supabase.example` para `.env.supabase` e configure:
-
-```bash
-cp env.supabase.example .env.supabase
-```
-
-Edite `.env.supabase` com suas credenciais do Supabase:
-
-```env
-DATABASE_URL=postgresql+psycopg2://postgres:[SUA_SENHA]@db.[ID_PROJETO].supabase.co:5432/postgres?sslmode=require
-
-SECRET_KEY=sua_chave_secreta_aleatoria_aqui
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-REFRESH_TOKEN_EXPIRE_DAYS=30
-```
-
-**Importante**: 
-- Substitua `[SUA_SENHA]` pela senha do seu banco Supabase
-- Substitua `[ID_PROJETO]` pelo ID do seu projeto Supabase
-- Se a senha contiver caracteres especiais, faça URL-encode (ex: `?` → `%3F`)
-- Gere uma `SECRET_KEY` forte (pode usar: `python -c "import secrets; print(secrets.token_urlsafe(32))"`)
-
-**Opção B: PostgreSQL Local (Docker)**
-
-Copie `env.local.example` para `.env.local`:
+Use **um único arquivo** `.env.local` na raiz do `siscav-api` (onde está `alembic.ini`). Não versione este arquivo (está no `.gitignore`). Em desenvolvimento, a API carrega automaticamente `.env` (opcional) e depois `.env.local`.
 
 ```bash
 cp env.local.example .env.local
 ```
 
-Edite `.env.local`:
+Preencha em `.env.local`:
 
-```env
-POSTGRES_USER=siscav_user
-POSTGRES_PASSWORD=siscav_password
-POSTGRES_DB=siscav_db
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
+1. **`DATABASE_URL`** — URI do Supabase (pooler session mode, porta `5432`, `sslmode=require`)
+2. **`SECRET_KEY`** — valor forte (`python -c "import secrets; print(secrets.token_hex(32))"`)
 
-SECRET_KEY=sua_chave_secreta_aleatoria_aqui
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=15
-REFRESH_TOKEN_EXPIRE_DAYS=30
-```
+O template segue o formato mínimo usado pelo time; não commite `.env.local`.
 
-**Opção C: SQLite (Desenvolvimento rápido)**
+**PostgreSQL local ou SQLite:** veja [env-alternatives.md](./env-alternatives.md).
 
-Defina `DATABASE_URL` apontando para SQLite (ex.: `sqlite:///./siscav_dev.db`). Você deve exportar a variável explicitamente; sem `DATABASE_URL` nem `POSTGRES_*`, a API falha na subida com erro de configuração.
+Sem `DATABASE_URL` nem `POSTGRES_*`, a API falha na subida com erro de configuração.
 
 Na **primeira execução**, o schema **não** é criado ao importar a API. Com o repositório como diretório atual (onde está `alembic.ini`), execute:
 
@@ -249,16 +212,15 @@ Depois inicie o servidor normalmente.
 
 ### 5. Carregar Variáveis de Ambiente
 
-**Windows (PowerShell):**
-```powershell
-# Para Supabase
-Get-Content .env.supabase | ForEach-Object {
-    if ($_ -match '^([^#][^=]+)=(.*)$') {
-        [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
-    }
-}
+Em **desenvolvimento**, não é obrigatório exportar manualmente: `python-dotenv` carrega `.env` e `.env.local` ao importar a configuração (exceto com `ENVIRONMENT=production|prod`).
 
-# Para PostgreSQL local
+Opcional (shell/IDE):
+
+```bash
+set -a && source .env.local && set +a   # Linux/macOS
+```
+
+```powershell
 Get-Content .env.local | ForEach-Object {
     if ($_ -match '^([^#][^=]+)=(.*)$') {
         [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
@@ -266,16 +228,7 @@ Get-Content .env.local | ForEach-Object {
 }
 ```
 
-**Linux/Mac:**
-```bash
-# Para Supabase
-export $(cat .env.supabase | grep -v '^#' | xargs)
-
-# Para PostgreSQL local
-export $(cat .env.local | grep -v '^#' | xargs)
-```
-
-**Carregamento automático (desenvolvimento):** `python-dotenv` já está em `requirements.txt`. Copie `env.supabase.example` para `.env.local` na raiz do `siscav-api` (onde está `alembic.ini`). Ao subir a API ou rodar Alembic, `.env` e `.env.local` são lidos automaticamente (exceto em `ENVIRONMENT=production|prod`). `source .env.local` continua opcional e compatível.
+Migrações: `./scripts/run_migrations.sh` ou `.\scripts\run_migrations.ps1` leem `.env.local` por padrão.
 
 ---
 

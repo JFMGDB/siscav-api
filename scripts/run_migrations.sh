@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run Alembic migrations against Supabase (or any DATABASE_URL in .env.supabase).
+# Run Alembic migrations (loads DATABASE_URL from .env.local by default).
 # Usage from repo root: ./scripts/run_migrations.sh
 
 set -euo pipefail
@@ -11,7 +11,7 @@ echo "=== Running Alembic Migrations ==="
 
 export PYTHONPATH="$REPO_ROOT"
 
-ENV_FILE="${ENV_FILE:-.env.supabase}"
+ENV_FILE="${ENV_FILE:-.env.local}"
 if [[ -f "$ENV_FILE" ]]; then
   echo "Loading environment from $ENV_FILE..."
   set -a

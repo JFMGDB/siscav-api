@@ -44,7 +44,7 @@ SISCAV (Sistema de Controle de Acesso de Veículos) is a **central HTTP API** th
 - **SQLite** — Fallback URL `sqlite:///./siscav_dev.db` when neither `DATABASE_URL` nor full `POSTGRES_*` set (`config.py`); Alembic default `sqlalchemy.url` in `alembic.ini` matches SQLite for local migration workflows.
 ## Configuration
 - **No pydantic-settings** — `Settings` reads `os.getenv` directly in `apps/api/src/api/v1/core/config.py`.
-- **Templates (do not commit secrets):** `env.local.example`, `env.supabase.example` document variable names; runtime also honors `DATABASE_URL`, `POSTGRES_*`, `SECRET_KEY`, `ALGORITHM`, token TTLs, `UPLOAD_DIR`, `MAX_FILE_SIZE_MB`, and `ENVIRONMENT` / `DEBUG` (see `main.py` for error detail behavior).
+- **Template (do not commit secrets):** `env.local.example` documents variable names; runtime also honors `DATABASE_URL`, `POSTGRES_*`, `SECRET_KEY`, `ALGORITHM`, token TTLs, `UPLOAD_DIR`, `MAX_FILE_SIZE_MB`, and `ENVIRONMENT` / `DEBUG` (see `main.py` for error detail behavior).
 - **`alembic.ini`** — Alembic entry config.
 - **`pyproject.toml`** — Project and tool configuration (pytest, coverage).
 ## Platform Requirements

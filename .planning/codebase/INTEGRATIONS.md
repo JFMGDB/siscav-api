@@ -24,7 +24,7 @@
 - SQLAlchemy engine: `create_engine(settings.database_url, pool_pre_ping=True)` in `apps/api/src/api/v1/db/session.py`.
 
 **Hosted Postgres (Supabase):**
-- Documented pattern: `DATABASE_URL` with `postgresql+psycopg2://...supabase.co:5432/...?sslmode=require` in `env.supabase.example`.
+- Documented pattern: `DATABASE_URL` with pooler session mode in `env.local.example`.
 - Manual DDL path: `db/sql/supabase/00_complete_setup.sql` (Supabase SQL Editor); Alembic remains the in-repo migration source under `apps/api/src/alembic/versions/`.
 
 **SQLite:**
@@ -72,7 +72,7 @@
 - `GATE_ACTUATOR_URL`, `GATE_ACTUATOR_TIMEOUT_SECONDS`, `IOT_DEVICE_DEMO_API`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`, `ALGORITHM`, `DEBUG`, `ENVIRONMENT`.
 
 **Secrets location:**
-- Operator-managed (env on host, platform secrets, or local `.env` files not committed); example files `env.local.example`, `env.supabase.example` illustrate shape only.
+- Operator-managed (env on host, platform secrets, or local `.env` files not committed); `env.local.example` illustrates variable shape only.
 
 ## Webhooks & Callbacks
 

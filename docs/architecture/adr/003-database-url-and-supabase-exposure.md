@@ -10,7 +10,7 @@ The SISCAV API connects to PostgreSQL (Supabase in production, Docker Postgres o
 
 We identified three related problems:
 
-1. **Silent SQLite fallback** when `DATABASE_URL` and `POSTGRES_*` were unset, masking misconfiguration (e.g. API started without loading `.env.supabase` while migrations targeted Supabase).
+1. **Silent SQLite fallback** when `DATABASE_URL` and `POSTGRES_*` were unset, masking misconfiguration (e.g. API started without loading `.env.local` while migrations targeted Supabase).
 2. **Alembic `ValueError: invalid interpolation syntax`** when `DATABASE_URL` contained URL-encoded passwords (`%3F`, etc.) because `env.py` wrote the URL into `configparser` via `set_main_option`.
 3. **Supabase security advisors** reported RLS disabled, full grants to `anon`/`authenticated`, and `pg_trgm` in `public`, exposing domain tables via PostgREST/GraphQL.
 
@@ -47,7 +47,7 @@ Skipped when `ENVIRONMENT` is `production` or `prod`. Tests and CI set `PYTHON_D
 - **Session mode** (pooler port `5432`) is the default for this project: suitable for FastAPI + Alembic on the same `DATABASE_URL`.
 - **Transaction mode** (port `6543`, `?pgbouncer=true`) is for high-volume/serverless; if adopted for the app, use a separate session-mode URL for migrations.
 
-See `env.supabase.example`.
+See `env.local.example`; other backends in `docs/setup/env-alternatives.md`.
 
 ### Public schema hardening (api_only)
 

@@ -54,7 +54,7 @@
 **Environment:**
 - Read via `os.getenv` in `apps/api/src/api/v1/core/config.py` (no `.env` file is read by code in-repo; operators use env files or host env).
 - Startup guard: `assert_production_secrets_valid()` in `apps/api/src/main.py` imports from `config.py` before app wiring.
-- Example templates: `env.local.example`, `env.supabase.example` (variable names and patterns only; do not commit secrets).
+- Example template: `env.local.example` (Supabase dev default); alternatives in `docs/setup/env-alternatives.md`.
 
 **Build:**
 - `pyproject.toml` — project metadata and tool config for pytest/coverage.
