@@ -1,0 +1,32 @@
+# Render Blueprint for SISCAV API (FastAPI).
+# Database: external Supabase Postgres via DATABASE_URL (set in Render dashboard).
+# Stable URL: assign a custom domain or use the default *.onrender.com service URL.
+services:
+  - type: web
+    name: siscav-api
+    runtime: python
+    plan: free
+    healthCheckPath: /api/v1/health
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn apps.api.src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHONPATH
+        value: .
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: ENVIRONMENT
+        value: production
+      - key: UPLOAD_DIR
+        value: /opt/uploads
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: DEVICE_INGEST_KEY
+        sync: false
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+    disk:
+      name: siscav-uploads
+      mountPath: /opt/uploads
+      sizeGB: 1

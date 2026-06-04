@@ -30,6 +30,14 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 _SUPPORTED_VEHICLE_CLASSIFIER_BACKENDS = frozenset({"stub"})
+_DEFAULT_BACKEND_CORS_ORIGINS = (
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
+)
 
 
 def _find_repo_root() -> Path:
@@ -93,6 +101,14 @@ def _read_upload_dir() -> str:
 
 def _read_max_file_size_mb() -> int:
     return int(os.getenv("MAX_FILE_SIZE_MB", "10"))
+
+
+def _read_backend_cors_origins() -> list[str]:
+    raw = (os.getenv("BACKEND_CORS_ORIGINS") or "").strip()
+    if not raw:
+        return list(_DEFAULT_BACKEND_CORS_ORIGINS)
+    origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return origins or list(_DEFAULT_BACKEND_CORS_ORIGINS)
 
 
 def _resolve_database_url() -> str:
@@ -224,6 +240,7 @@ class Settings(BaseModel):
     upload_dir: str = Field(default_factory=_read_upload_dir)
     max_file_size_mb: int = Field(default_factory=_read_max_file_size_mb)
     vehicle_classifier_backend: str = Field(default_factory=_read_vehicle_classifier_backend)
+    backend_cors_origins: list[str] = Field(default_factory=_read_backend_cors_origins)
 
 
 @lru_cache

@@ -2,7 +2,7 @@ import logging
 import os
 import traceback
 
-from apps.api.src.api.v1.core.config import assert_production_secrets_valid
+from apps.api.src.api.v1.core.config import assert_production_secrets_valid, get_settings
 
 assert_production_secrets_valid()
 
@@ -17,6 +17,7 @@ from apps.api.src.api.v1.api import api_router
 from apps.api.src.api.v1.core.limiter import limiter
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 description = """
 SISCAV API - Sistema de Controle de Acesso Veicular.
@@ -105,18 +106,9 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Configuração CORS
-# Permite requisições do frontend em desenvolvimento
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js default
-        "http://localhost:5173",  # Vite default
-        "http://localhost:8000",  # Frontend alternativo
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:8000",
-    ],
+    allow_origins=settings.backend_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

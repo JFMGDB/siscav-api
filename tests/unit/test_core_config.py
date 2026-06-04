@@ -107,6 +107,7 @@ class TestSettings:
             assert settings.environment == "development"
             assert settings.device_ingest_key is None
             assert settings.vehicle_classifier_backend == "stub"
+            assert "http://localhost:3000" in settings.backend_cors_origins
 
     def test_vehicle_classifier_backend_default(self):
         get_settings.cache_clear()
@@ -147,6 +148,20 @@ class TestSettings:
             assert settings.access_token_expire_minutes == 30
             assert settings.refresh_token_expire_days == 60
             assert settings.database_url == "postgresql://test:pass@host:5432/db"
+
+    def test_backend_cors_origins_from_env(self):
+        """Testa origens CORS configuráveis por variável de ambiente."""
+        get_settings.cache_clear()
+        env_vars = {
+            "DATABASE_URL": "sqlite:///:memory:",
+            "BACKEND_CORS_ORIGINS": ("https://siscav-web.vercel.app, https://preview.example.com"),
+        }
+        with patch.dict(os.environ, env_vars, clear=True):
+            settings = Settings()
+            assert settings.backend_cors_origins == [
+                "https://siscav-web.vercel.app",
+                "https://preview.example.com",
+            ]
 
     def test_settings_resolve_database_url_when_empty(self):
         """Testa que DATABASE_URL é resolvida quando vazia."""
