@@ -19,5 +19,11 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     id: UUID
+    is_admin: bool = Field(
+        ..., description="Operational administrator privileges for the client context."
+    )
+    is_superadmin: bool = Field(
+        ..., description="Siscav system superadministrator privileges."
+    )
     created_at: datetime
     updated_at: datetime

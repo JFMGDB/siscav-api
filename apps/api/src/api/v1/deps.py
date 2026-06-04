@@ -148,11 +148,23 @@ def get_current_user(
 def get_current_admin_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
-    """Usuário autenticado com privilégios de administrador."""
-    if not current_user.is_admin:
+    """Usuário autenticado com privilégios de administrador operacional."""
+    if not (current_user.is_admin or current_user.is_superadmin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Administrator privileges required",
+        )
+    return current_user
+
+
+def get_current_superadmin_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    """Usuário autenticado com privilégios de superadministrador do Siscav."""
+    if not current_user.is_superadmin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superadmin privileges required",
         )
     return current_user
 

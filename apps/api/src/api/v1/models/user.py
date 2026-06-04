@@ -20,6 +20,9 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="0", default=False
     )
+    is_superadmin: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="0", default=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

@@ -19,15 +19,31 @@ The SISCAV API is built with FastAPI and serves as the central backend. It manag
 - Remote gate control
 - Secure access to uploaded images
 
-## First Administrator
+## First Superadmin
 
-Accounts created via `POST /api/v1/register` have `is_admin = false`. To promote the first operator (PostgreSQL or SQLite):
+User registration (`POST /api/v1/register`) requires a **Bearer JWT** from a Siscav superadministrator (`is_superadmin = true`). Public self-registration is not supported.
+
+Provision the first superadmin via `python scripts/seed_demo.py` or manually (PostgreSQL or SQLite):
+
+```sql
+UPDATE users SET is_superadmin = 1, is_admin = 1 WHERE email = 'your-email@example.com';
+```
+
+On SQLite use `1` or `true` depending on your SQL client. After migration `20260604_0003`, the `is_superadmin` column exists on all new databases.
+
+### Role separation
+
+| Role | Field | Capabilities |
+|------|-------|--------------|
+| Regular user | both false | Authenticated access to operational features |
+| Operational admin (client) | `is_admin = true` | Gate control, log images, etc. |
+| Siscav superadmin (system team) | `is_superadmin = true` | Create user accounts; superadmin also satisfies admin checks |
+
+To promote a user to operational admin only:
 
 ```sql
 UPDATE users SET is_admin = 1 WHERE email = 'your-email@example.com';
 ```
-
-On SQLite use `1` or `true` depending on your SQL client. After migration `20260404_0002`, the `is_admin` column exists on all new databases.
 
 ## Whitelist (Authorized Plates)
 

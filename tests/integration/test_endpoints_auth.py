@@ -121,17 +121,55 @@ class TestAuthEndpoints:
                 refresh = response.json()["refresh_token"]
         assert last_status == 429
 
-    def test_register_then_login_returns_token_pair(self, client: TestClient):
-        """AUTH-01: registro com email/senha e login OAuth2 retornam access + refresh."""
+    def test_register_without_token_returns_401(self, client: TestClient):
+        """Registro público não é permitido."""
+        email = f"register-{uuid.uuid4().hex[:12]}@example.com"
+        response = client.post(
+            "/api/v1/register",
+            json={"email": email, "password": "registerpass123"},
+        )
+        assert response.status_code == 401
+
+    def test_register_as_regular_user_returns_403(
+        self, client: TestClient, auth_token: str
+    ):
+        """Usuário autenticado sem superadmin não pode registrar."""
+        email = f"register-{uuid.uuid4().hex[:12]}@example.com"
+        response = client.post(
+            "/api/v1/register",
+            json={"email": email, "password": "registerpass123"},
+            headers={"Authorization": f"Bearer {auth_token}"},
+        )
+        assert response.status_code == 403
+
+    def test_register_as_operational_admin_returns_403(
+        self, client: TestClient, admin_auth_token: str
+    ):
+        """Administrador operacional não pode registrar usuários."""
+        email = f"register-{uuid.uuid4().hex[:12]}@example.com"
+        response = client.post(
+            "/api/v1/register",
+            json={"email": email, "password": "registerpass123"},
+            headers={"Authorization": f"Bearer {admin_auth_token}"},
+        )
+        assert response.status_code == 403
+
+    def test_register_as_superadmin_then_login_returns_token_pair(
+        self, client: TestClient, superadmin_auth_token: str
+    ):
+        """Superadmin registra usuário e o novo usuário consegue fazer login."""
         email = f"register-{uuid.uuid4().hex[:12]}@example.com"
         password = "registerpass123"
 
         reg = client.post(
             "/api/v1/register",
             json={"email": email, "password": password},
+            headers={"Authorization": f"Bearer {superadmin_auth_token}"},
         )
         assert reg.status_code == 201
         assert reg.json()["email"] == email
+        assert reg.json()["is_admin"] is False
+        assert reg.json()["is_superadmin"] is False
 
         login = client.post(
             "/api/v1/login/access-token",

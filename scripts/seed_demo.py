@@ -5,12 +5,12 @@ Usage (from repo root with PYTHONPATH=.):
     python scripts/seed_demo.py
 
 Creates:
-1. An admin user (admin@siscav.com / admin123) with is_admin=true
+1. A superadmin user (admin@siscav.com / admin123) with is_superadmin=true and is_admin=true
 2. Sample plates in the whitelist
 
-If the user already exists without admin privileges, promote manually:
-UPDATE users SET is_admin = 1 WHERE email = 'admin@siscav.com';
-(see docs/api/README.md — First Administrator section).
+If the user already exists without superadmin privileges, promote manually:
+UPDATE users SET is_superadmin = 1, is_admin = 1 WHERE email = 'admin@siscav.com';
+(see docs/api/README.md — First Superadmin section).
 """
 
 import sys
@@ -51,14 +51,20 @@ DEMO_PLATES = [
 
 
 def seed_user(db):
-    """Create admin user if it does not exist; promote existing demo user to admin."""
+    """Create superadmin user if it does not exist; promote existing demo user."""
     existing = db.query(User).filter(User.email == DEMO_USER["email"]).first()
     if existing:
+        changed = False
+        if not existing.is_superadmin:
+            existing.is_superadmin = True
+            changed = True
         if not existing.is_admin:
             existing.is_admin = True
+            changed = True
+        if changed:
             db.commit()
             db.refresh(existing)
-            print(f"[OK] User promoted to admin: {DEMO_USER['email']}")
+            print(f"[OK] User promoted to superadmin: {DEMO_USER['email']}")
         else:
             print(f"[OK] User already exists: {DEMO_USER['email']}")
         return existing
@@ -68,6 +74,7 @@ def seed_user(db):
         email=DEMO_USER["email"],
         hashed_password=get_password_hash(DEMO_USER["password"]),
         is_admin=True,
+        is_superadmin=True,
     )
     if is_sqlite:
         user.created_at = now

@@ -12,7 +12,7 @@ from sqlalchemy.pool import StaticPool
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.security import create_access_token, get_password_hash
 from apps.api.src.api.v1.db.base import Base
-from apps.api.src.api.v1.deps import get_current_user
+from apps.api.src.api.v1.deps import get_current_admin_user, get_current_superadmin_user, get_current_user
 from apps.api.src.api.v1.models.user import User
 
 
@@ -89,4 +89,51 @@ class TestGetCurrentUser:
         malformed_token = "not.a.valid.jwt.token"
         with pytest.raises(HTTPException) as exc_info:
             get_current_user(token=malformed_token, db=db_session)
+        assert exc_info.value.status_code == 403
+
+
+class TestGetCurrentAdminUser:
+    """Testes para a dependência get_current_admin_user."""
+
+    def test_operational_admin_allowed(self, db_session, test_user):
+        test_user.is_admin = True
+        db_session.commit()
+        db_session.refresh(test_user)
+        user = get_current_admin_user(current_user=test_user)
+        assert user.id == test_user.id
+
+    def test_superadmin_allowed(self, db_session, test_user):
+        test_user.is_superadmin = True
+        db_session.commit()
+        db_session.refresh(test_user)
+        user = get_current_admin_user(current_user=test_user)
+        assert user.id == test_user.id
+
+    def test_regular_user_forbidden(self, test_user):
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_admin_user(current_user=test_user)
+        assert exc_info.value.status_code == 403
+
+
+class TestGetCurrentSuperadminUser:
+    """Testes para a dependência get_current_superadmin_user."""
+
+    def test_superadmin_allowed(self, db_session, test_user):
+        test_user.is_superadmin = True
+        db_session.commit()
+        db_session.refresh(test_user)
+        user = get_current_superadmin_user(current_user=test_user)
+        assert user.id == test_user.id
+
+    def test_operational_admin_forbidden(self, db_session, test_user):
+        test_user.is_admin = True
+        db_session.commit()
+        db_session.refresh(test_user)
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_superadmin_user(current_user=test_user)
+        assert exc_info.value.status_code == 403
+
+    def test_regular_user_forbidden(self, test_user):
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_superadmin_user(current_user=test_user)
         assert exc_info.value.status_code == 403

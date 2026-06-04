@@ -14,7 +14,12 @@ from apps.api.src.api.v1.controllers.auth_controller import AuthController
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.limiter import limiter
 from apps.api.src.api.v1.core.security import create_access_token, create_refresh_token
-from apps.api.src.api.v1.deps import get_auth_controller, get_current_user, get_db
+from apps.api.src.api.v1.deps import (
+    get_auth_controller,
+    get_current_superadmin_user,
+    get_current_user,
+    get_db,
+)
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.user_repository import UserRepository
 from apps.api.src.api.v1.schemas.password_reset import (
@@ -226,15 +231,17 @@ def register(
     request: Request,  # noqa: ARG001
     user_data: UserCreate,
     auth_controller: Annotated[AuthController, Depends(get_auth_controller)],
+    current_user: Annotated[User, Depends(get_current_superadmin_user)],
 ) -> UserRead:
     """
     Registra um novo usuário no sistema.
 
+    **Requer JWT de superadministrador do Siscav** (`is_superadmin`).
+
     Cria uma nova conta de usuário com email e senha.
     O email deve ser único e a senha deve ter no mínimo 8 caracteres.
 
-    **Rate Limiting:** Máximo de 3 tentativas por minuto por IP
-    para prevenir criação de contas em massa.
+    **Rate Limiting:** Máximo de 3 tentativas por minuto por IP.
 
     **Validações:**
     - Email deve ser válido e único
@@ -243,6 +250,9 @@ def register(
     **Resposta:**
     - Retorna os dados do usuário criado (sem senha)
     - Status 201 Created em caso de sucesso
+    - Status 401 Unauthorized sem token
+    - Status 403 Forbidden sem privilégio de superadmin
     - Status 409 Conflict se o email já estiver em uso
     """
+    _ = current_user
     return auth_controller.register_user(user_data)

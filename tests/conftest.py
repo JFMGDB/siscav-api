@@ -29,6 +29,8 @@ TEST_USER_EMAIL = "test@example.com"
 TEST_USER_PASSWORD = "testpassword123"
 TEST_ADMIN_EMAIL = "admin-test@example.com"
 TEST_ADMIN_PASSWORD = "adminpassword123"
+TEST_SUPERADMIN_EMAIL = "superadmin-test@example.com"
+TEST_SUPERADMIN_PASSWORD = "superadminpassword123"
 TEST_DEVICE_INGEST_KEY = "test-device-ingest-key"
 
 # Setup test DB
@@ -102,7 +104,7 @@ def test_user(db_session: Session) -> User:
 
 @pytest.fixture
 def admin_user(db_session: Session) -> User:
-    """Usuário com is_admin para rotas privilegiadas."""
+    """Usuário com is_admin para rotas privilegiadas operacionais."""
     existing = db_session.query(User).filter(User.email == TEST_ADMIN_EMAIL).first()
     if existing:
         return existing
@@ -111,6 +113,26 @@ def admin_user(db_session: Session) -> User:
         email=TEST_ADMIN_EMAIL,
         hashed_password=get_password_hash(TEST_ADMIN_PASSWORD),
         is_admin=True,
+        is_superadmin=False,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def superadmin_user(db_session: Session) -> User:
+    """Usuário com is_superadmin para criação de contas."""
+    existing = db_session.query(User).filter(User.email == TEST_SUPERADMIN_EMAIL).first()
+    if existing:
+        return existing
+    user = User(
+        id=uuid.uuid4(),
+        email=TEST_SUPERADMIN_EMAIL,
+        hashed_password=get_password_hash(TEST_SUPERADMIN_PASSWORD),
+        is_admin=True,
+        is_superadmin=True,
     )
     db_session.add(user)
     db_session.commit()
@@ -128,3 +150,9 @@ def auth_token(test_user: User) -> str:
 def admin_auth_token(admin_user: User) -> str:
     """Token JWT para usuário administrador."""
     return create_access_token(admin_user.id)
+
+
+@pytest.fixture
+def superadmin_auth_token(superadmin_user: User) -> str:
+    """Token JWT para superadministrador."""
+    return create_access_token(superadmin_user.id)
