@@ -62,19 +62,13 @@ Optamos pelo **FastAPI** devido a:
 *   **CORS:** Configurado para permitir requisições do frontend em desenvolvimento (localhost nas portas 3000, 5173, 8000).
 
 ### 4.4. Integração IoT (Câmera)
-*   **Dispositivo de Captura:** O sistema utiliza uma câmera conectada via **Bluetooth** (ex: smartphone).
-*   **Gerenciamento via Frontend:** A conexão e o pareamento com a câmera são realizados diretamente pela interface web. O usuário pode buscar dispositivos próximos e conectar-se sem necessidade de configuração manual no sistema operacional/terminal.
-*   **Processamento:** O endpoint IoT recebe o stream de vídeo após a conexão estabelecida.
+*   **Dispositivo de Captura:** Câmera USB ou URL de stream na rede, configurada no frontend (browser).
+*   **Ingestão:** `POST /api/v1/access_logs/` recebe imagem + placa (multipart), com `X-Device-Key` quando `DEVICE_INGEST_KEY` está definido.
 
 ## 5. Recursos da API
 
 ### Autenticação (`/auth`)
 *   **POST /login/access-token**: Endpoint para troca de credenciais (email/senha) por token JWT.
-
-### Gestão de Dispositivos (`/devices`)
-Endpoints para gerenciamento da conexão Bluetooth (funcionalidade de apresentação).
-*   **GET /scan**: Listar dispositivos Bluetooth visíveis.
-*   **POST /connect**: Conectar à câmera selecionada.
 
 ### Whitelist (`/whitelist`)
 Gerenciamento de placas autorizadas. Acesso restrito a administradores autenticados.

@@ -17,14 +17,14 @@
 **HTTP / presentation (FastAPI routers):**
 - Purpose: Route definitions, OpenAPI metadata, `Query`/`Form`/`File` binding, and composing `Depends` for auth and controllers.
 - Location: `apps/api/src/api/v1/endpoints/`
-- Contains: One `APIRouter` per domain file (`auth.py`, `whitelist.py`, `access_logs.py`, `gate_control.py`, `devices.py`, `health.py`).
+- Contains: One `APIRouter` per domain file (`auth.py`, `whitelist.py`, `access_logs.py`, `gate_control.py`, `health.py`).
 - Depends on: Controllers, `deps`, Pydantic schemas for response models.
 - Used by: `apps/api/src/api/v1/api.py` aggregates routers into `api_router`.
 
 **Application / domain orchestration (“controllers”):**
 - Purpose: Business rules, HTTP-facing errors (`HTTPException`), coordination of multiple repositories, file uploads under `upload_dir`, and external HTTP calls (gate actuator).
 - Location: `apps/api/src/api/v1/controllers/`
-- Contains: `AuthController`, `PlateController`, `AccessLogController`, `GateController`, `DeviceController`.
+- Contains: `AuthController`, `PlateController`, `AccessLogController`, `GateController`.
 - Depends on: `Session`, `get_settings()`, repositories (as class references), `apps/api/src/api/v1/utils/plate.py` for plate normalization.
 - Used by: Endpoints via `Depends(get_*_controller)` from `deps.py`.
 
@@ -87,11 +87,11 @@
 - Pattern: SQLAlchemy 2.0 `DeclarativeBase` + custom `TypeDecorator`.
 
 **`Settings` / `get_settings()` (`core/config.py`):**
-- Purpose: Centralized, cached configuration (database URL resolution order, JWT parameters, upload limits, feature flags like `iot_device_demo_api`).
+- Purpose: Centralized, cached configuration (database URL resolution order, JWT parameters, upload limits).
 - Pattern: Pydantic `BaseModel` built from environment variables; `assert_production_secrets_valid()` guards production startup.
 
 **`api_router` (`api/v1/api.py`):**
-- Purpose: Single composition root for v1 routes with consistent prefixes (`/whitelist`, `/access_logs`, `/gate_control`, `/devices`) and tags for OpenAPI.
+- Purpose: Single composition root for v1 routes with consistent prefixes (`/whitelist`, `/access_logs`, `/gate_control`) and tags for OpenAPI.
 
 **`deps.py` dependency graph:**
 - Purpose: Reusable security (`OAuth2PasswordBearer` token URL `/api/v1/login/access-token`), admin checks, device ingest policy, and controller construction.

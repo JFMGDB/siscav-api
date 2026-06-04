@@ -17,7 +17,6 @@ from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
-from apps.api.src.api.v1.controllers.device_controller import DeviceController
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.core.config import get_settings
@@ -220,28 +219,3 @@ def get_classifier() -> VehicleClassifier:
     """Vehicle classifier abstraction for ML integration."""
 
     return get_vehicle_classifier()
-
-
-def verify_device_demo_api_enabled() -> None:
-    """Bloqueia rotas de demo de dispositivos quando desativadas (produção por padrão)."""
-    if not get_settings().iot_device_demo_api:
-        raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail=(
-                "API de demonstração de dispositivos desativada (IOT_DEVICE_DEMO_API). "
-                "Bluetooth real é feito no navegador via Web Bluetooth, não neste servidor."
-            ),
-        )
-
-
-def get_device_controller() -> DeviceController:
-    """
-    Dependência para obter uma instância de DeviceController.
-
-    Nota: DeviceController não requer sessão de banco de dados,
-    pois apenas orquestra operações de dispositivos IoT (simuladas).
-
-    Returns:
-        DeviceController: Instância do controller de dispositivos
-    """
-    return DeviceController()

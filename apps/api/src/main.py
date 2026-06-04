@@ -38,7 +38,6 @@ Esta API fornece o backend para o sistema SISCAV, integrando dispositivos IoT (c
 *   **OCR opcional (frame → candidatos de placa)**: `POST /api/v1/ml/recognize-plate` (multipart, JPEG/PNG/WebP) exige **Bearer JWT**; sem pacotes ML instalados (`requirements-ml.txt`) responde **503**.
 *   **Classificação veicular (frame → categoria)**: `POST /api/v1/ml/classify-vehicle` (multipart: `file` + `plate_hint` opcional) exige **Bearer JWT**; backend **stub** funciona sem ML; modelo real futuro via `VEHICLE_CLASSIFIER_BACKEND`.
 *   **Gate**: `POST /api/v1/gate_control/trigger` — resposta com `integration` **simulated** (sem `GATE_ACTUATOR_URL`) ou **live** (POST ao atuador com 2xx); falhas do atuador → 502/503.
-*   **Dispositivos (`/devices/`)**: rotas de **demonstração** (`demo: true` nas respostas) ou **501** quando `IOT_DEVICE_DEMO_API` está desligado (padrão em produção); Bluetooth real no cliente via **Web Bluetooth**.
 
 ## Tecnologias
 
@@ -52,16 +51,6 @@ app = FastAPI(
     title="Sistema de Controle de Acesso Veicular (SISCAV) API",
     description=description,
     version="1.0.0",
-    openapi_tags=[
-        {
-            "name": "devices",
-            "description": (
-                "Demonstração: dados simulados (`demo: true`). Com `IOT_DEVICE_DEMO_API=false` "
-                "(padrão em produção) estas rotas respondem 501. Integração Bluetooth real é no "
-                "navegador (Web Bluetooth), não no servidor."
-            ),
-        },
-    ],
     contact={
         "name": "Equipe SISCAV",
         "email": "contato@siscav.com.br",

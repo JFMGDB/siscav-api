@@ -170,15 +170,6 @@ def _read_gate_actuator_timeout_seconds() -> int:
     return max(1, min(n, 120))
 
 
-def _read_iot_device_demo_api() -> bool:
-    """Demo Bluetooth HTTP API: off by default in production."""
-    explicit = os.getenv("IOT_DEVICE_DEMO_API")
-    if explicit is not None and explicit.strip() != "":
-        return explicit.strip().lower() in ("1", "true", "yes", "on")
-    env = _read_environment()
-    return env not in ("production", "prod")
-
-
 def _read_vehicle_classifier_backend() -> str:
     """Vehicle classifier backend id (default: stub until a real model is integrated)."""
     raw = (os.getenv("VEHICLE_CLASSIFIER_BACKEND") or "stub").strip().lower()
@@ -226,7 +217,6 @@ class Settings(BaseModel):
     device_ingest_key: str | None = Field(default_factory=_read_device_ingest_key)
     gate_actuator_url: str | None = Field(default_factory=_read_gate_actuator_url)
     gate_actuator_timeout_seconds: int = Field(default_factory=_read_gate_actuator_timeout_seconds)
-    iot_device_demo_api: bool = Field(default_factory=_read_iot_device_demo_api)
     secret_key: str = Field(default_factory=_read_secret_key)
     algorithm: str = Field(default_factory=_read_algorithm)
     access_token_expire_minutes: int = Field(default_factory=_read_access_token_expire_minutes)

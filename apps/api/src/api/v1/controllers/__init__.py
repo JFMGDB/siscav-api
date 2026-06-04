@@ -6,14 +6,12 @@ Os controllers orquestram operações entre repositories e aplicam regras de neg
 
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
-from apps.api.src.api.v1.controllers.device_controller import DeviceController
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 
 __all__ = [
     "AccessLogController",
     "AuthController",
-    "DeviceController",
     "GateController",
     "PlateController",
 ]

@@ -54,11 +54,11 @@ siscav-api/                          # Repository root (Python project: pyprojec
 
 **`apps/api/src/api/v1/endpoints/`:**
 - Purpose: HTTP route modules; each file defines one `APIRouter`.
-- Key files: `auth.py`, `whitelist.py`, `access_logs.py`, `gate_control.py`, `devices.py`, `health.py`, `plate_recognition.py`, `classification.py`, `__init__.py` (re-exports routers)
+- Key files: `auth.py`, `whitelist.py`, `access_logs.py`, `gate_control.py`, `health.py`, `plate_recognition.py`, `classification.py`, `__init__.py` (re-exports routers)
 
 **`apps/api/src/api/v1/controllers/`:**
 - Purpose: Per-domain orchestration and rules invoked from endpoints.
-- Key files: `auth_controller.py`, `plate_controller.py`, `access_log_controller.py`, `gate_controller.py`, `device_controller.py`
+- Key files: `auth_controller.py`, `plate_controller.py`, `access_log_controller.py`, `gate_controller.py`
 
 **`apps/api/src/api/v1/repositories/`:**
 - Purpose: Database access helpers (SQLAlchemy 2.x style queries).
@@ -70,7 +70,7 @@ siscav-api/                          # Repository root (Python project: pyprojec
 
 **`apps/api/src/api/v1/schemas/`:**
 - Purpose: Pydantic models for API I/O and token payloads.
-- Key files: `user.py`, `token.py`, `authorized_plate.py`, `access_log.py`, `gate_control.py`, `device.py`
+- Key files: `user.py`, `token.py`, `authorized_plate.py`, `access_log.py`, `gate_control.py`
 
 **`apps/api/src/api/v1/core/`:**
 - Purpose: Configuration, JWT/password helpers, shared limiter instance.

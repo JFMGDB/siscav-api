@@ -9,7 +9,6 @@ from fastapi import APIRouter
 from apps.api.src.api.v1.endpoints.access_logs import router as access_logs_router
 from apps.api.src.api.v1.endpoints.auth import router as auth_router
 from apps.api.src.api.v1.endpoints.classification import router as classification_router
-from apps.api.src.api.v1.endpoints.devices import router as devices_router
 from apps.api.src.api.v1.endpoints.gate_control import router as gate_control_router
 from apps.api.src.api.v1.endpoints.health import router as health_router
 from apps.api.src.api.v1.endpoints.plate_recognition import router as plate_recognition_router
@@ -22,9 +21,6 @@ api_router.include_router(health_router)
 
 # Autenticação
 api_router.include_router(auth_router, tags=["login"])
-
-# Dispositivos IoT
-api_router.include_router(devices_router, prefix="/devices", tags=["devices"])
 
 # Gerenciamento de whitelist (placas autorizadas)
 api_router.include_router(whitelist_router, prefix="/whitelist", tags=["whitelist"])

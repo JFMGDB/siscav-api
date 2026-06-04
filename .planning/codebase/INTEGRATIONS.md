@@ -13,10 +13,6 @@
 - Devices call `POST /api/v1/access_logs/` with multipart image + form field `plate` (`apps/api/src/api/v1/endpoints/access_logs.py`).
 - Optional shared secret: header `X-Device-Key` must match `DEVICE_INGEST_KEY` when that env var is set; in development without a key, ingest may be allowed (`apps/api/src/api/v1/deps.py` `verify_device_ingest_key`).
 
-**Demo “device” HTTP API:**
-- Routes under `/api/v1/devices/` return simulated Bluetooth data when `IOT_DEVICE_DEMO_API` is true; in `production`/`prod` the default is off unless explicitly enabled (`apps/api/src/api/v1/core/config.py`, `apps/api/src/api/v1/endpoints/devices.py`).
-- Real Bluetooth is documented as browser-side (Web Bluetooth), not server-side.
-
 ## Data Storage
 
 **Databases:**
@@ -69,7 +65,7 @@
 
 **Common optional vars:**
 - `DEVICE_INGEST_KEY` — required behavior for non-dev when set; see `env.local.example`.
-- `GATE_ACTUATOR_URL`, `GATE_ACTUATOR_TIMEOUT_SECONDS`, `IOT_DEVICE_DEMO_API`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`, `ALGORITHM`, `DEBUG`, `ENVIRONMENT`.
+- `GATE_ACTUATOR_URL`, `GATE_ACTUATOR_TIMEOUT_SECONDS`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`, `ALGORITHM`, `DEBUG`, `ENVIRONMENT`.
 
 **Secrets location:**
 - Operator-managed (env on host, platform secrets, or local `.env` files not committed); `env.local.example` illustrates variable shape only.

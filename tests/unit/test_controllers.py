@@ -13,7 +13,6 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
-from apps.api.src.api.v1.controllers.device_controller import DeviceController
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.core.security import get_password_hash
@@ -25,9 +24,6 @@ from apps.api.src.api.v1.repositories.authorized_plate_repository import (
 )
 from apps.api.src.api.v1.schemas.access_log import AccessStatus
 from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
-from apps.api.src.api.v1.schemas.device import ConnectionRequest
-
-
 @pytest.fixture
 def db_session():
     """Cria uma sessão de banco de dados em memória para testes."""
@@ -342,34 +338,3 @@ class TestGateController:
         result = controller.trigger_gate()
         assert result.integration == "simulated"
         assert len(result.message) > 0
-
-
-class TestDeviceController:
-    """Testes para DeviceController."""
-
-    def test_scan_bluetooth_devices(self):
-        """Testa escaneamento de dispositivos Bluetooth."""
-        controller = DeviceController()
-        devices = controller.scan_bluetooth_devices()
-        assert isinstance(devices, list)
-        assert len(devices) > 0
-
-    def test_connect_device(self):
-        """Testa conexão com dispositivo."""
-        controller = DeviceController()
-        request = ConnectionRequest(device_id="test_device")
-        response = controller.connect_device(request)
-        assert response.status == "connected"
-        assert response.device_id == "test_device"
-
-    def test_get_connection_status(self):
-        """Testa obtenção de status de conexão."""
-        controller = DeviceController()
-        status = controller.get_connection_status()
-        assert status.connected is False
-
-    def test_disconnect_device(self):
-        """Testa desconexão de dispositivo."""
-        controller = DeviceController()
-        response = controller.disconnect_device()
-        assert response.status == "disconnected"

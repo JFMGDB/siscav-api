@@ -41,7 +41,7 @@ Deferred — not part of this bugfix milestone.
 
 ### IoT / hardware
 
-- Real gate actuator and device Bluetooth integration (currently stubbed/demo controllers).
+- Real gate actuator integration (simulated when `GATE_ACTUATOR_URL` is unset).
 
 ### ML pipeline
 

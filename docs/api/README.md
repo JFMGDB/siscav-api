@@ -53,13 +53,6 @@ Base path: **`/api/v1/whitelist/`**. All operations require a valid **`Authoriza
 - When set, the API **POST**s `{"action": "open"}` and only considers success on **HTTP 2xx** from the actuator (`integration: "live"`). Network or HTTP errors return **502**/**503** with explicit `detail`.
 - **`GATE_ACTUATOR_TIMEOUT_SECONDS`** (optional, default 5): timeout in seconds.
 
-## Devices (Bluetooth) — Demo
-
-Routes under **`/api/v1/devices/`** (scan, connect, status, disconnect) are **simulation** for demos: each response includes **`demo: true`**.
-
-- **`IOT_DEVICE_DEMO_API`:** in **`ENVIRONMENT=production`** / **`prod`** the default is **off** → **501** responses (real Bluetooth is in the **browser** via Web Bluetooth, not on this server).
-- To enable explicitly: `IOT_DEVICE_DEMO_API=true` (or omit in development, where the default is on).
-
 ## Applied Principles
 
 - **SOLID:** separation of concerns across layers (endpoints, controllers, repositories, schemas, models)

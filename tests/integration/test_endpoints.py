@@ -255,31 +255,3 @@ class TestGateControlEndpoints:
         """Testa acionamento do portão sem autenticação."""
         response = client.post("/api/v1/gate_control/trigger")
         assert response.status_code == 401
-
-
-class TestDeviceEndpoints:
-    """Testes para endpoints de dispositivos."""
-
-    def test_scan_devices(self, client: TestClient, auth_token: str):
-        """Testa escaneamento de dispositivos."""
-        headers = {"Authorization": f"Bearer {auth_token}"}
-        response = client.get("/api/v1/devices/scan", headers=headers)
-        assert response.status_code == 200
-        devices = response.json()
-        assert isinstance(devices, list)
-
-    def test_get_connection_status(self, client: TestClient, auth_token: str):
-        """Testa obtenção de status de conexão."""
-        headers = {"Authorization": f"Bearer {auth_token}"}
-        response = client.get("/api/v1/devices/status", headers=headers)
-        assert response.status_code == 200
-        status = response.json()
-        assert "connected" in status
-
-    def test_disconnect_device(self, client: TestClient, auth_token: str):
-        """Testa desconexão de dispositivo."""
-        headers = {"Authorization": f"Bearer {auth_token}"}
-        response = client.post("/api/v1/devices/disconnect", headers=headers)
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "disconnected"

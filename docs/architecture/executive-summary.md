@@ -91,7 +91,6 @@ Responsabilidade: Roteamento HTTP e validação de entrada/saída.
 - `whitelist.py`: CRUD de placas autorizadas
 - `access_logs.py`: Registro e consulta de logs de acesso
 - `gate_control.py`: Controle remoto do portão
-- `devices.py`: Gerenciamento de dispositivos IoT
 - `health.py`: Health check da API
 
 ## Tecnologias e Ferramentas

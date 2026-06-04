@@ -49,7 +49,7 @@ This document is the **authoritative inventory** of known issues for the current
 
 These are **stubs or missing features**, not regressions. Track separately if you open a feature milestone:
 
-- `GateController` / `DeviceController` return mock/demo responses without real hardware I/O.
+- `GateController` returns simulated responses without real hardware I/O when `GATE_ACTUATOR_URL` is unset.
 - Server-side OCR (`POST /api/v1/ml/recognize-plate`) requires optional `requirements-ml.txt` dependencies.
 
 ---

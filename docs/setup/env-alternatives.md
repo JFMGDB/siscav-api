@@ -49,6 +49,5 @@ Não estão no template mínimo; veja comentários históricos em commits antigo
 | Variável | Uso |
 |----------|-----|
 | `GATE_ACTUATOR_URL` | URL do atuador do portão |
-| `IOT_DEVICE_DEMO_API` | API demo Bluetooth |
 | `VEHICLE_CLASSIFIER_BACKEND` | Classificador (`stub` padrão) |
 | `UPLOAD_DIR` / `MAX_FILE_SIZE_MB` | Uploads |
