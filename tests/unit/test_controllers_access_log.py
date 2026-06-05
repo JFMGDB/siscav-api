@@ -2,6 +2,7 @@
 
 import io
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException, UploadFile, status
@@ -35,11 +36,17 @@ class TestAccessLogController:
         )
 
         controller = AccessLogController(db_session)
-        result = controller.create_access_log(plate="ABC-1234", file=file)
+        result = controller.create_access_log(
+            plate="ABC-1234",
+            file=file,
+            ingest_via_device=True,
+        )
 
         assert result.status == AccessStatus.Authorized
         assert result.plate_string_detected == "ABC-1234"
         assert result.authorized_plate_id == plate.id
+        assert result.is_automatic is True
+        assert result.ocr_success is True
         assert result.image_storage_key is not None
 
         # Verificar que arquivo foi salvo
@@ -61,11 +68,17 @@ class TestAccessLogController:
         )
 
         controller = AccessLogController(db_session)
-        result = controller.create_access_log(plate="XYZ-9999", file=file)
+        result = controller.create_access_log(
+            plate="XYZ-9999",
+            file=file,
+            ingest_via_device=True,
+        )
 
         assert result.status == AccessStatus.Denied
         assert result.plate_string_detected == "XYZ-9999"
         assert result.authorized_plate_id is None
+        assert result.is_automatic is False
+        assert result.ocr_success is True
         assert result.image_storage_key is not None
 
         # Limpar
@@ -200,3 +213,43 @@ class TestAccessLogController:
 
         denied_count = controller.count(status_filter=AccessStatus.Denied)
         assert denied_count == 1
+
+    def test_create_access_log_manual_ingest_not_automatic(self, db_session: Session):
+        AuthorizedPlateRepository.create(
+            db_session,
+            plate="ABC-1234",
+            normalized_plate="ABC1234",
+        )
+        file = UploadFile(
+            filename="test.jpg",
+            file=io.BytesIO(b"fake image content"),
+            headers={"content-type": "image/jpeg"},
+        )
+        controller = AccessLogController(db_session)
+        result = controller.create_access_log(
+            plate="ABC-1234",
+            file=file,
+            ingest_via_device=False,
+        )
+        assert result.status == AccessStatus.Authorized
+        assert result.is_automatic is False
+        Path(result.image_storage_key).unlink()
+
+    def test_whitelist_from_denied_log(self, db_session: Session):
+        denied = AccessLogRepository.create(
+            db_session,
+            plate_string_detected="ABC-1234",
+            status=AccessStatus.Denied,
+            image_storage_key="denied.jpg",
+        )
+        controller = AccessLogController(db_session)
+        created = controller.whitelist_from_denied_log(denied.id, description="Test")
+        assert created.normalized_plate == "ABC1234"
+        db_session.refresh(denied)
+        assert denied.status == AccessStatus.Denied
+
+    def test_whitelist_from_denied_log_not_found(self, db_session: Session):
+        controller = AccessLogController(db_session)
+        with pytest.raises(HTTPException) as exc:
+            controller.whitelist_from_denied_log(uuid4())
+        assert exc.value.status_code == status.HTTP_404_NOT_FOUND

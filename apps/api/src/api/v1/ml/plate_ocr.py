@@ -1,10 +1,7 @@
 """Pipeline OCR de placas (EasyOCR + OpenCV), extraído do script `recognize-plate.py`.
 
-Instalação opcional::
-
-    pip install -r requirements-ml.txt
-
-Sem estas dependências, `ml_stack_available()` é False e a rota HTTP responde 503.
+Dependências em `requirements.txt` (numpy, opencv-python-headless, easyocr).
+Se não carregarem no processo, `ml_stack_available()` é False e a rota HTTP responde 503.
 """
 
 from __future__ import annotations

@@ -1,7 +1,3 @@
-# Keep aligned with pyproject.toml [project.optional-dependencies] ml.
-# Optional ML/OCR direct dependencies ([project.optional-dependencies] ml)
-# Install on a host that already has runtime deps: pip install -r requirements-ml.txt
-# Full resolved stack (includes PyTorch): uv sync --locked --extra ml
-numpy>=1.24
-opencv-python-headless>=4.8
-easyocr>=1.7
+# ML/OCR dependencies are now part of runtime requirements.txt (pyproject [project.dependencies]).
+# This file remains for backward-compatible docs; use: pip install -r requirements.txt
+-r requirements.txt

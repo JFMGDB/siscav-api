@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,3 +23,5 @@ class AccessLog(Base):
     authorized_plate_id: Mapped[uuid.UUID | None] = mapped_column(
         GUID(), ForeignKey("authorized_plates.id"), nullable=True
     )
+    is_automatic: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    ocr_success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

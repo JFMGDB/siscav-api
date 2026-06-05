@@ -29,41 +29,110 @@ from apps.api.src.api.v1.schemas.token import TokenPayload
 logger = logging.getLogger(__name__)
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token")
+oauth2_optional = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/login/access-token",
+    auto_error=False,
+)
 
 settings = get_settings()
 
 device_ingest_header = APIKeyHeader(name="X-Device-Key", auto_error=False)
 
 
-def verify_device_ingest_key(
-    x_device_key: Annotated[str | None, Security(device_ingest_header)],
-) -> None:
-    """Valida chave de ingestão de dispositivos (access logs)."""
+def _dev_allows_keyless_device_ingest() -> bool:
+    s = get_settings()
+    if s.device_ingest_key:
+        return False
+    env_lower = s.environment.strip().lower()
+    return env_lower in ("development", "dev", "")
+
+
+def _device_ingest_key_valid(x_device_key: str | None) -> bool:
     s = get_settings()
     key = s.device_ingest_key
     if key:
         if not x_device_key:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-            )
+            return False
         if len(x_device_key) != len(key):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-            )
-        if not std_secrets.compare_digest(
+            return False
+        return std_secrets.compare_digest(
             x_device_key.encode("utf-8"),
             key.encode("utf-8"),
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-            )
-        return
-    env_lower = s.environment.strip().lower()
-    if env_lower in ("development", "dev", ""):
-        return
+        )
+    return _dev_allows_keyless_device_ingest()
+
+
+def verify_device_ingest_key(
+    x_device_key: Annotated[str | None, Security(device_ingest_header)],
+) -> None:
+    """Valida chave de ingestão de dispositivos (access logs)."""
+    if not _device_ingest_key_valid(x_device_key):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+
+
+def _validate_client_admin_token(token: str, db: Session) -> User:
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        token_data = TokenPayload(**payload)
+    except (JWTError, ValidationError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        ) from e
+
+    if token_data.type != "access" or not token_data.sub:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+
+    try:
+        user_id = UUID(token_data.sub)
+    except (ValueError, TypeError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        ) from e
+
+    user = UserRepository.get_by_id(db, user_id)
+    if not user or user.is_superadmin or not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+    return user
+
+
+def verify_device_ingest_or_admin(
+    x_device_key: Annotated[str | None, Security(device_ingest_header)],
+    token: Annotated[str | None, Depends(oauth2_optional)],
+    db: Annotated[Session, Depends(get_db)],
+) -> bool:
+    """Autentica ingestão IoT (device key) ou operador admin (JWT).
+
+    Returns:
+        True se a ingestão é via dispositivo; False se via administrador manual.
+    """
+    s = get_settings()
+    if s.device_ingest_key and x_device_key and _device_ingest_key_valid(x_device_key):
+        return True
+
+    if token:
+        _validate_client_admin_token(token, db)
+        return False
+
+    if _device_ingest_key_valid(x_device_key):
+        return True
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

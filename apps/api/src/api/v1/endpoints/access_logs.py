@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile
 
@@ -9,10 +10,15 @@ from apps.api.src.api.v1.controllers.access_log_controller import AccessLogContr
 from apps.api.src.api.v1.deps import (
     get_access_log_controller,
     get_current_client_admin_user,
-    verify_device_ingest_key,
+    verify_device_ingest_or_admin,
 )
 from apps.api.src.api.v1.models.user import User
-from apps.api.src.api.v1.schemas.access_log import AccessLogRead, AccessStatus
+from apps.api.src.api.v1.schemas.access_log import (
+    AccessLogRead,
+    AccessStatus,
+    WhitelistFromDeniedBody,
+)
+from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateRead
 
 router = APIRouter()
 
@@ -22,7 +28,7 @@ def create_access_log(
     file: Annotated[UploadFile, File()],
     plate: Annotated[str, Form()],
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    _device_auth: Annotated[None, Depends(verify_device_ingest_key)],
+    ingest_via_device: Annotated[bool, Depends(verify_device_ingest_or_admin)],
 ) -> AccessLogRead:
     """
     Registrar acesso veicular.
@@ -49,7 +55,30 @@ def create_access_log(
     Raises:
         HTTPException: Se o arquivo for inválido ou muito grande
     """
-    return access_log_controller.create_access_log(plate=plate, file=file)
+    return access_log_controller.create_access_log(
+        plate=plate,
+        file=file,
+        ingest_via_device=ingest_via_device,
+    )
+
+
+@router.post("/{log_id}/whitelist", response_model=AuthorizedPlateRead)
+def whitelist_from_denied_log(
+    log_id: UUID,
+    body: WhitelistFromDeniedBody,
+    access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
+    _current_user: Annotated[User, Depends(get_current_client_admin_user)],
+) -> AuthorizedPlateRead:
+    """
+    Adiciona à whitelist a placa de um log negado.
+
+    O registro histórico de negação permanece inalterado; apenas insere em
+    `authorized_plates` para que a próxima passagem IoT seja aprovada.
+    """
+    return access_log_controller.whitelist_from_denied_log(
+        log_id=log_id,
+        description=body.description,
+    )
 
 
 @router.get("/images/{image_filename}")

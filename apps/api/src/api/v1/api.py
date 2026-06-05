@@ -8,6 +8,7 @@ from fastapi import APIRouter
 
 from apps.api.src.api.v1.endpoints.access_logs import router as access_logs_router
 from apps.api.src.api.v1.endpoints.auth import router as auth_router
+from apps.api.src.api.v1.endpoints.dashboard import router as dashboard_router
 from apps.api.src.api.v1.endpoints.classification import router as classification_router
 from apps.api.src.api.v1.endpoints.gate_control import router as gate_control_router
 from apps.api.src.api.v1.endpoints.health import router as health_router
@@ -27,6 +28,9 @@ api_router.include_router(whitelist_router, prefix="/whitelist", tags=["whitelis
 
 # Logs de acesso
 api_router.include_router(access_logs_router, prefix="/access_logs", tags=["access_logs"])
+
+# Métricas do dashboard
+api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 
 # Controle de portão
 api_router.include_router(gate_control_router, prefix="/gate_control", tags=["gate_control"])

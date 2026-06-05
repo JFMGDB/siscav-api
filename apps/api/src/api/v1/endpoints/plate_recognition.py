@@ -1,16 +1,19 @@
-"""Rota opcional: OCR de placas a partir de imagem (EasyOCR + OpenCV)."""
+"""OCR de placas a partir de imagem (EasyOCR + OpenCV)."""
 
 import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.core.config import get_settings
+from apps.api.src.api.v1.db.session import get_db
 from apps.api.src.api.v1.deps import get_current_client_admin_user
 from apps.api.src.api.v1.ml.plate_ocr import ml_stack_available, recognize_plates_from_bgr
 from apps.api.src.api.v1.models.user import User
+from apps.api.src.api.v1.repositories.ocr_attempt_repository import OcrAttemptRepository
 from apps.api.src.api.v1.schemas.plate_recognition import PlateRecognizeItem, PlateRecognizeResponse
-from apps.api.src.api.v1.utils.plate import normalize_plate
+from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
 
 logger = logging.getLogger(__name__)
 
@@ -34,26 +37,23 @@ _ALLOWED_CT = frozenset(
 async def recognize_plate_from_image(
     file: Annotated[UploadFile, File(description="Frame ou recorte com veículo / placa visível")],
     current_user: Annotated[User, Depends(get_current_client_admin_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> PlateRecognizeResponse:
     """
     Executa o pipeline de deteção por contornos + EasyOCR (mesma lógica base do script
     `ml/recognize-plate.py`), devolvendo candidatos com **7 caracteres** alfanuméricos.
 
-    **Requer** pacotes opcionais (`requirements-ml.txt`). Sem eles, responde **503**.
+    **Autenticação:** JWT Bearer (administrador do cliente).
 
-    **Autenticação:** JWT Bearer (qualquer utilizador autenticado).
-
-    Não grava log de acesso nem imagem — use `POST /api/v1/access_logs/` com o texto escolhido.
+    Regista tentativa em `ocr_attempts` para métricas do dashboard. Não grava log de acesso
+    nem imagem — use `POST /api/v1/access_logs/` com o texto escolhido.
     """
     _ = current_user  # dependência garante Bearer válido
 
     if not ml_stack_available():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "OCR não disponível: instale as dependências ML "
-                "(ex.: pip install -r requirements-ml.txt) e reinicie o servidor."
-            ),
+            detail="OCR indisponível: dependências ML não carregadas no servidor.",
         )
 
     if not file.content_type or file.content_type.split(";")[0].strip().lower() not in _ALLOWED_CT:
@@ -99,4 +99,10 @@ async def recognize_plate_from_image(
         )
         for c in raw_list
     ]
+
+    ocr_success = any(
+        validate_brazilian_plate(item.normalized_plate or item.plate_raw)[0] for item in items
+    )
+    OcrAttemptRepository.create(db, success=ocr_success)
+
     return PlateRecognizeResponse(candidates=items)

@@ -2,20 +2,30 @@
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
+from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
-from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
+from apps.api.src.api.v1.repositories.access_log_repository import (
+    AccessLogRepository,
+    DailyAccessMetrics,
+)
+from apps.api.src.api.v1.repositories.ocr_attempt_repository import OcrAttemptRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import (
     AuthorizedPlateRepository,
 )
 from apps.api.src.api.v1.schemas.access_log import AccessLogRead, AccessStatus
-from apps.api.src.api.v1.utils.plate import normalize_plate
+from apps.api.src.api.v1.schemas.authorized_plate import (
+    AuthorizedPlateCreate,
+    AuthorizedPlateRead,
+)
+from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +45,13 @@ class AccessLogController:
         self.plate_repository = AuthorizedPlateRepository
         self.settings = get_settings()
 
-    def create_access_log(self, plate: str, file: UploadFile) -> AccessLogRead:
+    def create_access_log(
+        self,
+        plate: str,
+        file: UploadFile,
+        *,
+        ingest_via_device: bool = True,
+    ) -> AccessLogRead:
         """
         Cria um novo registro de log de acesso veicular.
 
@@ -79,6 +95,11 @@ class AccessLogController:
         # Determinar status
         access_status = AccessStatus.Authorized if authorized_plate else AccessStatus.Denied
         authorized_plate_id = authorized_plate.id if authorized_plate else None
+        ocr_success, _ = validate_brazilian_plate(plate)
+        is_automatic = (
+            ingest_via_device
+            and access_status == AccessStatus.Authorized
+        )
 
         # Salvar arquivo
         upload_dir = Path(self.settings.upload_dir)
@@ -100,9 +121,42 @@ class AccessLogController:
             status=access_status,
             image_storage_key=str(image_path),
             authorized_plate_id=authorized_plate_id,
+            is_automatic=is_automatic,
+            ocr_success=ocr_success,
         )
 
         return AccessLogRead.model_validate(access_log)
+
+    def whitelist_from_denied_log(
+        self,
+        log_id: UUID,
+        description: str | None = None,
+    ) -> AuthorizedPlateRead:
+        """Adiciona à whitelist a placa de um log negado sem alterar o histórico."""
+        access_log = self.access_log_repository.get_by_id(self.db, log_id)
+        if not access_log:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Access log not found",
+            )
+        if access_log.status != AccessStatus.Denied:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only denied access logs can be whitelisted via this endpoint",
+            )
+
+        plate_controller = PlateController(self.db)
+        return plate_controller.create(
+            AuthorizedPlateCreate(
+                plate=access_log.plate_string_detected,
+                description=description,
+            )
+        )
+
+    def get_daily_metrics(self, day: date) -> tuple[DailyAccessMetrics, float]:
+        access = self.access_log_repository.get_daily_metrics(self.db, day)
+        _, ocr_rate = OcrAttemptRepository.get_daily_success_rate(self.db, day)
+        return access, ocr_rate
 
     def get_image_path(self, image_filename: str) -> Path:
         """

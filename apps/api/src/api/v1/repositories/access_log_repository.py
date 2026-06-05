@@ -1,13 +1,20 @@
 """Repository para operações de acesso a dados de logs de acesso."""
 
-from datetime import UTC, datetime
+from dataclasses import dataclass
+from datetime import UTC, date, datetime, time, timedelta
 from uuid import UUID
-
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, case, func, select
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.models.access_log import AccessLog
 from apps.api.src.api.v1.schemas.access_log import AccessStatus
+from apps.api.src.api.v1.utils.timezone_br import BRAZIL_TZ
+
+
+@dataclass(frozen=True)
+class DailyAccessMetrics:
+    traffic_volume: int
+    auto_approval_rate_percent: float
 
 
 class AccessLogRepository:
@@ -84,6 +91,9 @@ class AccessLogRepository:
         status: AccessStatus,
         image_storage_key: str,
         authorized_plate_id: UUID | None = None,
+        *,
+        is_automatic: bool = False,
+        ocr_success: bool = True,
     ) -> AccessLog:
         """
         Cria um novo registro de log de acesso.
@@ -107,6 +117,8 @@ class AccessLogRepository:
             status=status,
             image_storage_key=image_storage_key,
             authorized_plate_id=authorized_plate_id,
+            is_automatic=is_automatic,
+            ocr_success=ocr_success,
             timestamp=now,
         )
         db.add(db_log)
@@ -160,3 +172,43 @@ class AccessLogRepository:
             query = query.where(and_(*conditions))
 
         return db.scalar(query) or 0
+
+    @staticmethod
+    def get_daily_metrics(db: Session, day: date) -> DailyAccessMetrics:
+        """Agrega métricas de acesso para um dia civil em America/Sao_Paulo."""
+        start_local = datetime.combine(day, time.min, tzinfo=BRAZIL_TZ)
+        end_local = start_local + timedelta(days=1)
+
+        row = db.execute(
+            select(
+                func.count(AccessLog.id),
+                func.count(
+                    case(
+                        (
+                            and_(
+                                AccessLog.status == AccessStatus.Authorized,
+                                AccessLog.is_automatic.is_(True),
+                            ),
+                            AccessLog.id,
+                        ),
+                        else_=None,
+                    )
+                ),
+            ).where(
+                and_(
+                    AccessLog.timestamp >= start_local,
+                    AccessLog.timestamp < end_local,
+                )
+            )
+        ).one()
+
+        total = int(row[0] or 0)
+        auto_approved = int(row[1] or 0)
+
+        if total == 0:
+            return DailyAccessMetrics(0, 0.0)
+
+        return DailyAccessMetrics(
+            traffic_volume=total,
+            auto_approval_rate_percent=round(auto_approved * 100.0 / total, 1),
+        )

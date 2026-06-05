@@ -44,6 +44,8 @@ class TestAccessLogsEndpoints:
         assert log["status"] == "Authorized"
         assert log["plate_string_detected"] == "ABC-1234"
         assert log.get("authorized_plate_id") is not None
+        assert log["is_automatic"] is True
+        assert log["ocr_success"] is True
         assert log["image_storage_key"].endswith(".jpg")
 
         # Limpar arquivo
@@ -69,12 +71,92 @@ class TestAccessLogsEndpoints:
         log = response.json()
         assert log["status"] == "Denied"
         assert log["plate_string_detected"] == "XYZ-9999"
+        assert log["is_automatic"] is False
+        assert log["ocr_success"] is True
 
         # Limpar arquivo
         if "image_storage_key" in log:
             image_path = Path(log["image_storage_key"])
             if image_path.exists():
                 image_path.unlink()
+
+    def test_create_access_log_via_admin_jwt_is_manual(
+        self, client: TestClient, auth_token: str, db_session: Session
+    ):
+        """Ingestão com JWT admin marca is_automatic=false."""
+        AuthorizedPlateRepository.create(
+            db_session,
+            plate="ABC-1234",
+            normalized_plate="ABC1234",
+        )
+        db_session.commit()
+
+        file_content = b"fake image content"
+        files = {"file": ("test_image.jpg", file_content, "image/jpeg")}
+        data = {"plate": "ABC-1234"}
+
+        response = client.post(
+            "/api/v1/access_logs/",
+            files=files,
+            data=data,
+            headers={"Authorization": f"Bearer {auth_token}"},
+        )
+
+        assert response.status_code == 200
+        log = response.json()
+        assert log["status"] == "Authorized"
+        assert log["is_automatic"] is False
+
+        if "image_storage_key" in log:
+            image_path = Path(log["image_storage_key"])
+            if image_path.exists():
+                image_path.unlink()
+
+    def test_whitelist_from_denied_log(
+        self, client: TestClient, auth_token: str, db_session: Session
+    ):
+        """POST /access_logs/{id}/whitelist insere na whitelist sem alterar o log."""
+        denied = AccessLogRepository.create(
+            db_session,
+            plate_string_detected="DEN-1234",
+            status=AccessStatus.Denied,
+            image_storage_key="denied.jpg",
+        )
+        db_session.commit()
+
+        response = client.post(
+            f"/api/v1/access_logs/{denied.id}/whitelist",
+            headers={"Authorization": f"Bearer {auth_token}"},
+            json={"description": "Visitante"},
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["plate"] == "DEN-1234"
+        assert body["normalized_plate"] == "DEN1234"
+
+        db_session.refresh(denied)
+        assert denied.status == AccessStatus.Denied
+        assert denied.authorized_plate_id is None
+
+    def test_whitelist_from_authorized_log_returns_400(
+        self, client: TestClient, auth_token: str, db_session: Session
+    ):
+        authorized = AccessLogRepository.create(
+            db_session,
+            plate_string_detected="AUT-1234",
+            status=AccessStatus.Authorized,
+            image_storage_key="auth.jpg",
+        )
+        db_session.commit()
+
+        response = client.post(
+            f"/api/v1/access_logs/{authorized.id}/whitelist",
+            headers={"Authorization": f"Bearer {auth_token}"},
+            json={},
+        )
+
+        assert response.status_code == 400
 
     def test_list_access_logs(self, client: TestClient, auth_token: str, db_session: Session):
         """Testa listagem de logs de acesso."""
