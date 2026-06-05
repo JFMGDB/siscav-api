@@ -19,6 +19,7 @@ from apps.api.src.api.v1.controllers.access_log_controller import AccessLogContr
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
+from apps.api.src.api.v1.controllers.user_controller import UserController
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.db.session import get_db
 from apps.api.src.api.v1.ml.classifier import VehicleClassifier, get_vehicle_classifier
@@ -286,6 +287,13 @@ def get_auth_controller(
         AuthController: Instância do controller de autenticação
     """
     return AuthController(db)
+
+
+def get_user_controller(
+    db: Annotated[Session, Depends(get_db)],
+) -> UserController:
+    """Dependency for superadmin user management."""
+    return UserController(db)
 
 
 def get_gate_controller() -> GateController:

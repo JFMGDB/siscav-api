@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.models.user import User
@@ -84,3 +84,77 @@ class UserRepository:
             db.rollback()
             raise
         return user
+
+    @staticmethod
+    def list_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
+        """List users ordered by newest first."""
+        return list(
+            db.scalars(
+                select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
+            )
+        )
+
+    @staticmethod
+    def count_all(db: Session) -> int:
+        """Count all user accounts."""
+        return int(db.scalar(select(func.count()).select_from(User)) or 0)
+
+    @staticmethod
+    def count_superadmins(db: Session) -> int:
+        """Count platform superadmin accounts."""
+        return int(
+            db.scalar(
+                select(func.count()).select_from(User).where(User.is_superadmin.is_(True))
+            )
+            or 0
+        )
+
+    @staticmethod
+    def count_client_admins(db: Session) -> int:
+        """Count client administrator accounts (is_admin, not superadmin)."""
+        return int(
+            db.scalar(
+                select(func.count())
+                .select_from(User)
+                .where(User.is_admin.is_(True), User.is_superadmin.is_(False))
+            )
+            or 0
+        )
+
+    @staticmethod
+    def update(
+        db: Session,
+        user_id: UUID,
+        *,
+        email: str | None = None,
+        hashed_password: str | None = None,
+    ) -> User | None:
+        """Update email and/or password hash for a user."""
+        user = UserRepository.get_by_id(db, user_id)
+        if not user:
+            return None
+        if email is not None:
+            user.email = email
+        if hashed_password is not None:
+            user.hashed_password = hashed_password
+        try:
+            db.commit()
+            db.refresh(user)
+        except Exception:
+            db.rollback()
+            raise
+        return user
+
+    @staticmethod
+    def delete(db: Session, user_id: UUID) -> bool:
+        """Hard-delete a user. Returns True if a row was removed."""
+        user = UserRepository.get_by_id(db, user_id)
+        if not user:
+            return False
+        db.delete(user)
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        return True

@@ -27,3 +27,30 @@ class UserRead(UserBase):
     )
     created_at: datetime
     updated_at: datetime
+
+
+class UserUpdate(BaseModel):
+    email: EmailStr | None = Field(
+        default=None,
+        description="New email address (must remain unique).",
+    )
+    password: str | None = Field(
+        default=None,
+        description="New password (min 8 characters, will be hashed).",
+        min_length=8,
+    )
+
+
+class UserStats(BaseModel):
+    total_accounts: int
+    client_admin_count: int
+    superadmin_count: int
+
+
+class PaginatedUserList(BaseModel):
+    items: list[UserRead]
+    total: int
+    skip: int
+    limit: int
+    has_next: bool
+    has_prev: bool

@@ -73,3 +73,62 @@ class TestUserRepository:
         saved_user = UserRepository.get_by_email(db_session, "newuser@example.com")
         assert saved_user is not None
         assert saved_user.id == result.id
+
+    def test_list_users_ordered(self, db_session: Session):
+        """List returns users newest first."""
+        for i in range(3):
+            db_session.add(
+                User(
+                    email=f"listuser{i}@example.com",
+                    hashed_password=get_password_hash("password123"),
+                    is_admin=True,
+                )
+            )
+        db_session.commit()
+
+        result = UserRepository.list_users(db_session, skip=0, limit=2)
+        assert len(result) == 2
+
+    def test_count_methods(self, db_session: Session):
+        """Count helpers return expected totals."""
+        db_session.add(
+            User(
+                email="super@example.com",
+                hashed_password=get_password_hash("password123"),
+                is_admin=False,
+                is_superadmin=True,
+            )
+        )
+        db_session.add(
+            User(
+                email="client@example.com",
+                hashed_password=get_password_hash("password123"),
+                is_admin=True,
+                is_superadmin=False,
+            )
+        )
+        db_session.commit()
+
+        assert UserRepository.count_all(db_session) == 2
+        assert UserRepository.count_superadmins(db_session) == 1
+        assert UserRepository.count_client_admins(db_session) == 1
+
+    def test_update_and_delete(self, db_session: Session):
+        """Update email and hard-delete user."""
+        user = User(
+            email="upd@example.com",
+            hashed_password=get_password_hash("password123"),
+            is_admin=True,
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+
+        updated = UserRepository.update(
+            db_session, user.id, email="newemail@example.com"
+        )
+        assert updated is not None
+        assert updated.email == "newemail@example.com"
+
+        assert UserRepository.delete(db_session, user.id) is True
+        assert UserRepository.get_by_id(db_session, user.id) is None

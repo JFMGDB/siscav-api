@@ -14,6 +14,7 @@ from apps.api.src.api.v1.endpoints.gate_control import router as gate_control_ro
 from apps.api.src.api.v1.endpoints.health import router as health_router
 from apps.api.src.api.v1.endpoints.plate_recognition import router as plate_recognition_router
 from apps.api.src.api.v1.endpoints.whitelist import router as whitelist_router
+from apps.api.src.api.v1.endpoints.users import router as users_router
 
 api_router = APIRouter()
 
@@ -22,6 +23,9 @@ api_router.include_router(health_router)
 
 # Autenticação
 api_router.include_router(auth_router, tags=["login"])
+
+# Superadmin account management
+api_router.include_router(users_router, prefix="/users", tags=["users"])
 
 # Gerenciamento de whitelist (placas autorizadas)
 api_router.include_router(whitelist_router, prefix="/whitelist", tags=["whitelist"])
