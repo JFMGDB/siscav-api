@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile
 from apps.api.src.api.v1.controllers.access_log_controller import AccessLogController
 from apps.api.src.api.v1.deps import (
     get_access_log_controller,
-    get_current_admin_user,
-    get_current_user,
+    get_current_client_admin_user,
     verify_device_ingest_key,
 )
 from apps.api.src.api.v1.models.user import User
@@ -57,13 +56,12 @@ def create_access_log(
 def get_access_log_image(
     image_filename: str,
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    _current_user: Annotated[User, Depends(get_current_admin_user)],
+    _current_user: Annotated[User, Depends(get_current_client_admin_user)],
 ) -> Response:
     """
     Servir imagem de acesso veicular.
 
-    **Apenas administradores** (`is_admin` no JWT). Utilizador autenticado sem privilégio
-    de administrador recebe **403 Forbidden**.
+    **Apenas administrador do cliente** (`is_admin`, não superadmin). Caso contrário **403**.
 
     Este endpoint serve as imagens capturadas pelos dispositivos IoT.
 
@@ -99,7 +97,7 @@ def get_access_log_image(
 @router.get("/", response_model=list[AccessLogRead])
 def list_access_logs(
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    _current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(get_current_client_admin_user)],
     skip: Annotated[int, Query(ge=0, description="Registros a pular (paginação).")] = 0,
     limit: Annotated[int, Query(ge=1, le=100, description="Máximo de registros (1-100).")] = 100,
     plate: Annotated[
@@ -135,7 +133,7 @@ def list_access_logs(
     """
     Lista registros de acesso veicular com filtros opcionais.
 
-    Requer JWT de **utilizador autenticado** (não é necessário ser administrador).
+    Requer JWT de **administrador do cliente**.
 
     Este endpoint permite visualizar todos os logs de acesso registrados,
     incluindo o conteúdo extraído da placa pelo OCR. Útil para análise

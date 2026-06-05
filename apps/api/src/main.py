@@ -31,12 +31,12 @@ Esta API fornece o backend para o sistema SISCAV, integrando dispositivos IoT (c
 *   **Autenticação**: Login seguro via OAuth2 (JWT) com rate limiting.
 *   **Gestão de Whitelist**: CRUD para placas autorizadas.
 *   **Registro de Acesso**: Recebimento e processamento de logs de acesso (imagens e placas) dos dispositivos IoT via `POST /api/v1/access_logs/` — requer cabeçalho **`X-Device-Key`** quando `DEVICE_INGEST_KEY` está definido (em desenvolvimento sem chave configurada, o envio pode ser permitido; veja `env.local.example`).
-*   **Listagem de logs (JSON)**: `GET /api/v1/access_logs/` exige **Bearer JWT** de qualquer utilizador autenticado (não é obrigatório ser administrador).
+*   **Listagem de logs (JSON)**: `GET /api/v1/access_logs/` exige **Bearer JWT** de administrador do cliente (`is_admin`, não superadmin).
 *   **Validação Automática**: Verificação de placas contra a whitelist para autorização de acesso.
-*   **Controle Remoto**: Acionamento remoto do portão (`POST /api/v1/gate_control/trigger`) exige **JWT de administrador** (`is_admin`).
-*   **Download de imagem de log**: `GET /api/v1/access_logs/images/{filename}` exige **JWT de administrador** (`is_admin`); utilizador sem `is_admin` recebe **403**.
-*   **OCR opcional (frame → candidatos de placa)**: `POST /api/v1/ml/recognize-plate` (multipart, JPEG/PNG/WebP) exige **Bearer JWT**; sem pacotes ML instalados (`requirements-ml.txt`) responde **503**.
-*   **Classificação veicular (frame → categoria)**: `POST /api/v1/ml/classify-vehicle` (multipart: `file` + `plate_hint` opcional) exige **Bearer JWT**; backend **stub** funciona sem ML; modelo real futuro via `VEHICLE_CLASSIFIER_BACKEND`.
+*   **Controle Remoto**: Acionamento remoto do portão (`POST /api/v1/gate_control/trigger`) exige **JWT de administrador do cliente**.
+*   **Download de imagem de log**: `GET /api/v1/access_logs/images/{filename}` exige **JWT de administrador do cliente**.
+*   **OCR opcional (frame → candidatos de placa)**: `POST /api/v1/ml/recognize-plate` (multipart, JPEG/PNG/WebP) exige **JWT de administrador do cliente**; sem pacotes ML instalados (`requirements-ml.txt`) responde **503**.
+*   **Classificação veicular (frame → categoria)**: `POST /api/v1/ml/classify-vehicle` (multipart: `file` + `plate_hint` opcional) exige **JWT de administrador do cliente**; backend **stub** funciona sem ML; modelo real futuro via `VEHICLE_CLASSIFIER_BACKEND`.
 *   **Gate**: `POST /api/v1/gate_control/trigger` — resposta com `integration` **simulated** (sem `GATE_ACTUATOR_URL`) ou **live** (POST ao atuador com 2xx); falhas do atuador → 502/503.
 
 ## Tecnologias

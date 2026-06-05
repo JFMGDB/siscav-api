@@ -57,6 +57,8 @@ class UserRepository:
         db_user = User(
             email=user_data.email,
             hashed_password=hashed_password,
+            is_admin=True,
+            is_superadmin=False,
         )
 
         db.add(db_user)

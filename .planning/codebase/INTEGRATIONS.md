@@ -39,7 +39,7 @@
 - Custom — no third-party IdP; users in relational DB with Argon2-hashed passwords (`apps/api/src/api/v1/core/security.py`).
 - OAuth2-style password flow: token URL `/api/v1/login/access-token` (`apps/api/src/api/v1/deps.py` `OAuth2PasswordBearer`).
 - JWT access and refresh tokens issued in auth layer (`apps/api/src/api/v1/core/security.py`, `apps/api/src/api/v1/endpoints/auth.py`); claims include `sub` (user UUID string) and `type` (`access` vs `refresh`).
-- Admin-only operations gated with `is_admin` on `User` (`deps` helpers such as `get_current_admin_user`).
+- Client API gated with `get_current_client_admin_user` (`is_admin`, not `is_superadmin`). Platform superadmin uses `get_current_superadmin_user` for registration only.
 
 ## Monitoring & Observability
 

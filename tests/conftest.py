@@ -94,7 +94,8 @@ def test_user(db_session: Session) -> User:
         id=uuid.uuid4(),
         email=TEST_USER_EMAIL,
         hashed_password=get_password_hash(TEST_USER_PASSWORD),
-        is_admin=False,
+        is_admin=True,
+        is_superadmin=False,
     )
     db_session.add(user)
     db_session.commit()
@@ -131,7 +132,7 @@ def superadmin_user(db_session: Session) -> User:
         id=uuid.uuid4(),
         email=TEST_SUPERADMIN_EMAIL,
         hashed_password=get_password_hash(TEST_SUPERADMIN_PASSWORD),
-        is_admin=True,
+        is_admin=False,
         is_superadmin=True,
     )
     db_session.add(user)

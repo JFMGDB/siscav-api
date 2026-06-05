@@ -168,7 +168,7 @@ class TestAuthEndpoints:
         )
         assert reg.status_code == 201
         assert reg.json()["email"] == email
-        assert reg.json()["is_admin"] is False
+        assert reg.json()["is_admin"] is True
         assert reg.json()["is_superadmin"] is False
 
         login = client.post(
@@ -226,3 +226,16 @@ class TestAuthEndpoints:
             json={"token": "invalid.jwt.here", "new_password": "validpass123"},
         )
         assert r.status_code == 403
+
+
+class TestSuperadminOperationalSeparation:
+    """Platform superadmin cannot access client operational endpoints."""
+
+    def test_superadmin_list_whitelist_forbidden(
+        self, client: TestClient, superadmin_auth_token: str
+    ):
+        response = client.get(
+            "/api/v1/whitelist/",
+            headers={"Authorization": f"Bearer {superadmin_auth_token}"},
+        )
+        assert response.status_code == 403

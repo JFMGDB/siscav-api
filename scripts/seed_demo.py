@@ -5,11 +5,11 @@ Usage (from repo root with PYTHONPATH=.):
     python scripts/seed_demo.py
 
 Creates:
-1. A superadmin user (admin@siscav.com / admin123) with is_superadmin=true and is_admin=true
+1. A superadmin user (admin@siscav.com / admin123) with is_superadmin=true and is_admin=false
 2. Sample plates in the whitelist
 
 If the user already exists without superadmin privileges, promote manually:
-UPDATE users SET is_superadmin = 1, is_admin = 1 WHERE email = 'admin@siscav.com';
+UPDATE users SET is_superadmin = 1, is_admin = 0 WHERE email = 'admin@siscav.com';
 (see docs/api/README.md — First Superadmin section).
 """
 
@@ -58,8 +58,8 @@ def seed_user(db):
         if not existing.is_superadmin:
             existing.is_superadmin = True
             changed = True
-        if not existing.is_admin:
-            existing.is_admin = True
+        if existing.is_admin:
+            existing.is_admin = False
             changed = True
         if changed:
             db.commit()
@@ -73,7 +73,7 @@ def seed_user(db):
     user = User(
         email=DEMO_USER["email"],
         hashed_password=get_password_hash(DEMO_USER["password"]),
-        is_admin=True,
+        is_admin=False,
         is_superadmin=True,
     )
     if is_sqlite:

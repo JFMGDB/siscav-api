@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from apps.api.src.api.v1.core.config import get_settings
-from apps.api.src.api.v1.deps import get_current_user
+from apps.api.src.api.v1.deps import get_current_client_admin_user
 from apps.api.src.api.v1.ml.plate_ocr import ml_stack_available, recognize_plates_from_bgr
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.plate_recognition import PlateRecognizeItem, PlateRecognizeResponse
@@ -33,7 +33,7 @@ _ALLOWED_CT = frozenset(
 )
 async def recognize_plate_from_image(
     file: Annotated[UploadFile, File(description="Frame ou recorte com veículo / placa visível")],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_client_admin_user)],
 ) -> PlateRecognizeResponse:
     """
     Executa o pipeline de deteção por contornos + EasyOCR (mesma lógica base do script

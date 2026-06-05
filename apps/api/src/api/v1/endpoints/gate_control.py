@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from apps.api.src.api.v1.controllers.gate_controller import GateController
-from apps.api.src.api.v1.deps import get_current_admin_user, get_gate_controller
+from apps.api.src.api.v1.deps import get_current_client_admin_user, get_gate_controller
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.gate_control import GateTriggerResponse
 
@@ -15,12 +15,12 @@ router = APIRouter()
 @router.post("/trigger", response_model=GateTriggerResponse)
 def trigger_gate(
     gate_controller: Annotated[GateController, Depends(get_gate_controller)],
-    _current_user: Annotated[User, Depends(get_current_admin_user)],
+    _current_user: Annotated[User, Depends(get_current_client_admin_user)],
 ) -> GateTriggerResponse:
     """
     Acionar o portão remotamente.
 
-    Requer JWT de **administrador** (`is_admin`).
+    Requer JWT de **administrador do cliente** (`is_admin`, não superadmin).
 
     **Contrato (alteração):** a resposta inclui `integration`: `simulated` se
     `GATE_ACTUATOR_URL` não estiver definido (nenhum hardware contactado), ou

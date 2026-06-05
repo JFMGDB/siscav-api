@@ -12,7 +12,11 @@ from sqlalchemy.pool import StaticPool
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.security import create_access_token, get_password_hash
 from apps.api.src.api.v1.db.base import Base
-from apps.api.src.api.v1.deps import get_current_admin_user, get_current_superadmin_user, get_current_user
+from apps.api.src.api.v1.deps import (
+    get_current_client_admin_user,
+    get_current_superadmin_user,
+    get_current_user,
+)
 from apps.api.src.api.v1.models.user import User
 
 
@@ -37,7 +41,8 @@ def test_user(db_session):
     user = User(
         email="test@example.com",
         hashed_password=get_password_hash("password123"),
-        is_admin=False,
+        is_admin=True,
+        is_superadmin=False,
     )
     db_session.add(user)
     db_session.commit()
@@ -92,26 +97,29 @@ class TestGetCurrentUser:
         assert exc_info.value.status_code == 403
 
 
-class TestGetCurrentAdminUser:
-    """Testes para a dependência get_current_admin_user."""
+class TestGetCurrentClientAdminUser:
+    """Tests for get_current_client_admin_user."""
 
-    def test_operational_admin_allowed(self, db_session, test_user):
-        test_user.is_admin = True
-        db_session.commit()
-        db_session.refresh(test_user)
-        user = get_current_admin_user(current_user=test_user)
+    def test_client_admin_allowed(self, test_user):
+        user = get_current_client_admin_user(current_user=test_user)
         assert user.id == test_user.id
 
-    def test_superadmin_allowed(self, db_session, test_user):
+    def test_superadmin_forbidden(self, db_session, test_user):
         test_user.is_superadmin = True
+        test_user.is_admin = False
         db_session.commit()
         db_session.refresh(test_user)
-        user = get_current_admin_user(current_user=test_user)
-        assert user.id == test_user.id
-
-    def test_regular_user_forbidden(self, test_user):
         with pytest.raises(HTTPException) as exc_info:
-            get_current_admin_user(current_user=test_user)
+            get_current_client_admin_user(current_user=test_user)
+        assert exc_info.value.status_code == 403
+
+    def test_non_admin_client_forbidden(self, db_session, test_user):
+        test_user.is_admin = False
+        test_user.is_superadmin = False
+        db_session.commit()
+        db_session.refresh(test_user)
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_client_admin_user(current_user=test_user)
         assert exc_info.value.status_code == 403
 
 

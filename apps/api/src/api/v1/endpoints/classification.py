@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from apps.api.src.api.v1.core.config import get_settings
-from apps.api.src.api.v1.deps import get_classifier, get_current_user
+from apps.api.src.api.v1.deps import get_classifier, get_current_client_admin_user
 from apps.api.src.api.v1.ml.classifier import StubVehicleClassifier, classifier_stack_available
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.classification import VehicleClassificationResult
@@ -32,7 +32,7 @@ _ALLOWED_CT = frozenset(
 )
 async def classify_vehicle_from_image(
     file: Annotated[UploadFile, File(description="Frame or crop with vehicle visible")],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_client_admin_user)],
     classifier=Depends(get_classifier),
     plate_hint: Annotated[
         str | None,

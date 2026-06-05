@@ -237,14 +237,14 @@ class TestAccessLogsEndpoints:
 
         assert response.status_code == 401
 
-    def test_get_access_log_image_requires_admin(
+    def test_get_access_log_image_requires_client_admin(
         self,
         client: TestClient,
         db_session: Session,
         auth_token: str,
-        admin_auth_token: str,
+        superadmin_auth_token: str,
     ):
-        """LOG-03 / Phase 2: imagem só para admin; não-admin 403, admin 200."""
+        """LOG-03: image for client administrator only; superadmin 403."""
         AccessLogRepository.create(
             db_session,
             plate_string_detected="IMG-TEST",
@@ -259,18 +259,18 @@ class TestAccessLogsEndpoints:
         image_path.write_bytes(b"\xff\xd8\xff fake jpeg")
 
         try:
-            r_user = client.get(
+            r_superadmin = client.get(
+                "/api/v1/access_logs/images/integration_test_plate.jpg",
+                headers={"Authorization": f"Bearer {superadmin_auth_token}"},
+            )
+            assert r_superadmin.status_code == 403
+
+            r_client_admin = client.get(
                 "/api/v1/access_logs/images/integration_test_plate.jpg",
                 headers={"Authorization": f"Bearer {auth_token}"},
             )
-            assert r_user.status_code == 403
-
-            r_admin = client.get(
-                "/api/v1/access_logs/images/integration_test_plate.jpg",
-                headers={"Authorization": f"Bearer {admin_auth_token}"},
-            )
-            assert r_admin.status_code == 200
-            assert r_admin.content == b"\xff\xd8\xff fake jpeg"
+            assert r_client_admin.status_code == 200
+            assert r_client_admin.content == b"\xff\xd8\xff fake jpeg"
         finally:
             if image_path.exists():
                 image_path.unlink()

@@ -26,28 +26,33 @@ User registration (`POST /api/v1/register`) requires a **Bearer JWT** from a Sis
 Provision the first superadmin via `python scripts/seed_demo.py` or manually (PostgreSQL or SQLite):
 
 ```sql
-UPDATE users SET is_superadmin = 1, is_admin = 1 WHERE email = 'your-email@example.com';
+UPDATE users SET is_superadmin = 1, is_admin = 0 WHERE email = 'your-email@example.com';
 ```
 
 On SQLite use `1` or `true` depending on your SQL client. After migration `20260604_0003`, the `is_superadmin` column exists on all new databases.
 
-### Role separation
-
-| Role | Field | Capabilities |
-|------|-------|--------------|
-| Regular user | both false | Authenticated access to operational features |
-| Operational admin (client) | `is_admin = true` | Gate control, log images, etc. |
-| Siscav superadmin (system team) | `is_superadmin = true` | Create user accounts; superadmin also satisfies admin checks |
-
-To promote a user to operational admin only:
+If upgrading from an older seed that set both flags, clear operational admin on platform accounts:
 
 ```sql
-UPDATE users SET is_admin = 1 WHERE email = 'your-email@example.com';
+UPDATE users SET is_admin = 0 WHERE is_superadmin = 1;
+```
+
+### Role separation
+
+| Role | Flags | Capabilities |
+|------|-------|--------------|
+| Client administrator | `is_admin = true`, `is_superadmin = false` | Full client API and UI (whitelist, logs, gate, images, ML) |
+| Siscav superadmin | `is_superadmin = true`, `is_admin = false` | `POST /register`, `GET /users/me`, account management UI |
+
+`POST /register` always creates client administrators. Accounts with both flags false are invalid; fix with:
+
+```sql
+UPDATE users SET is_admin = true WHERE is_superadmin = false AND is_admin = false;
 ```
 
 ## Whitelist (Authorized Plates)
 
-Base path: **`/api/v1/whitelist/`**. All operations require a valid **`Authorization: Bearer`** JWT (any authenticated user).
+Base path: **`/api/v1/whitelist/`**. All operations require a valid **`Authorization: Bearer`** JWT from a **client administrator**.
 
 - **Normalization:** the server computes `normalized_plate` from the submitted text (strips non-alphanumeric characters, compares uppercase). The normalized value is **unique** — duplicate submissions return **409 Conflict**.
 - **Formats:** Brazilian plates in **Mercosul** (e.g. `ABC1D23`) or **legacy** three letters + four digits (e.g. `ABC-1234`), validated by `validate_brazilian_plate` / `AuthorizedPlateCreate` schema.
@@ -58,12 +63,12 @@ Base path: **`/api/v1/whitelist/`**. All operations require a valid **`Authoriza
 | Operation | Authentication |
 |-----------|----------------|
 | Register attempt (`POST /api/v1/access_logs/`, multipart) | Header **`X-Device-Key`** matching `DEVICE_INGEST_KEY` (when set) |
-| List records (`GET /api/v1/access_logs/`) | **`Authorization: Bearer`** — any authenticated user |
-| Get image (`GET /api/v1/access_logs/images/{filename}`) | **`Authorization: Bearer`** from admin user (`is_admin`); otherwise **403** |
+| List records (`GET /api/v1/access_logs/`) | **`Authorization: Bearer`** — client administrator |
+| Get image (`GET /api/v1/access_logs/images/{filename}`) | **`Authorization: Bearer`** — client administrator |
 
 ## Gate Control
 
-`POST /api/v1/gate_control/trigger` — **`Authorization: Bearer`** from an administrator (`is_admin`).
+`POST /api/v1/gate_control/trigger` — **`Authorization: Bearer`** — client administrator.
 
 - **`GATE_ACTUATOR_URL`:** when **not** set, the response has **`integration: "simulated"`** — no hardware command is sent.
 - When set, the API **POST**s `{"action": "open"}` and only considers success on **HTTP 2xx** from the actuator (`integration: "live"`). Network or HTTP errors return **502**/**503** with explicit `detail`.

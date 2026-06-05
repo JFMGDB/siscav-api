@@ -145,14 +145,19 @@ def get_current_user(
     return user
 
 
-def get_current_admin_user(
+def get_current_client_admin_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
-    """Usuário autenticado com privilégios de administrador operacional."""
-    if not (current_user.is_admin or current_user.is_superadmin):
+    """Authenticated client administrator (not platform superadmin)."""
+    if current_user.is_superadmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Administrator privileges required",
+            detail="Platform administrators cannot access client endpoints",
+        )
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Client administrator privileges required",
         )
     return current_user
 

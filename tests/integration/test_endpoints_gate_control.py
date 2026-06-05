@@ -89,13 +89,14 @@ class TestGateControlEndpoints:
             monkeypatch.delenv("GATE_ACTUATOR_URL", raising=False)
             get_settings.cache_clear()
 
-    def test_trigger_gate_non_admin_forbidden(self, client: TestClient, auth_token: str):
-        """Usuário autenticado sem is_admin recebe 403."""
+    def test_trigger_gate_superadmin_forbidden(
+        self, client: TestClient, superadmin_auth_token: str
+    ):
+        """Platform superadmin cannot trigger client gate control."""
         response = client.post(
             "/api/v1/gate_control/trigger",
-            headers={"Authorization": f"Bearer {auth_token}"},
+            headers={"Authorization": f"Bearer {superadmin_auth_token}"},
         )
-
         assert response.status_code == 403
 
     def test_trigger_gate_requires_auth(self, client: TestClient):

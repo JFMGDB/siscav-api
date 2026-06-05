@@ -13,16 +13,18 @@ Accepted.
 - Add `is_superadmin` on `users` (Alembic `20260604_0003`).
 - Protect `POST /api/v1/register` with `Depends(get_current_superadmin_user)` — unauthenticated → **401**, non-superadmin → **403**.
 - Expose `is_admin` and `is_superadmin` on `UserRead` / `GET /users/me`.
-- Treat superadmin as satisfying `get_current_admin_user` (operational admin routes unchanged).
 - Bootstrap first superadmin via `scripts/seed_demo.py` or SQL; no public self-registration or master password.
 
-### Role separation
+### Amendment (operational separation)
 
-| Role | Fields | Create users | Operational admin API |
-|------|--------|--------------|------------------------|
-| Regular user | both false | No | No |
-| Operational admin (client) | `is_admin` | No | Yes |
-| Siscav superadmin (system team) | `is_superadmin` | Yes | Yes (via implied admin) |
+See ADR 008 for the final two-role model and `get_current_client_admin_user`.
+
+### Role separation (superseded by ADR 008)
+
+| Role | Fields | Create users | Client API |
+|------|--------|--------------|------------|
+| Client administrator | `is_admin`, not superadmin | No | Yes |
+| Siscav superadmin | `is_superadmin`, `is_admin=false` | Yes | No |
 
 ## Consequences
 

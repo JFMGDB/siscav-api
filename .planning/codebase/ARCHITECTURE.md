@@ -69,12 +69,12 @@
 
 **Gate trigger (`POST /api/v1/gate_control/trigger`):**
 
-1. `get_current_admin_user` ensures `User.is_admin`.
+1. `get_current_client_admin_user` ensures client administrator (`is_admin`, not superadmin).
 2. `GateController.trigger_gate` either returns a simulated response or POSTs JSON to `GATE_ACTUATOR_URL` using `urllib.request`, mapping failures to HTTP 502/503.
 
-**Admin-only image download (`GET /api/v1/access_logs/images/{image_filename}`):**
+**Client admin image download (`GET /api/v1/access_logs/images/{image_filename}`):**
 
-1. `get_current_admin_user` gates access.
+1. `get_current_client_admin_user` gates access.
 2. Endpoint resolves path via controller and returns raw bytes with a mapped `Content-Type` (logic split between `endpoints/access_logs.py` and controller path resolution).
 
 **State Management:**

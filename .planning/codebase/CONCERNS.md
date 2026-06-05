@@ -36,17 +36,10 @@
 
 ## Security Considerations
 
-**Whitelist management is not admin-only:**
-- Issue: All CRUD routes under `/api/v1/whitelist/` depend on `get_current_user`, not `get_current_admin_user`.
-- Files: `apps/api/src/api/v1/endpoints/whitelist.py`, `apps/api/src/api/v1/deps.py`
-- Current mitigation: Any authenticated user can list, create, update, and delete authorized plates.
-- Recommendations: Restrict mutating operations (and possibly reads) to administrators, or introduce roles/tenant scoping if multi-tenant access is required.
-
-**Access log listing exposes sensitive operational data to any authenticated user:**
-- Issue: `GET /api/v1/access_logs/` requires only `get_current_user`; responses include plate text and metadata (images are admin-only via `GET /api/v1/access_logs/images/{image_filename}`).
-- Files: `apps/api/src/api/v1/endpoints/access_logs.py`
-- Current mitigation: Image download is gated by `get_current_admin_user` in `get_access_log_image`.
-- Recommendations: Treat log payloads as privileged; align list access with admin or a dedicated “viewer” role, and consider redaction for non-admin users.
+**Client API requires client administrator (two roles only):**
+- Policy: Whitelist, access logs (list + images), gate, and ML routes use `get_current_client_admin_user` (`is_admin=true`, `is_superadmin=false`). Platform superadmin cannot access client endpoints.
+- Files: `apps/api/src/api/v1/endpoints/*.py`, `apps/api/src/api/v1/deps.py`
+- See ADR 008 for the canonical role model.
 
 **Device ingest key optional in development:**
 - Issue: When `DEVICE_INGEST_KEY` is unset, `verify_device_ingest_key` allows requests if `environment` is development-like; otherwise it returns 401.
@@ -113,10 +106,10 @@
 - Why fragile: Deployments that stop at an older revision will lack `is_admin`, breaking admin-gated routes and seed assumptions.
 - Safe modification: Run migrations to head before serving traffic; document revision `20260404_0002` as required for admin features.
 
-**Authorization logic split across endpoints:**
+**Authorization on new routes:**
 - Files: `apps/api/src/api/v1/endpoints/*.py`, `apps/api/src/api/v1/deps.py`
-- Why fragile: Easy to add a new route with `get_current_user` when `get_current_admin_user` was intended (already inconsistent for whitelist vs. gate/image).
-- Safe modification: Centralize route policies (e.g. dependency factories or router-level defaults) and add integration tests per resource class.
+- Why fragile: New client routes might use `get_current_user` instead of `get_current_client_admin_user`.
+- Safe modification: Default client routers to `get_current_client_admin_user`; reserve `get_current_user` for `/users/me` and `get_current_superadmin_user` for `/register`.
 
 ## Scaling Limits
 

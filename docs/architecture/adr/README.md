@@ -10,6 +10,7 @@ Historical architecture planning documents preserved for reference.
 - [004 — Dependency Management and Configuration](./004-dependency-management.md) — pyproject SSOT, uv.lock, exported requirements, optional ML extra
 - [005 — Render API Deployment with Supabase Postgres](./005-render-api-deployment.md) — Render web service runtime, Supabase database, persistent uploads, and rejected serverless alternative
 - [006 — Remove Bluetooth Device Demo API](./006-remove-bluetooth-device-demo-api.md) — removal of `/devices/*` demo routes and `IOT_DEVICE_DEMO_API`; ingest and gate actuator unchanged
-- [007 — Restrict User Registration to Superadmin](./007-restrict-user-registration-to-superadmin.md) — `is_superadmin`, superadmin-only `POST /register`, role separation from operational admin
+- [007 — Restrict User Registration to Superadmin](./007-restrict-user-registration-to-superadmin.md) — `is_superadmin`, superadmin-only `POST /register`
+- [008 — Two Roles Only](./008-two-roles-only.md) — superadmin + client administrator only; `get_current_client_admin_user`; register defaults `is_admin=true`
 
 For current architecture, see [Executive Summary](../executive-summary.md) and [Acceptance Criteria](../acceptance-criteria-devops.md).
