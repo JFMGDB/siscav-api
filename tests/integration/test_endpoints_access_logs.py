@@ -39,7 +39,7 @@ class TestAccessLogsEndpoints:
             headers={"X-Device-Key": TEST_DEVICE_INGEST_KEY},
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         log = response.json()
         assert log["status"] == "Authorized"
         assert log["plate_string_detected"] == "ABC-1234"
@@ -67,7 +67,7 @@ class TestAccessLogsEndpoints:
             headers={"X-Device-Key": TEST_DEVICE_INGEST_KEY},
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         log = response.json()
         assert log["status"] == "Denied"
         assert log["plate_string_detected"] == "XYZ-9999"
@@ -102,7 +102,7 @@ class TestAccessLogsEndpoints:
             headers={"Authorization": f"Bearer {auth_token}"},
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         log = response.json()
         assert log["status"] == "Authorized"
         assert log["is_automatic"] is False

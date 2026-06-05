@@ -12,5 +12,6 @@ Historical architecture planning documents preserved for reference.
 - [006 — Remove Bluetooth Device Demo API](./006-remove-bluetooth-device-demo-api.md) — removal of `/devices/*` demo routes and `IOT_DEVICE_DEMO_API`; ingest and gate actuator unchanged
 - [007 — Restrict User Registration to Superadmin](./007-restrict-user-registration-to-superadmin.md) — `is_superadmin`, superadmin-only `POST /register`
 - [008 — Two Roles Only](./008-two-roles-only.md) — superadmin + client administrator only; `get_current_client_admin_user`; register defaults `is_admin=true`
+- [010 — Auto-open Gate on Authorized Access](./010-auto-open-gate-on-authorized-access.md) — sync actuator call after DB commit and graceful degradation
 
 For current architecture, see [Executive Summary](../executive-summary.md) and [Acceptance Criteria](../acceptance-criteria-devops.md).

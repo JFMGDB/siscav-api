@@ -48,6 +48,9 @@ Não estão no template mínimo; veja comentários históricos em commits antigo
 
 | Variável | Uso |
 |----------|-----|
-| `GATE_ACTUATOR_URL` | URL do atuador do portão |
+| `GATE_ACTUATOR_URL` | URL do atuador (`http://127.0.0.1:9080/open` para Wokwi; não use `localhost` no Windows) |
+| `GATE_ACTUATOR_TIMEOUT_SECONDS` | Timeout (s) do trigger manual `/gate_control/trigger` (padrão 5) |
+| `GATE_AUTO_OPEN_ON_AUTHORIZE` | `true` para abrir cancela após log Authorized (padrão false) |
+| `GATE_AUTO_OPEN_TIMEOUT_SECONDS` | Timeout (s) do auto-open em access logs (padrão 2, máx. 2) |
 | `VEHICLE_CLASSIFIER_BACKEND` | Classificador (`stub` padrão) |
 | `UPLOAD_DIR` / `MAX_FILE_SIZE_MB` | Uploads |

@@ -1,0 +1,2 @@
+# Cole este conteúdo no projeto wokwi.com (aba Libraries ou arquivo libraries.txt)
+ESP32Servo@3.0.5

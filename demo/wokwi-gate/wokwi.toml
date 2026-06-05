@@ -1,0 +1,18 @@
+[wokwi]
+version = 1
+firmware = "sketch.ino"
+# Do NOT set elf — no PlatformIO build in this demo folder.
+# Do NOT set gdbServerPort unless you use "Wokwi: Start Simulator in Debug Mode".
+
+# Private IoT Gateway — run wokwigw.exe first, then Start Simulator (not Debug).
+[net]
+gateway = "ws://localhost:9011"
+
+# Siscav GATE_ACTUATOR_URL → http://127.0.0.1:9080/open
+[[net.forward]]
+from = "localhost:9080"
+to = "target:80"
+
+[[libraries]]
+name = "ESP32Servo"
+version = "3.0.5"

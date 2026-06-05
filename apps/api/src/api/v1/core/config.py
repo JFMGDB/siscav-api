@@ -170,6 +170,20 @@ def _read_gate_actuator_timeout_seconds() -> int:
     return max(1, min(n, 120))
 
 
+def _read_gate_auto_open_on_authorize() -> bool:
+    v = (os.getenv("GATE_AUTO_OPEN_ON_AUTHORIZE") or "").strip().lower()
+    return v in ("1", "true", "yes", "on")
+
+
+def _read_gate_auto_open_timeout_seconds() -> float:
+    raw = os.getenv("GATE_AUTO_OPEN_TIMEOUT_SECONDS", "2").strip()
+    try:
+        n = float(raw)
+    except ValueError:
+        return 2.0
+    return max(1.5, min(n, 2.0))
+
+
 def _read_vehicle_classifier_backend() -> str:
     """Vehicle classifier backend id (default: stub until a real model is integrated)."""
     raw = (os.getenv("VEHICLE_CLASSIFIER_BACKEND") or "stub").strip().lower()
@@ -217,6 +231,10 @@ class Settings(BaseModel):
     device_ingest_key: str | None = Field(default_factory=_read_device_ingest_key)
     gate_actuator_url: str | None = Field(default_factory=_read_gate_actuator_url)
     gate_actuator_timeout_seconds: int = Field(default_factory=_read_gate_actuator_timeout_seconds)
+    gate_auto_open_on_authorize: bool = Field(default_factory=_read_gate_auto_open_on_authorize)
+    gate_auto_open_timeout_seconds: float = Field(
+        default_factory=_read_gate_auto_open_timeout_seconds
+    )
     secret_key: str = Field(default_factory=_read_secret_key)
     algorithm: str = Field(default_factory=_read_algorithm)
     access_token_expire_minutes: int = Field(default_factory=_read_access_token_expire_minutes)

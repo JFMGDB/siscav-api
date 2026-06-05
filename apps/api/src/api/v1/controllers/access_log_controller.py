@@ -9,6 +9,7 @@ from uuid import UUID
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
@@ -125,7 +126,17 @@ class AccessLogController:
             ocr_success=ocr_success,
         )
 
-        return AccessLogRead.model_validate(access_log)
+        log_read = AccessLogRead.model_validate(access_log)
+
+        if (
+            self.settings.gate_auto_open_on_authorize
+            and access_status == AccessStatus.Authorized
+        ):
+            gate_controller = GateController(self.settings)
+            gate_trigger = gate_controller.trigger_gate_safe()
+            log_read = log_read.model_copy(update={"gate_trigger": gate_trigger})
+
+        return log_read
 
     def whitelist_from_denied_log(
         self,

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "author": "Siscav",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-c",
+      "id": "esp",
+      "top": 80,
+      "left": 40,
+      "attrs": { "env": "Arduino-ESP32" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo1",
+      "top": 200,
+      "left": 320,
+      "attrs": { "horn": "single" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 60,
+      "left": 360,
+      "attrs": { "color": "green" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:18", "servo1:PWM", "green", [] ],
+    [ "esp:2", "led1:A", "green", [] ],
+    [ "led1:C", "esp:GND.1", "black", [] ],
+    [ "servo1:GND", "esp:GND.2", "black", [] ],
+    [ "servo1:V+", "esp:3V3", "red", [] ]
+  ],
+  "serialMonitor": {
+    "collapse": false,
+    "display": "always",
+    "convertEol": false,
+    "newline": "lf"
+  }
+}

@@ -66,13 +66,17 @@ Base path: **`/api/v1/whitelist/`**. All operations require a valid **`Authoriza
 | List records (`GET /api/v1/access_logs/`) | **`Authorization: Bearer`** — client administrator |
 | Get image (`GET /api/v1/access_logs/images/{filename}`) | **`Authorization: Bearer`** — client administrator |
 
+Successful registration returns **`201 Created`** with **`AccessLogRead`**. When **`GATE_AUTO_OPEN_ON_AUTHORIZE=true`** and status is **`Authorized`**, the response may include **`gate_trigger`** (actuator outcome). Actuator failure does not change HTTP status or roll back the log.
+
 ## Gate Control
 
 `POST /api/v1/gate_control/trigger` — **`Authorization: Bearer`** — client administrator.
 
-- **`GATE_ACTUATOR_URL`:** when **not** set, the response has **`integration: "simulated"`** — no hardware command is sent.
-- When set, the API **POST**s `{"action": "open"}` and only considers success on **HTTP 2xx** from the actuator (`integration: "live"`). Network or HTTP errors return **502**/**503** with explicit `detail`.
-- **`GATE_ACTUATOR_TIMEOUT_SECONDS`** (optional, default 5): timeout in seconds.
+- **`GATE_ACTUATOR_URL`:** when **not** set, the response has **`integration: "simulated"`** — no hardware command is sent. Use **`http://127.0.0.1:9080/open`** for Wokwi Private IoT Gateway (never `localhost` on Windows — IPv6 bypass).
+- When set, the API **POST**s `{"action": "open"}` and only considers success on **HTTP 2xx** from the actuator (`integration: "live"`). Network or HTTP errors return **502**/**503** with explicit `detail` on this manual endpoint only.
+- **`GATE_ACTUATOR_TIMEOUT_SECONDS`** (optional, default 5): timeout for manual trigger.
+- **`GATE_AUTO_OPEN_ON_AUTHORIZE`** (optional, default false): after authorized access log commit, call actuator synchronously.
+- **`GATE_AUTO_OPEN_TIMEOUT_SECONDS`** (optional, default 2, max 2): timeout for auto-open on access logs.
 
 ## Applied Principles
 

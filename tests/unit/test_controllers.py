@@ -230,6 +230,8 @@ class TestAccessLogController:
         ) as mock_settings:
             mock_settings.return_value.upload_dir = str(upload_dir)
             mock_settings.return_value.max_file_size_mb = 10
+            mock_settings.return_value.gate_auto_open_on_authorize = False
+            mock_settings.return_value.gate_auto_open_on_authorize = False
             controller = AccessLogController(db_session)
             log = controller.create_access_log(plate="ABC-1234", file=file)
             assert log.status == AccessStatus.Authorized
@@ -250,6 +252,7 @@ class TestAccessLogController:
         ) as mock_settings:
             mock_settings.return_value.upload_dir = str(upload_dir)
             mock_settings.return_value.max_file_size_mb = 10
+            mock_settings.return_value.gate_auto_open_on_authorize = False
             controller = AccessLogController(db_session)
             log = controller.create_access_log(plate="XYZ-9999", file=file)
             assert log.status == AccessStatus.Denied
@@ -283,6 +286,7 @@ class TestAccessLogController:
         ) as mock_settings:
             mock_settings.return_value.upload_dir = str(upload_dir)
             mock_settings.return_value.max_file_size_mb = 10
+            mock_settings.return_value.gate_auto_open_on_authorize = False
             controller = AccessLogController(db_session)
             with pytest.raises(HTTPException) as exc_info:
                 controller.create_access_log(plate="ABC-1234", file=file)

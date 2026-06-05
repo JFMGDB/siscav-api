@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from apps.api.src.api.v1.schemas.gate_control import GateTriggerResponse
+
 
 class AccessStatus(str, Enum):
     Authorized = "Authorized"
@@ -32,6 +34,13 @@ class AccessLogRead(BaseModel):
     ocr_success: bool = Field(
         True,
         description="True quando a placa detectada segue formato brasileiro válido.",
+    )
+    gate_trigger: GateTriggerResponse | None = Field(
+        None,
+        description=(
+            "Resultado do acionamento do portão quando GATE_AUTO_OPEN_ON_AUTHORIZE "
+            "está ativo e o acesso foi Authorized."
+        ),
     )
 
 

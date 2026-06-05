@@ -183,7 +183,7 @@ class TestAccessLogsEndpoints:
         response = client.post(
             "/api/v1/access_logs/", files=files, data=data, headers=_DEVICE_HEADERS
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         log = response.json()
         assert log["status"] == "Authorized"
         assert log["plate_string_detected"] == "ABC-1234"
@@ -196,7 +196,7 @@ class TestAccessLogsEndpoints:
         response = client.post(
             "/api/v1/access_logs/", files=files, data=data, headers=_DEVICE_HEADERS
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         log = response.json()
         assert log["status"] == "Denied"
 

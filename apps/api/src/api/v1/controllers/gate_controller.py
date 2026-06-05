@@ -35,7 +35,48 @@ class GateController:
 
         Sem `GATE_ACTUATOR_URL`: retorna `integration=simulated` (nenhum hardware contactado).
         Com URL: POST JSON `{"action": "open"}`; sucesso só com HTTP 2xx do atuador.
+        Falhas de rede/HTTP propagam como HTTPException (uso manual em /gate_control/trigger).
         """
+        result = self._call_actuator(timeout_seconds=self._settings.gate_actuator_timeout_seconds)
+        if result.status == "error" and result.integration == "live":
+            if result.downstream_status_code is not None:
+                _raise_actuator_bad_status(result.downstream_status_code)
+            if result.reason == "actuator_timeout":
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Tempo esgotado ao contactar o atuador do portão",
+                )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=result.message,
+            )
+        return result
+
+    def trigger_gate_safe(
+        self,
+        *,
+        timeout_seconds: float | None = None,
+    ) -> GateTriggerResponse:
+        """
+        Aciona o portão após autorização de access log.
+
+        Nunca levanta HTTPException: falhas do atuador retornam `status=error` com `reason`.
+        """
+        timeout = (
+            timeout_seconds
+            if timeout_seconds is not None
+            else self._settings.gate_auto_open_timeout_seconds
+        )
+        result = self._call_actuator(timeout_seconds=timeout)
+        if result.status == "error":
+            logger.warning(
+                "Gate auto-open failed: reason=%s integration=%s",
+                result.reason,
+                result.integration,
+            )
+        return result
+
+    def _call_actuator(self, *, timeout_seconds: float) -> GateTriggerResponse:
         raw_url = (self._settings.gate_actuator_url or "").strip()
         if not raw_url:
             return GateTriggerResponse(
@@ -46,9 +87,9 @@ class GateController:
                 ),
                 acknowledged=False,
                 downstream_status_code=None,
+                status="ok",
             )
 
-        timeout = self._settings.gate_actuator_timeout_seconds
         payload = json.dumps({"action": "open"}).encode("utf-8")
         req = Request(
             raw_url,
@@ -57,7 +98,7 @@ class GateController:
             headers={"Content-Type": "application/json"},
         )
         try:
-            with urlopen(req, timeout=timeout) as resp:
+            with urlopen(req, timeout=timeout_seconds) as resp:
                 code = resp.getcode()
             if _HTTP_STATUS_OK_MIN <= code < _HTTP_STATUS_OK_MAX:
                 return GateTriggerResponse(
@@ -65,23 +106,46 @@ class GateController:
                     message="Atuador respondeu com sucesso (HTTP 2xx).",
                     acknowledged=True,
                     downstream_status_code=code,
+                    status="ok",
                 )
             logger.warning("Gate actuator returned non-2xx after urlopen: %s", code)
-            _raise_actuator_bad_status(code)
-        except HTTPException:
-            raise
+            return GateTriggerResponse(
+                integration="live",
+                message=f"Atuador retornou status HTTP {code}.",
+                acknowledged=False,
+                downstream_status_code=code,
+                status="error",
+                reason="actuator_http_error",
+            )
         except TimeoutError:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Tempo esgotado ao contactar o atuador do portão",
-            ) from None
+            return GateTriggerResponse(
+                integration="live",
+                message="Access authorized; gate actuator did not respond within timeout.",
+                acknowledged=False,
+                downstream_status_code=None,
+                status="error",
+                reason="actuator_timeout",
+            )
         except urllib.error.HTTPError as e:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Atuador retornou erro HTTP {e.code}: {e.reason}",
-            ) from e
+            return GateTriggerResponse(
+                integration="live",
+                message=f"Atuador retornou erro HTTP {e.code}: {e.reason}.",
+                acknowledged=False,
+                downstream_status_code=e.code,
+                status="error",
+                reason="actuator_http_error",
+            )
         except urllib.error.URLError as e:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Falha de rede ao contactar o atuador: {e.reason!s}",
-            ) from e
+            reason = (
+                "connection_refused"
+                if "refused" in str(e.reason).lower()
+                else "actuator_network_error"
+            )
+            return GateTriggerResponse(
+                integration="live",
+                message=f"Falha de rede ao contactar o atuador: {e.reason!s}.",
+                acknowledged=False,
+                downstream_status_code=None,
+                status="error",
+                reason=reason,
+            )

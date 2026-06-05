@@ -23,7 +23,7 @@ from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateRead
 router = APIRouter()
 
 
-@router.post("/", response_model=AccessLogRead)
+@router.post("/", response_model=AccessLogRead, status_code=201)
 def create_access_log(
     file: Annotated[UploadFile, File()],
     plate: Annotated[str, Form()],

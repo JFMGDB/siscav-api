@@ -27,7 +27,7 @@ def test_access_log_authorized_and_denied_flow(client: TestClient, auth_token: s
     data = {"plate": "ABC-1234"}
 
     response = client.post("/api/v1/access_logs/", files=files, data=data, headers=_DEVICE)
-    assert response.status_code == 200
+    assert response.status_code == 201
     log = response.json()
     assert log["status"] == "Authorized"
     assert log["plate_string_detected"] == "ABC-1234"
@@ -42,7 +42,7 @@ def test_access_log_authorized_and_denied_flow(client: TestClient, auth_token: s
     data = {"plate": "XYZ-9999"}
 
     response = client.post("/api/v1/access_logs/", files=files, data=data, headers=_DEVICE)
-    assert response.status_code == 200
+    assert response.status_code == 201
     log = response.json()
     assert log["status"] == "Denied"
     assert log["plate_string_detected"] == "XYZ-9999"
