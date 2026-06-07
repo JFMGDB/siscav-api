@@ -1675,7 +1675,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
-    { name = "easyocr" },
     { name = "email-validator" },
     { name = "fastapi" },
     { name = "numpy" },
@@ -1704,6 +1703,9 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
 ]
+ml = [
+    { name = "easyocr" },
+]
 onnx = [
     { name = "onnxruntime" },
 ]
@@ -1711,7 +1713,7 @@ onnx = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = "==1.18.4" },
-    { name = "easyocr", specifier = ">=1.7" },
+    { name = "easyocr", marker = "extra == 'ml'", specifier = ">=1.7" },
     { name = "email-validator", specifier = "==2.3.0" },
     { name = "fastapi", specifier = "==0.135.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
@@ -1735,7 +1737,7 @@ requires-dist = [
     { name = "torchvision", marker = "extra == 'convert'", specifier = ">=0.20" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.42.0" },
 ]
-provides-extras = ["dev", "onnx", "convert"]
+provides-extras = ["dev", "ml", "onnx", "convert"]
 
 [[package]]
 name = "six"

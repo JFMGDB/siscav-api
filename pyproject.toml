@@ -21,10 +21,9 @@ dependencies = [
     "python-multipart==0.0.20",  # Upload multipart (FastAPI)
     "python-dotenv==1.2.2",  # Carregamento automático de .env / .env.local em desenvolvimento
 
-    # OCR / reconhecimento de placa (POST /api/v1/ml/recognize-plate) — obrigatório em produção
+    # Image decode for ONNX classifier and OCR pipeline (lightweight vs EasyOCR/torch)
     "numpy>=1.24",
     "opencv-python-headless>=4.8",
-    "easyocr>=1.7",
 ]
 
 [project.optional-dependencies]
@@ -33,6 +32,10 @@ dev = [
     "pytest-cov==7.1.0",  # Para cobertura de código
     "ruff==0.14.6",  # Para linting rápido
     "httpx==0.28.1",  # Cliente HTTP para usar nos testes
+]
+ml = [
+    # Heavy stack (~400MB+ RAM). Not installed on Render free tier; OCR returns 503 there.
+    "easyocr>=1.7",
 ]
 onnx = [
     "onnxruntime>=1.19",

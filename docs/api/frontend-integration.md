@@ -43,7 +43,7 @@ O frontend pode enviar um **frame ou recorte** (JPEG, PNG ou WebP) para a API ex
 
 ### Pré-requisito no servidor
 
-As dependências ML (`numpy`, `opencv-python-headless`, `easyocr`) estão em `pyproject.toml` / `requirements.txt`. Instale com `uv sync` ou `pip install -r requirements.txt`. Se não carregarem no processo, a API responde **503** (`OCR indisponível`).
+As dependências ML de OCR (`easyocr`, transitivamente PyTorch) estão no extra opcional **`requirements-ml.txt`**. O runtime base (`requirements.txt`) inclui apenas `numpy` e `opencv-python-headless` para o classificador ONNX. Instale OCR com `uv sync --extra ml` ou `pip install -r requirements-ml.txt`. No Render free tier o OCR **não** é instalado (limite 512MB); a rota responde **503**.
 
 ### Endpoint
 

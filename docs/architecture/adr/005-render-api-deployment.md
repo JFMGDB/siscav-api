@@ -29,6 +29,7 @@ The project needs a stable production API URL while development continues in the
 - The frontend can call the API directly from the browser when `BACKEND_CORS_ORIGINS` includes the stable Vercel origin.
 - Production secrets remain outside the repository.
 - Alembic migrations remain an explicit operational step before or during deployment, not application startup behavior.
+- **EasyOCR / PyTorch (`requirements-ml.txt`) are not installed on Render free tier** — the stack exceeds 512MB RAM. Plate OCR (`POST /api/v1/ml/recognize-plate`) returns **503** in production; use local API for OCR demos. ONNX ambulance classification remains available via `requirements-onnx.txt`.
 - If persistent access-log images become required, upgrade the Render service to a paid plan and attach a disk mounted at the same path configured in `UPLOAD_DIR`, or migrate uploads to object storage.
 
 ## Alternatives considered
