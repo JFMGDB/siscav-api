@@ -25,4 +25,4 @@ class PasswordResetConfirm(BaseModel):
 
 
 class PasswordResetConfirmed(BaseModel):
-    detail: str = Field(default="Password has been reset successfully.")
+    detail: str = Field(default="Senha redefinida com sucesso.")

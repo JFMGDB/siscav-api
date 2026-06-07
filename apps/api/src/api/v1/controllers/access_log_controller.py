@@ -9,11 +9,14 @@ from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.config import get_settings
+from apps.api.src.api.v1.core.validation_errors import translate_validation_errors
 from apps.api.src.api.v1.ml.classifier import (
     classifier_onnx_stack_available,
     get_vehicle_classifier,
@@ -83,7 +86,7 @@ class AccessLogController:
         if not file.content_type or not file.content_type.startswith("image/"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Arquivo deve ser uma imagem",
+                detail=err.FILE_MUST_BE_IMAGE,
             )
 
         # Ler conteúdo do arquivo
@@ -92,7 +95,7 @@ class AccessLogController:
         if len(file_content) > max_size_bytes:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"Arquivo muito grande. Máximo: {self.settings.max_file_size_mb}MB",
+                detail=err.FILE_TOO_LARGE.format(max_mb=self.settings.max_file_size_mb),
             )
 
         vehicle_classification: VehicleClassificationResult | None = None
@@ -194,21 +197,26 @@ class AccessLogController:
         if not access_log:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Access log not found",
+                detail=err.ACCESS_LOG_NOT_FOUND,
             )
         if access_log.status != AccessStatus.Denied:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only denied access logs can be whitelisted via this endpoint",
+                detail=err.ONLY_DENIED_LOG_WHITELIST,
             )
 
         plate_controller = PlateController(self.db)
-        return plate_controller.create(
-            AuthorizedPlateCreate(
+        try:
+            plate_data = AuthorizedPlateCreate(
                 plate=access_log.plate_string_detected,
                 description=description,
             )
-        )
+        except ValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=translate_validation_errors(exc.errors()),
+            ) from exc
+        return plate_controller.create(plate_data)
 
     def get_daily_metrics(self, day: date) -> tuple[DailyAccessMetrics, float]:
         access = self.access_log_repository.get_daily_metrics(self.db, day)
@@ -231,7 +239,7 @@ class AccessLogController:
         if ".." in image_filename or "/" in image_filename or "\\" in image_filename:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Nome de arquivo inválido",
+                detail=err.INVALID_FILENAME,
             )
 
         upload_dir = Path(self.settings.upload_dir)
@@ -240,7 +248,7 @@ class AccessLogController:
         if not image_path.exists() or not image_path.is_file():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Imagem não encontrada",
+                detail=err.IMAGE_NOT_FOUND,
             )
 
         return image_path

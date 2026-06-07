@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.auth_controller import AuthController
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.limiter import limiter
 from apps.api.src.api.v1.core.security import create_access_token, create_refresh_token
@@ -78,7 +79,7 @@ def _validate_and_decode_refresh_token(token: str) -> TokenPayload:
     if not token or not token.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Refresh token cannot be empty",
+            detail=err.REFRESH_TOKEN_EMPTY,
         )
 
     try:
@@ -87,19 +88,19 @@ def _validate_and_decode_refresh_token(token: str) -> TokenPayload:
     except (JWTError, ValidationError) as error:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate refresh token",
+            detail=err.REFRESH_TOKEN_INVALID,
         ) from error
 
     if token_data.type != "refresh":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid token type",
+            detail=err.INVALID_TOKEN_TYPE,
         )
 
     if not token_data.sub:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate refresh token",
+            detail=err.REFRESH_TOKEN_INVALID,
         )
 
     return token_data
@@ -122,19 +123,19 @@ def login_access_token(
     if not form_data.username or not form_data.username.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email cannot be empty",
+            detail=err.EMAIL_EMPTY,
         )
     if not form_data.password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password cannot be empty",
+            detail=err.PASSWORD_EMPTY,
         )
 
     user = auth_controller.authenticate(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail=err.INCORRECT_EMAIL_OR_PASSWORD,
         )
 
     return _create_token_pair(user.id)
@@ -161,14 +162,14 @@ def refresh_access_token(
     except (ValueError, TypeError) as error:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid user ID in token",
+            detail=err.INVALID_USER_ID_IN_TOKEN,
         ) from error
 
     user = UserRepository.get_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=err.USER_NOT_FOUND,
         )
 
     return _create_token_pair(user.id)

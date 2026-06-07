@@ -20,6 +20,7 @@ from apps.api.src.api.v1.controllers.auth_controller import AuthController
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.controllers.user_controller import UserController
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.db.session import get_db
 from apps.api.src.api.v1.ml.classifier import VehicleClassifier, get_vehicle_classifier
@@ -70,7 +71,7 @@ def verify_device_ingest_key(
     if not _device_ingest_key_valid(x_device_key):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         )
 
 
@@ -81,13 +82,13 @@ def _validate_client_admin_token(token: str, db: Session) -> User:
     except (JWTError, ValidationError) as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         ) from e
 
     if token_data.type != "access" or not token_data.sub:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         )
 
     try:
@@ -95,14 +96,14 @@ def _validate_client_admin_token(token: str, db: Session) -> User:
     except (ValueError, TypeError) as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         ) from e
 
     user = UserRepository.get_by_id(db, user_id)
     if not user or user.is_superadmin or not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         )
     return user
 
@@ -131,12 +132,12 @@ def verify_device_ingest_or_admin(
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         )
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail=err.CREDENTIALS_INVALID,
     )
 
 
@@ -167,7 +168,7 @@ def get_current_user(
         logger.warning("Token validation failed: %s: %s", type(e).__name__, e)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         ) from None
 
     # Validar que é um token de acesso (não refresh)
@@ -175,14 +176,14 @@ def get_current_user(
         logger.warning("Invalid token type: %s (expected 'access')", token_data.type)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid token type. Use access token for authenticated requests.",
+            detail=err.INVALID_ACCESS_TOKEN_TYPE,
         )
 
     if not token_data.sub:
         logger.warning("Token missing 'sub' field")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
+            detail=err.CREDENTIALS_INVALID,
         )
 
     try:
@@ -195,7 +196,7 @@ def get_current_user(
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid user ID in token",
+            detail=err.INVALID_USER_ID_IN_TOKEN,
         ) from e
 
     logger.debug("Looking up user with ID: %s", user_id)
@@ -209,7 +210,7 @@ def get_current_user(
             token_data.sub,
             user_count,
         )
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err.USER_NOT_FOUND)
 
     logger.debug("User authenticated: %s (ID: %s)", user.email, user.id)
     return user
@@ -222,12 +223,12 @@ def get_current_client_admin_user(
     if current_user.is_superadmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Platform administrators cannot access client endpoints",
+            detail=err.PLATFORM_ADMIN_CLIENT_FORBIDDEN,
         )
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Client administrator privileges required",
+            detail=err.CLIENT_ADMIN_REQUIRED,
         )
     return current_user
 
@@ -239,7 +240,7 @@ def get_current_superadmin_user(
     if not current_user.is_superadmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Superadmin privileges required",
+            detail=err.SUPERADMIN_REQUIRED,
         )
     return current_user
 

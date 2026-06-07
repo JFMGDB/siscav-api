@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
 
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.deps import get_classifier, get_current_client_admin_user
 from apps.api.src.api.v1.ml.classifier import (
@@ -59,7 +60,7 @@ async def classify_vehicle_from_image(
     if not file.content_type or file.content_type.split(";")[0].strip().lower() not in _ALLOWED_CT:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Unsupported file type. Use JPEG, PNG, or WebP.",
+            detail=err.UNSUPPORTED_IMAGE_TYPE,
         )
 
     settings = get_settings()
@@ -68,7 +69,7 @@ async def classify_vehicle_from_image(
     if len(raw) > max_bytes:
         raise HTTPException(
             status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail=f"Image exceeds {settings.max_file_size_mb} MB.",
+            detail=err.IMAGE_EXCEEDS_MAX.format(max_mb=settings.max_file_size_mb),
         )
 
     if isinstance(classifier, StubVehicleClassifier):
@@ -78,15 +79,12 @@ async def classify_vehicle_from_image(
         if not classifier_onnx_stack_available():
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=(
-                    "Vehicle classification is not available: install optional ONNX dependencies "
-                    "(uv sync --extra onnx) and restart the server."
-                ),
+                detail=err.CLASSIFICATION_ONNX_UNAVAILABLE,
             )
     elif not classifier_stack_available():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Vehicle classification is not available.",
+            detail=err.CLASSIFICATION_UNAVAILABLE,
         )
 
     import cv2  # noqa: PLC0415
@@ -97,7 +95,7 @@ async def classify_vehicle_from_image(
     if frame is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Could not decode image.",
+            detail=err.IMAGE_DECODE_FAILED,
         )
 
     try:
@@ -108,5 +106,5 @@ async def classify_vehicle_from_image(
         logger.exception("Error in vehicle classification pipeline")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process vehicle classification.",
+            detail=err.CLASSIFICATION_PROCESS_FAILED,
         ) from None

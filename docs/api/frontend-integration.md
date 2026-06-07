@@ -753,42 +753,77 @@ export default apiClient;
 
 ## Tratamento de Erros
 
+### Contrato unificado
+
+Todas as respostas de erro HTTP seguem o shape FastAPI:
+
+```json
+{ "detail": "Mensagem legível em pt-BR" }
+```
+
+Validação estrutural (422):
+
+```json
+{
+  "detail": [
+    { "loc": ["body", "email"], "msg": "Informe um e-mail válido.", "type": "value_error.email" }
+  ]
+}
+```
+
+Rate limit (429):
+
+```json
+{ "detail": "Muitas tentativas. Aguarde 1 minuto antes de tentar novamente." }
+```
+
 ### Códigos de Status HTTP
 
-| Código | Significado | Ação Recomendada |
-|--------|-------------|------------------|
+| Código | Tipo | Ação recomendada no frontend |
+|--------|------|------------------------------|
 | 200 | Sucesso | Continuar normalmente |
-| 400 | Bad Request | Validar dados enviados |
-| 401 | Unauthorized | Credenciais inválidas ou token expirado |
-| 403 | Forbidden | Token inválido ou tipo incorreto |
-| 404 | Not Found | Recurso não encontrado |
-| 413 | Content Too Large | Ficheiro acima do limite (ex.: OCR / uploads) |
-| 429 | Too Many Requests | Aguardar antes de tentar novamente |
-| 503 | Service Unavailable | OCR: dependências ML não instaladas no servidor |
+| 400 | Requisição inválida / regra de entrada | Exibir `detail` |
+| 401 | Autenticação ausente ou inválida | Renovar token ou redirecionar ao login |
+| 403 | Autorização / token incorreto | Exibir `detail`; **não** tratar como sessão expirada em registro |
+| 404 | Recurso não encontrado | Exibir `detail` |
+| 409 | Conflito (ex.: e-mail duplicado) | Exibir `detail` |
+| 413 | Payload grande | Exibir `detail` |
+| 422 | Validação Pydantic | Juntar `detail[].msg` (já em pt-BR) |
+| 429 | Rate limit | Exibir `detail`; aguardar antes de retry |
+| 502/503 | Serviço indisponível | Exibir `detail` |
+| 500 | Erro interno | Mensagem genérica pt-BR; detalhes técnicos só em logs |
 
-### Mensagens de Erro
+### Exemplo TypeScript (Mantis web)
+
+```typescript
+import { ApiHttpError, parseApiResponse, resolveApiError } from "@/lib/api/errors";
+
+async function handleApiCall(res: Response): Promise<void> {
+  if (!res.ok) {
+    const err = await parseApiResponse(res);
+    throw err; // ApiHttpError com status + detail pt-BR
+  }
+}
+
+// Na UI:
+try {
+  await login(email, password);
+} catch (err) {
+  const message = resolveApiError(err, "Erro ao fazer login. Tente novamente.");
+  setError(message);
+}
+
+// Branch por status quando necessário:
+if (err instanceof ApiHttpError && err.status === 429) {
+  // contador de espera
+}
+```
+
+### Mensagens de Erro (legado)
 
 ```typescript
 interface ApiError {
-  detail: string;
-}
-
-// Exemplo de tratamento
-try {
-  await authService.login(email, password);
-} catch (error) {
-  if (error instanceof Error) {
-    switch (error.message) {
-      case 'Credenciais inválidas':
-        // Mostrar mensagem ao usuário
-        break;
-      case 'Muitas tentativas. Aguarde 1 minuto.':
-        // Mostrar contador de espera
-        break;
-      default:
-        // Erro genérico
-    }
-  }
+  detail: string | { loc: string[]; msg: string; type: string }[];
 }
 ```
 

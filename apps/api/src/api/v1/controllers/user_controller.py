@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.security import get_password_hash
 from apps.api.src.api.v1.repositories.user_repository import UserRepository
 from apps.api.src.api.v1.schemas.user import (
@@ -49,14 +50,14 @@ class UserController:
         if data.email is None and data.password is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="At least one field (email or password) is required",
+                detail=err.UPDATE_FIELD_REQUIRED,
             )
 
         user = self.user_repository.get_by_id(self.db, user_id)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+                detail=err.USER_NOT_FOUND,
             )
 
         email = str(data.email) if data.email is not None else None
@@ -65,7 +66,7 @@ class UserController:
             if existing and existing.id != user_id:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="Email already registered",
+                    detail=err.EMAIL_ALREADY_REGISTERED,
                 )
 
         hashed_password = get_password_hash(data.password) if data.password is not None else None
@@ -81,13 +82,13 @@ class UserController:
             self.db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Email already registered",
+                detail=err.EMAIL_ALREADY_REGISTERED,
             ) from e
 
         if not updated:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+                detail=err.USER_NOT_FOUND,
             )
 
         logger.info("User updated by superadmin: id=%s email=%s", user_id, updated.email)
@@ -97,14 +98,14 @@ class UserController:
         if user_id == actor_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot delete your own account",
+                detail=err.CANNOT_DELETE_OWN_ACCOUNT,
             )
 
         user = self.user_repository.get_by_id(self.db, user_id)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+                detail=err.USER_NOT_FOUND,
             )
 
         if user.is_superadmin:
@@ -112,14 +113,14 @@ class UserController:
             if superadmin_count <= 1:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Cannot delete the last superadmin account",
+                    detail=err.CANNOT_DELETE_LAST_SUPERADMIN,
                 )
 
         deleted = self.user_repository.delete(self.db, user_id)
         if not deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+                detail=err.USER_NOT_FOUND,
             )
 
         logger.info("User deleted by superadmin: id=%s email=%s", user_id, user.email)

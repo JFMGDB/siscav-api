@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.repositories.authorized_plate_repository import (
     AuthorizedPlateRepository,
 )
@@ -13,11 +14,11 @@ from apps.api.src.api.v1.schemas.authorized_plate import (
     AuthorizedPlateCreate,
     AuthorizedPlateRead,
 )
-from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
+from apps.api.src.api.v1.utils.plate import normalize_plate
 
 logger = logging.getLogger(__name__)
 
-_PLATE_NOT_FOUND_DETAIL = "Plate not found"
+_PLATE_NOT_FOUND_DETAIL = err.PLATE_NOT_FOUND
 
 
 class PlateController:
@@ -85,13 +86,6 @@ class PlateController:
         """
         logger.info("Creating authorized plate: %s", plate_data.plate)
 
-        # Validar formato da placa
-        is_valid, error_message = validate_brazilian_plate(plate_data.plate)
-        if not is_valid:
-            logger.warning("Invalid plate: %s - %s", plate_data.plate, error_message)
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
-
-        # Normalizar placa
         normalized = plate_data.normalized_plate or normalize_plate(plate_data.plate)
 
         # Verificar se já existe
@@ -100,7 +94,7 @@ class PlateController:
             logger.warning("Duplicate plate creation attempt: %s", normalized)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Plate already exists in whitelist",
+                detail=err.PLATE_ALREADY_EXISTS,
             )
 
         # Criar placa
@@ -117,7 +111,7 @@ class PlateController:
             logger.exception("Error creating authorized plate")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Erro interno ao criar placa autorizada",
+                detail=err.PLATE_CREATE_INTERNAL_ERROR,
             ) from e
 
     def update(self, plate_id: UUID, plate_data: AuthorizedPlateCreate) -> AuthorizedPlateRead:
@@ -143,20 +137,13 @@ class PlateController:
                 status_code=status.HTTP_404_NOT_FOUND, detail=_PLATE_NOT_FOUND_DETAIL
             )
 
-        # Validar formato da placa
-        is_valid, error_message = validate_brazilian_plate(plate_data.plate)
-        if not is_valid:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
-
-        # Normalizar placa
         normalized = plate_data.normalized_plate or normalize_plate(plate_data.plate)
 
-        # Verificar se a nova placa normalizada já existe em outro registro
         existing = self.plate_repository.get_by_normalized_plate(self.db, normalized)
         if existing and existing.id != plate_id:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Plate already exists in whitelist",
+                detail=err.PLATE_ALREADY_EXISTS,
             )
 
         # Atualizar placa

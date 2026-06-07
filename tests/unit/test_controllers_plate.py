@@ -3,6 +3,7 @@
 from uuid import uuid4
 
 import pytest
+from pydantic import ValidationError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -44,7 +45,7 @@ class TestPlateController:
             controller.get_by_id(fake_id)
 
         assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-        assert "Plate not found" in str(exc_info.value.detail)
+        assert "Placa não encontrada" in str(exc_info.value.detail)
 
     def test_get_all(self, db_session: Session):
         """Testa listagem de placas com paginação."""
@@ -104,17 +105,10 @@ class TestPlateController:
         assert result.normalized_plate == "ABC1234"
         assert result.description == "Test plate"
 
-    def test_create_invalid_plate_format(self, db_session: Session):
-        """Testa criação de placa com formato inválido."""
-        controller = PlateController(db_session)
-        plate_data = AuthorizedPlateCreate.model_construct(
-            plate="INVALID", normalized_plate="INVALID", description="Invalid plate"
-        )
-
-        with pytest.raises(HTTPException) as exc_info:
-            controller.create(plate_data)
-
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+    def test_create_invalid_plate_format(self):
+        """Formato inválido é rejeitado pelo schema Pydantic (camada HTTP)."""
+        with pytest.raises(ValidationError):
+            AuthorizedPlateCreate(plate="INVALID", description="Invalid plate")
 
     def test_create_duplicate_plate(self, db_session: Session):
         """Testa criação de placa duplicada."""
@@ -132,7 +126,7 @@ class TestPlateController:
             controller.create(plate_data)
 
         assert exc_info.value.status_code == status.HTTP_409_CONFLICT
-        assert "already exists" in str(exc_info.value.detail).lower()
+        assert "já está" in str(exc_info.value.detail).lower()
 
     def test_create_mercosul_plate(self, db_session: Session):
         """Testa criação de placa no formato Mercosul."""

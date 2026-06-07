@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.core.security import (
     create_access_token,
@@ -98,7 +99,7 @@ class AuthController:
             logger.warning("Registration attempt with existing email: %s", user_data.email)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Email already registered",
+                detail=err.EMAIL_ALREADY_REGISTERED,
             )
 
         # Hash da senha
@@ -129,26 +130,13 @@ class AuthController:
             ):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="Email already registered",
+                    detail=err.EMAIL_ALREADY_REGISTERED,
                 ) from e
 
             # Outra violação de constraint
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid data provided",
-            ) from e
-        except ValidationError as e:
-            # Erro de validação do Pydantic
-            self.db.rollback()
-            error_details = "; ".join([f"{err['loc']}: {err['msg']}" for err in e.errors()])
-            logger.warning(
-                "Validation error registering user %s: %s",
-                user_data.email,
-                error_details,
-            )
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Validation error: {error_details}",
+                detail=err.INVALID_DATA,
             ) from e
         except SQLAlchemyError as e:
             # Erros do SQLAlchemy (conexão, etc.)
@@ -161,7 +149,7 @@ class AuthController:
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database error occurred while creating user",
+                detail=err.DATABASE_ERROR_CREATING_USER,
             ) from e
         except Exception as e:
             # Outros erros inesperados
@@ -174,12 +162,11 @@ class AuthController:
                 error_type,
                 error_msg,
             )
-            # Retornar mensagem mais específica para ajudar no debug
-            detail_msg = f"Error creating user: {error_type}"
+            detail_msg = err.ERROR_CREATING_USER
             if "uuid" in error_msg.lower() or "guid" in error_msg.lower():
-                detail_msg = "Database configuration error: UUID type not supported. Please check database setup."
+                detail_msg = err.DATABASE_CONFIG_ERROR
             elif "connection" in error_msg.lower() or "connect" in error_msg.lower():
-                detail_msg = "Database connection error. Please check database configuration."
+                detail_msg = err.DATABASE_CONNECTION_ERROR
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=detail_msg,
@@ -191,7 +178,7 @@ class AuthController:
         Returns:
             Tupla (token_jwt ou None, mensagem pública idêntica para existir ou não o email).
         """
-        msg = "If an account exists for this email, password reset instructions have been issued."
+        msg = err.PASSWORD_RESET_REQUESTED
         normalized = email.strip()
         user = self.user_repository.get_by_email(self.db, normalized)
         if not user:
@@ -207,7 +194,7 @@ class AuthController:
         if not token or not token.strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Reset token cannot be empty",
+                detail=err.RESET_TOKEN_EMPTY,
             )
         try:
             payload = jwt.decode(
@@ -217,30 +204,30 @@ class AuthController:
         except (JWTError, ValidationError) as e:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid or expired reset token",
+                detail=err.INVALID_RESET_TOKEN,
             ) from e
         if token_data.type != "password_reset":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid token type",
+                detail=err.INVALID_TOKEN_TYPE,
             )
         if not token_data.sub:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid reset token",
+                detail=err.INVALID_RESET_TOKEN,
             )
         try:
             user_id = UUID(token_data.sub)
         except (ValueError, TypeError) as e:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid user in reset token",
+                detail=err.INVALID_USER_IN_RESET_TOKEN,
             ) from e
         hashed = get_password_hash(new_password)
         updated = self.user_repository.update_password_hash(self.db, user_id, hashed)
         if not updated:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+                detail=err.USER_NOT_FOUND,
             )
         logger.info("Password reset completed for user id=%s", user_id)

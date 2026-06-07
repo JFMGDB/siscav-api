@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.db.session import get_db
 from apps.api.src.api.v1.deps import get_current_client_admin_user
@@ -53,13 +54,13 @@ async def recognize_plate_from_image(
     if not ml_stack_available():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="OCR indisponível: dependências ML não carregadas no servidor.",
+            detail=err.OCR_UNAVAILABLE,
         )
 
     if not file.content_type or file.content_type.split(";")[0].strip().lower() not in _ALLOWED_CT:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Tipo de ficheiro não suportado. Use JPEG, PNG ou WebP.",
+            detail=err.UNSUPPORTED_IMAGE_TYPE,
         )
 
     settings = get_settings()
@@ -68,7 +69,7 @@ async def recognize_plate_from_image(
     if len(raw) > max_bytes:
         raise HTTPException(
             status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail=f"Imagem excede {settings.max_file_size_mb} MB.",
+            detail=err.IMAGE_EXCEEDS_MAX.format(max_mb=settings.max_file_size_mb),
         )
 
     import cv2  # noqa: PLC0415
@@ -79,7 +80,7 @@ async def recognize_plate_from_image(
     if frame is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Não foi possível decodificar a imagem.",
+            detail=err.IMAGE_DECODE_FAILED,
         )
 
     try:
@@ -88,7 +89,7 @@ async def recognize_plate_from_image(
         logger.exception("Erro no pipeline OCR")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Falha ao processar OCR.",
+            detail=err.OCR_PROCESS_FAILED,
         ) from None
 
     items = [

@@ -81,7 +81,7 @@ class TestAuthController:
         controller = AuthController(db_session)
         tok, msg = controller.request_password_reset("nobody@example.com")
         assert tok is None
-        assert "account exists" in msg.lower()
+        assert "conta" in msg.lower()
 
     def test_request_password_reset_known_user(self, db_session: Session):
         user = User(
@@ -96,7 +96,7 @@ class TestAuthController:
         tok, msg = controller.request_password_reset("reset@example.com")
         assert tok is not None
         assert len(tok) > 10
-        assert "account exists" in msg.lower()
+        assert "conta" in msg.lower()
 
     def test_confirm_password_reset_success(self, db_session: Session):
         user = User(

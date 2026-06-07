@@ -9,14 +9,17 @@ assert_production_secrets_valid()
 
 from fastapi import FastAPI, Request, status
 from fastapi.concurrency import run_in_threadpool
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from apps.api.src.api.v1.api import api_router
+from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.limiter import limiter
+from apps.api.src.api.v1.core.validation_errors import translate_validation_errors
 from apps.api.src.api.v1.ml.classifier import get_vehicle_classifier
 
 logger = logging.getLogger(__name__)
@@ -85,7 +88,26 @@ app = FastAPI(
 
 # Configurar rate limiting global
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    _ = (request, exc)
+    return JSONResponse(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        content={"detail": err.RATE_LIMIT_EXCEEDED},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    _ = request
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder({"detail": translate_validation_errors(exc.errors())}),
+    )
+
+
 app.add_middleware(SlowAPIMiddleware)
 
 
@@ -105,7 +127,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
-                "detail": f"Internal server error: {type(exc).__name__}: {exc!s}",
+                "detail": f"{err.INTERNAL_SERVER_ERROR} ({type(exc).__name__}: {exc!s})",
                 "type": type(exc).__name__,
                 "traceback": traceback.format_exc()
                 if os.getenv("DEBUG", "false").lower() == "true"
@@ -114,7 +136,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         )
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "Internal server error"},
+        content={"detail": err.INTERNAL_SERVER_ERROR},
     )
 
 

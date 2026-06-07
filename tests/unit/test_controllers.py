@@ -5,6 +5,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic import ValidationError
 from fastapi import HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -131,15 +132,10 @@ class TestPlateController:
         assert plate.plate == "ABC-1234"
         assert plate.normalized_plate == "ABC1234"
 
-    def test_create_plate_invalid_format(self, db_session):
-        """Testa criação de placa com formato inválido (validação no controller)."""
-        controller = PlateController(db_session)
-        plate_data = AuthorizedPlateCreate.model_construct(
-            plate="INVALID", normalized_plate="INVALID", description="Test"
-        )
-        with pytest.raises(HTTPException) as exc_info:
-            controller.create(plate_data)
-        assert exc_info.value.status_code == 400
+    def test_create_plate_invalid_format(self):
+        """Formato inválido é rejeitado pelo schema Pydantic (camada HTTP)."""
+        with pytest.raises(ValidationError):
+            AuthorizedPlateCreate(plate="INVALID", description="Test")
 
     def test_create_plate_duplicate(self, db_session):
         """Testa criação de placa duplicada."""

@@ -29,8 +29,8 @@ class TestWhitelistEndpoints:
             json={"plate": "INVALID", "description": "Invalid plate"},
         )
 
-        # Pydantic validation returns 422, which is correct
-        assert response.status_code in (400, 422)
+        # Pydantic validation returns 422
+        assert response.status_code == 422
 
     def test_get_plate_by_id(self, client: TestClient, auth_token: str):
         """Testa busca de placa por ID."""
@@ -141,16 +141,16 @@ class TestWhitelistEndpoints:
             json={"plate": "abc 1234", "description": "Duplicate normalized"},
         )
         assert r2.status_code == 409
-        assert "whitelist" in r2.json().get("detail", "").lower()
+        assert "autorizados" in r2.json().get("detail", "").lower()
 
     def test_create_invalid_plate_returns_client_error(self, client: TestClient, auth_token: str):
-        """Placa fora do formato BR → 422 (Pydantic) ou 400 (controller)."""
+        """Placa fora do formato BR → 422 (Pydantic)."""
         response = client.post(
             "/api/v1/whitelist/",
             headers={"Authorization": f"Bearer {auth_token}"},
             json={"plate": "AB-1", "description": "invalid"},
         )
-        assert response.status_code in (400, 422)
+        assert response.status_code == 422
 
     def test_list_whitelist_respects_limit(self, client: TestClient, auth_token: str):
         """GET com limit=1 devolve uma entrada quando há várias placas."""
