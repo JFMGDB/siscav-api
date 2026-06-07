@@ -21,6 +21,7 @@ from apps.api.src.api.v1.core import error_messages as err
 from apps.api.src.api.v1.core.limiter import limiter
 from apps.api.src.api.v1.core.validation_errors import translate_validation_errors
 from apps.api.src.api.v1.ml.classifier import get_vehicle_classifier
+from apps.api.src.api.v1.ml.plate_ocr import ml_stack_available, warm_up_easyocr
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -81,6 +82,14 @@ async def lifespan(app: FastAPI):
                     "classification may be unavailable until model loads",
                     exc_info=True,
                 )
+    if ml_stack_available():
+        try:
+            await run_in_threadpool(warm_up_easyocr)
+        except Exception:
+            logger.warning(
+                "EasyOCR warm-up failed; first recognize-plate request may be slow",
+                exc_info=True,
+            )
     yield
 
 

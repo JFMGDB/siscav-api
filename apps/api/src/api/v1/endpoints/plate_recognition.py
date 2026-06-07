@@ -4,6 +4,7 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.core import error_messages as err
@@ -84,7 +85,7 @@ async def recognize_plate_from_image(
         )
 
     try:
-        raw_list = recognize_plates_from_bgr(frame)
+        raw_list = await run_in_threadpool(recognize_plates_from_bgr, frame)
     except Exception:
         logger.exception("Erro no pipeline OCR")
         raise HTTPException(

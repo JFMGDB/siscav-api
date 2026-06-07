@@ -43,13 +43,7 @@ O frontend pode enviar um **frame ou recorte** (JPEG, PNG ou WebP) para a API ex
 
 ### Pré-requisito no servidor
 
-A rota só funciona se o ambiente tiver as dependências ML instaladas:
-
-```bash
-pip install -r requirements-ml.txt
-```
-
-Sem isso, a API responde **503** com mensagem a indicar a instalação. O arranque normal da API **não** exige estes pacotes.
+As dependências ML (`numpy`, `opencv-python-headless`, `easyocr`) estão em `pyproject.toml` / `requirements.txt`. Instale com `uv sync` ou `pip install -r requirements.txt`. Se não carregarem no processo, a API responde **503** (`OCR indisponível`).
 
 ### Endpoint
 

@@ -14,5 +14,6 @@ Historical architecture planning documents preserved for reference.
 - [008 — Two Roles Only](./008-two-roles-only.md) — superadmin + client administrator only; `get_current_client_admin_user`; register defaults `is_admin=true`
 - [010 — Auto-open Gate on Authorized Access](./010-auto-open-gate-on-authorized-access.md) — sync actuator call after DB commit and graceful degradation
 - [011 — Ambulance Auto-Authorization Policy (ONNX Runtime)](./011-ambulance-auto-authorization-policy.md) — ONNX classifier on ingest, ephemeral `vehicle_classification`, ML Playground, cold-start mitigations
+- [012 — OCR Plate Flow Validation and Monitor Orchestration](./012-ocr-plate-flow-validation.md) — EasyOCR fallback, real monitor auto-flow, operator dialogs for non-whitelisted plates
 
 For current architecture, see [Executive Summary](../executive-summary.md) and [Acceptance Criteria](../acceptance-criteria-devops.md).
