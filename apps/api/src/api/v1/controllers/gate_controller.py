@@ -149,3 +149,20 @@ class GateController:
                 status="error",
                 reason=reason,
             )
+        except OSError as e:
+            # Windows may raise ConnectionResetError / ConnectionRefusedError directly.
+            reason = (
+                "connection_refused"
+                if isinstance(e, ConnectionRefusedError)
+                or "refused" in str(e).lower()
+                or "10061" in str(e)
+                else "actuator_network_error"
+            )
+            return GateTriggerResponse(
+                integration="live",
+                message=f"Falha de rede ao contactar o atuador: {e!s}.",
+                acknowledged=False,
+                downstream_status_code=None,
+                status="error",
+                reason=reason,
+            )

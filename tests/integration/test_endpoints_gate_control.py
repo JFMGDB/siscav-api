@@ -89,6 +89,31 @@ class TestGateControlEndpoints:
             monkeypatch.delenv("GATE_ACTUATOR_URL", raising=False)
             get_settings.cache_clear()
 
+    @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
+    def test_trigger_gate_connection_reset_returns_502(
+        self,
+        mock_urlopen: MagicMock,
+        client: TestClient,
+        admin_auth_token: str,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        mock_urlopen.side_effect = ConnectionResetError(
+            10054, "An existing connection was forcibly closed by the remote host"
+        )
+
+        monkeypatch.setenv("GATE_ACTUATOR_URL", "http://actuator.test/open")
+        get_settings.cache_clear()
+        try:
+            response = client.post(
+                "/api/v1/gate_control/trigger",
+                headers={"Authorization": f"Bearer {admin_auth_token}"},
+            )
+            assert response.status_code == 502
+            assert "detail" in response.json()
+        finally:
+            monkeypatch.delenv("GATE_ACTUATOR_URL", raising=False)
+            get_settings.cache_clear()
+
     def test_trigger_gate_superadmin_forbidden(
         self, client: TestClient, superadmin_auth_token: str
     ):

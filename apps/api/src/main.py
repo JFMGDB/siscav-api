@@ -25,6 +25,18 @@ from apps.api.src.api.v1.ml.classifier import get_vehicle_classifier
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+
+def _cors_headers_for_request(request: Request) -> dict[str, str]:
+    """Ensure error responses include CORS headers (global handler bypasses middleware)."""
+    origin = request.headers.get("origin")
+    if origin and origin in settings.backend_cors_origins:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Vary": "Origin",
+        }
+    return {}
+
 description = """
 SISCAV API - Sistema de Controle de Acesso Veicular.
 
@@ -126,6 +138,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     if os.getenv("ENVIRONMENT", "development") == "development":
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            headers=_cors_headers_for_request(request),
             content={
                 "detail": f"{err.INTERNAL_SERVER_ERROR} ({type(exc).__name__}: {exc!s})",
                 "type": type(exc).__name__,
@@ -136,6 +149,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         )
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        headers=_cors_headers_for_request(request),
         content={"detail": err.INTERNAL_SERVER_ERROR},
     )
 
