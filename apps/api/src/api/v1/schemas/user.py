@@ -22,9 +22,7 @@ class UserRead(UserBase):
     is_admin: bool = Field(
         ..., description="Operational administrator privileges for the client context."
     )
-    is_superadmin: bool = Field(
-        ..., description="Siscav system superadministrator privileges."
-    )
+    is_superadmin: bool = Field(..., description="Siscav system superadministrator privileges.")
     created_at: datetime
     updated_at: datetime
 

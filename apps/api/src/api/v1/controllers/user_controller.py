@@ -68,9 +68,7 @@ class UserController:
                     detail="Email already registered",
                 )
 
-        hashed_password = (
-            get_password_hash(data.password) if data.password is not None else None
-        )
+        hashed_password = get_password_hash(data.password) if data.password is not None else None
 
         try:
             updated = self.user_repository.update(

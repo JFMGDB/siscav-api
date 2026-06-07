@@ -13,6 +13,7 @@ class TestClassificationContracts:
     @pytest.mark.parametrize(
         "category",
         [
+            VehicleCategory.ambulance,
             VehicleCategory.car,
             VehicleCategory.motorcycle,
             VehicleCategory.truck,
@@ -61,3 +62,9 @@ class TestClassificationContracts:
         assert c.backend_name == "stub"
         out = c.classify(None)
         assert out.predicted_category == VehicleCategory.unknown
+
+    def test_factory_returns_onnx_backend(self):
+        get_settings.cache_clear()
+        with patch.dict(os.environ, {"VEHICLE_CLASSIFIER_BACKEND": "onnx"}, clear=False):
+            c = get_vehicle_classifier()
+        assert c.backend_name == "onnx"

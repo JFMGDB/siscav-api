@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from apps.api.src.api.v1.schemas.classification import VehicleClassificationResult
 from apps.api.src.api.v1.schemas.gate_control import GateTriggerResponse
 
 
@@ -41,6 +42,10 @@ class AccessLogRead(BaseModel):
             "Resultado do acionamento do portão quando GATE_AUTO_OPEN_ON_AUTHORIZE "
             "está ativo e o acesso foi Authorized."
         ),
+    )
+    vehicle_classification: VehicleClassificationResult | None = Field(
+        None,
+        description="Ephemeral classification result; not persisted in access_logs.",
     )
 
 

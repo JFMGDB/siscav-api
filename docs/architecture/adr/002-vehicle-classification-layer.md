@@ -42,6 +42,16 @@ This prepares the backend for a real classifier integration while keeping the cu
 - The backend gains a new integration seam for ML inference without introducing heavy dependencies.
 - A future real model integration can be added by extending `get_vehicle_classifier()` (e.g., switch by environment variable or configuration) and by adding optional dependencies to the `ml` extra in `pyproject.toml` / `requirements-ml.txt`.
 
+### ONNX ambulance classifier (implemented)
+
+Per [ADR 011](./011-ambulance-auto-authorization-policy.md):
+
+- Backend `VEHICLE_CLASSIFIER_BACKEND=onnx` loads `ambulance_classifier.onnx` via **onnxruntime** (CPU; no PyTorch at runtime)
+- `VehicleCategory.ambulance` added to contracts; non-ambulance ONNX labels map to `unknown`
+- Ingest (`POST /access_logs/`) classifies via `run_in_threadpool`; ambulance + confidence ≥ threshold auto-authorizes
+- `vehicle_classification` returned on `AccessLogRead` only (not persisted)
+- `POST /ml/classify-vehicle` used by the frontend ML Playground for academic demo (no logs/gate)
+
 ## Implementation inventory (what was changed)
 
 This section is a checklist for the engineer who will integrate the real classifier model.

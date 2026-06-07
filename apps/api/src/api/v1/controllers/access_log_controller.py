@@ -3,28 +3,38 @@
 import logging
 import uuid
 from datetime import date, datetime
+from functools import partial
 from pathlib import Path
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.gate_controller import GateController
 from apps.api.src.api.v1.controllers.plate_controller import PlateController
 from apps.api.src.api.v1.core.config import get_settings
+from apps.api.src.api.v1.ml.classifier import (
+    classifier_onnx_stack_available,
+    get_vehicle_classifier,
+)
 from apps.api.src.api.v1.models.authorized_plate import AuthorizedPlate
 from apps.api.src.api.v1.repositories.access_log_repository import (
     AccessLogRepository,
     DailyAccessMetrics,
 )
-from apps.api.src.api.v1.repositories.ocr_attempt_repository import OcrAttemptRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import (
     AuthorizedPlateRepository,
 )
+from apps.api.src.api.v1.repositories.ocr_attempt_repository import OcrAttemptRepository
 from apps.api.src.api.v1.schemas.access_log import AccessLogRead, AccessStatus
 from apps.api.src.api.v1.schemas.authorized_plate import (
     AuthorizedPlateCreate,
     AuthorizedPlateRead,
+)
+from apps.api.src.api.v1.schemas.classification import (
+    VehicleCategory,
+    VehicleClassificationResult,
 )
 from apps.api.src.api.v1.utils.plate import normalize_plate, validate_brazilian_plate
 
@@ -46,7 +56,7 @@ class AccessLogController:
         self.plate_repository = AuthorizedPlateRepository
         self.settings = get_settings()
 
-    def create_access_log(
+    async def create_access_log(
         self,
         plate: str,
         file: UploadFile,
@@ -85,6 +95,39 @@ class AccessLogController:
                 detail=f"Arquivo muito grande. Máximo: {self.settings.max_file_size_mb}MB",
             )
 
+        vehicle_classification: VehicleClassificationResult | None = None
+        ambulance_authorized = False
+
+        if self.settings.vehicle_classifier_backend == "onnx" and classifier_onnx_stack_available():
+            import cv2  # noqa: PLC0415
+            import numpy as np  # noqa: PLC0415
+
+            arr = np.frombuffer(file_content, dtype=np.uint8)
+            frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+            if frame is not None:
+                classifier = get_vehicle_classifier()
+                try:
+                    vehicle_classification = await run_in_threadpool(
+                        partial(classifier.classify, frame, plate_hint=plate)
+                    )
+                except Exception:
+                    logger.exception("Vehicle classification failed during access log ingest")
+                else:
+                    if (
+                        vehicle_classification.predicted_category == VehicleCategory.ambulance
+                        and vehicle_classification.confidence
+                        >= self.settings.vehicle_classifier_threshold
+                    ):
+                        ambulance_authorized = True
+                        logger.info(
+                            "ambulance_auto_authorized",
+                            extra={
+                                "plate": plate,
+                                "confidence": vehicle_classification.confidence,
+                                "model_version": vehicle_classification.model_version,
+                            },
+                        )
+
         # Normalizar placa
         normalized_plate = normalize_plate(plate)
 
@@ -94,13 +137,15 @@ class AccessLogController:
         )
 
         # Determinar status
-        access_status = AccessStatus.Authorized if authorized_plate else AccessStatus.Denied
-        authorized_plate_id = authorized_plate.id if authorized_plate else None
+        if ambulance_authorized:
+            access_status = AccessStatus.Authorized
+            authorized_plate_id = authorized_plate.id if authorized_plate else None
+        else:
+            access_status = AccessStatus.Authorized if authorized_plate else AccessStatus.Denied
+            authorized_plate_id = authorized_plate.id if authorized_plate else None
+
         ocr_success, _ = validate_brazilian_plate(plate)
-        is_automatic = (
-            ingest_via_device
-            and access_status == AccessStatus.Authorized
-        )
+        is_automatic = ingest_via_device and access_status == AccessStatus.Authorized
 
         # Salvar arquivo
         upload_dir = Path(self.settings.upload_dir)
@@ -127,11 +172,12 @@ class AccessLogController:
         )
 
         log_read = AccessLogRead.model_validate(access_log)
+        if vehicle_classification is not None:
+            log_read = log_read.model_copy(
+                update={"vehicle_classification": vehicle_classification}
+            )
 
-        if (
-            self.settings.gate_auto_open_on_authorize
-            and access_status == AccessStatus.Authorized
-        ):
+        if self.settings.gate_auto_open_on_authorize and access_status == AccessStatus.Authorized:
             gate_controller = GateController(self.settings)
             gate_trigger = gate_controller.trigger_gate_safe()
             log_read = log_read.model_copy(update={"gate_trigger": gate_trigger})
@@ -182,7 +228,6 @@ class AccessLogController:
         Raises:
             HTTPException: Se o arquivo não for encontrado ou houver tentativa de path traversal
         """
-        # Prevenir path traversal
         if ".." in image_filename or "/" in image_filename or "\\" in image_filename:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -209,20 +254,7 @@ class AccessLogController:
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ) -> list[AccessLogRead]:
-        """
-        Lista registros de acesso veicular com filtros opcionais.
-
-        Args:
-            skip: Número de registros a pular (paginação)
-            limit: Número máximo de registros a retornar
-            plate_filter: Filtrar por placa (busca parcial, case-insensitive)
-            status_filter: Filtrar por status de acesso
-            start_date: Data inicial para filtrar (inclusive)
-            end_date: Data final para filtrar (inclusive)
-
-        Returns:
-            Lista de registros de acesso ordenados por timestamp (mais recente primeiro)
-        """
+        """Lista registros de acesso veicular com filtros opcionais."""
         access_logs = self.access_log_repository.get_all(
             db=self.db,
             skip=skip,
@@ -242,18 +274,7 @@ class AccessLogController:
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ) -> int:
-        """
-        Conta o total de registros de acesso com filtros opcionais.
-
-        Args:
-            plate_filter: Filtrar por placa (busca parcial, case-insensitive)
-            status_filter: Filtrar por status de acesso
-            start_date: Data inicial para filtrar (inclusive)
-            end_date: Data final para filtrar (inclusive)
-
-        Returns:
-            Número total de registros que correspondem aos filtros
-        """
+        """Conta o total de registros de acesso com filtros opcionais."""
         return self.access_log_repository.count(
             db=self.db,
             plate_filter=plate_filter,

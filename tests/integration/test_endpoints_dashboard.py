@@ -91,7 +91,7 @@ class TestDashboardEndpoints:
         response = client.get(
             "/api/v1/dashboard/metrics",
             headers={"Authorization": f"Bearer {auth_token}"},
-            params={"date": datetime.now().strftime("%Y-%m-%d")},
+            params={"date": datetime.now(UTC).strftime("%Y-%m-%d")},
         )
         assert response.status_code == 200
         data = response.json()

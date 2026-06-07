@@ -24,6 +24,8 @@ from apps.api.src.api.v1.repositories.authorized_plate_repository import (
 )
 from apps.api.src.api.v1.schemas.access_log import AccessStatus
 from apps.api.src.api.v1.schemas.authorized_plate import AuthorizedPlateCreate
+
+
 @pytest.fixture
 def db_session():
     """Cria uma sessão de banco de dados em memória para testes."""
@@ -209,7 +211,8 @@ class TestAccessLogController:
         """Cria diretório temporário para uploads."""
         return tmp_path / "uploads"
 
-    def test_create_access_log_authorized(self, db_session, upload_dir):
+    @pytest.mark.anyio
+    async def test_create_access_log_authorized(self, db_session, upload_dir):
         """Testa criação de log de acesso autorizado."""
         # Criar placa autorizada
         plate = AuthorizedPlateRepository.create(
@@ -231,14 +234,15 @@ class TestAccessLogController:
             mock_settings.return_value.upload_dir = str(upload_dir)
             mock_settings.return_value.max_file_size_mb = 10
             mock_settings.return_value.gate_auto_open_on_authorize = False
-            mock_settings.return_value.gate_auto_open_on_authorize = False
+            mock_settings.return_value.vehicle_classifier_backend = "stub"
             controller = AccessLogController(db_session)
-            log = controller.create_access_log(plate="ABC-1234", file=file)
+            log = await controller.create_access_log(plate="ABC-1234", file=file)
             assert log.status == AccessStatus.Authorized
             assert log.plate_string_detected == "ABC-1234"
             assert log.authorized_plate_id == plate.id
 
-    def test_create_access_log_denied(self, db_session, upload_dir):
+    @pytest.mark.anyio
+    async def test_create_access_log_denied(self, db_session, upload_dir):
         """Testa criação de log de acesso negado."""
         file_content = b"fake image content"
         file = StarletteUploadFile(
@@ -253,12 +257,14 @@ class TestAccessLogController:
             mock_settings.return_value.upload_dir = str(upload_dir)
             mock_settings.return_value.max_file_size_mb = 10
             mock_settings.return_value.gate_auto_open_on_authorize = False
+            mock_settings.return_value.vehicle_classifier_backend = "stub"
             controller = AccessLogController(db_session)
-            log = controller.create_access_log(plate="XYZ-9999", file=file)
+            log = await controller.create_access_log(plate="XYZ-9999", file=file)
             assert log.status == AccessStatus.Denied
             assert log.authorized_plate_id is None
 
-    def test_create_access_log_invalid_file_type(self, db_session):
+    @pytest.mark.anyio
+    async def test_create_access_log_invalid_file_type(self, db_session):
         """Testa criação de log com tipo de arquivo inválido."""
         file = StarletteUploadFile(
             filename="test.txt",
@@ -268,10 +274,11 @@ class TestAccessLogController:
 
         controller = AccessLogController(db_session)
         with pytest.raises(HTTPException) as exc_info:
-            controller.create_access_log(plate="ABC-1234", file=file)
+            await controller.create_access_log(plate="ABC-1234", file=file)
         assert exc_info.value.status_code == 400
 
-    def test_create_access_log_file_too_large(self, db_session, upload_dir):
+    @pytest.mark.anyio
+    async def test_create_access_log_file_too_large(self, db_session, upload_dir):
         """Testa criação de log com arquivo muito grande."""
         # Criar arquivo maior que o limite
         large_content = b"x" * (11 * 1024 * 1024)  # 11 MB
@@ -287,9 +294,10 @@ class TestAccessLogController:
             mock_settings.return_value.upload_dir = str(upload_dir)
             mock_settings.return_value.max_file_size_mb = 10
             mock_settings.return_value.gate_auto_open_on_authorize = False
+            mock_settings.return_value.vehicle_classifier_backend = "stub"
             controller = AccessLogController(db_session)
             with pytest.raises(HTTPException) as exc_info:
-                controller.create_access_log(plate="ABC-1234", file=file)
+                await controller.create_access_log(plate="ABC-1234", file=file)
             assert exc_info.value.status_code == 413
 
     def test_get_image_path_not_found(self, db_session, upload_dir):

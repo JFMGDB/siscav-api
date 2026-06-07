@@ -24,7 +24,7 @@ router = APIRouter()
 
 
 @router.post("/", response_model=AccessLogRead, status_code=201)
-def create_access_log(
+async def create_access_log(
     file: Annotated[UploadFile, File()],
     plate: Annotated[str, Form()],
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
@@ -55,7 +55,7 @@ def create_access_log(
     Raises:
         HTTPException: Se o arquivo for inválido ou muito grande
     """
-    return access_log_controller.create_access_log(
+    return await access_log_controller.create_access_log(
         plate=plate,
         file=file,
         ingest_via_device=ingest_via_device,

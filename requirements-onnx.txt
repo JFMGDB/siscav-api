@@ -1,0 +1,3 @@
+# ONNX runtime for vehicle classifier (POST /ml/classify-vehicle with VEHICLE_CLASSIFIER_BACKEND=onnx)
+# Install: uv sync --extra onnx  OR  pip install -r requirements-onnx.txt
+onnxruntime>=1.19

@@ -89,9 +89,7 @@ class UserRepository:
     def list_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
         """List users ordered by newest first."""
         return list(
-            db.scalars(
-                select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
-            )
+            db.scalars(select(User).order_by(User.created_at.desc()).offset(skip).limit(limit))
         )
 
     @staticmethod
@@ -103,9 +101,7 @@ class UserRepository:
     def count_superadmins(db: Session) -> int:
         """Count platform superadmin accounts."""
         return int(
-            db.scalar(
-                select(func.count()).select_from(User).where(User.is_superadmin.is_(True))
-            )
+            db.scalar(select(func.count()).select_from(User).where(User.is_superadmin.is_(True)))
             or 0
         )
 

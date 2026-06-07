@@ -29,7 +29,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-_SUPPORTED_VEHICLE_CLASSIFIER_BACKENDS = frozenset({"stub"})
+_SUPPORTED_VEHICLE_CLASSIFIER_BACKENDS = frozenset({"stub", "onnx"})
 _DEFAULT_BACKEND_CORS_ORIGINS = (
     "http://localhost:3000",
     "http://localhost:5173",
@@ -198,6 +198,32 @@ def _read_vehicle_classifier_backend() -> str:
     return raw
 
 
+def _read_vehicle_classifier_model_path() -> str:
+    return os.getenv("VEHICLE_CLASSIFIER_MODEL_PATH", "models/ambulance_classifier.onnx")
+
+
+def _read_vehicle_classifier_threshold() -> float:
+    raw = os.getenv("VEHICLE_CLASSIFIER_THRESHOLD", "0.85").strip()
+    try:
+        value = float(raw)
+    except ValueError:
+        return 0.85
+    return max(0.0, min(value, 1.0))
+
+
+def _read_vehicle_classifier_labels() -> str:
+    return os.getenv("VEHICLE_CLASSIFIER_LABELS", "ambulance,other")
+
+
+def _read_vehicle_classifier_input_size() -> int:
+    raw = os.getenv("VEHICLE_CLASSIFIER_INPUT_SIZE", "224").strip()
+    try:
+        size = int(raw)
+    except ValueError:
+        return 224
+    return max(32, min(size, 512))
+
+
 def assert_production_secrets_valid() -> None:
     """Abort startup in production if secrets or database URL are misconfigured."""
     env = (os.getenv("ENVIRONMENT") or "development").strip().lower()
@@ -248,6 +274,10 @@ class Settings(BaseModel):
     upload_dir: str = Field(default_factory=_read_upload_dir)
     max_file_size_mb: int = Field(default_factory=_read_max_file_size_mb)
     vehicle_classifier_backend: str = Field(default_factory=_read_vehicle_classifier_backend)
+    vehicle_classifier_model_path: str = Field(default_factory=_read_vehicle_classifier_model_path)
+    vehicle_classifier_threshold: float = Field(default_factory=_read_vehicle_classifier_threshold)
+    vehicle_classifier_labels: str = Field(default_factory=_read_vehicle_classifier_labels)
+    vehicle_classifier_input_size: int = Field(default_factory=_read_vehicle_classifier_input_size)
     backend_cors_origins: list[str] = Field(default_factory=_read_backend_cors_origins)
 
 

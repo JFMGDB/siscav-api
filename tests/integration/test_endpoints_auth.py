@@ -130,9 +130,7 @@ class TestAuthEndpoints:
         )
         assert response.status_code == 401
 
-    def test_register_as_regular_user_returns_403(
-        self, client: TestClient, auth_token: str
-    ):
+    def test_register_as_regular_user_returns_403(self, client: TestClient, auth_token: str):
         """Usuário autenticado sem superadmin não pode registrar."""
         email = f"register-{uuid.uuid4().hex[:12]}@example.com"
         response = client.post(

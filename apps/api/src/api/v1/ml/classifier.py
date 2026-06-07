@@ -33,6 +33,12 @@ def classifier_stack_available() -> bool:
     )
 
 
+def classifier_onnx_stack_available() -> bool:
+    from apps.api.src.api.v1.ml.onnx_ambulance_classifier import onnx_stack_available
+
+    return onnx_stack_available()
+
+
 @runtime_checkable
 class VehicleClassifier(Protocol):
     @property
@@ -72,9 +78,13 @@ class StubVehicleClassifier:
 def get_vehicle_classifier() -> VehicleClassifier:
     """Factory: returns the best available classifier implementation."""
 
-    backend = get_settings().vehicle_classifier_backend
+    settings = get_settings()
+    backend = settings.vehicle_classifier_backend
     if backend == "stub":
         return StubVehicleClassifier()
-    # Future: onnx, torch, remote HTTP service, etc.
+    if backend == "onnx":
+        from apps.api.src.api.v1.ml.onnx_ambulance_classifier import OnnxAmbulanceClassifier
+
+        return OnnxAmbulanceClassifier(settings)
     logger.warning("Unsupported vehicle_classifier_backend=%r; using stub", backend)
     return StubVehicleClassifier()

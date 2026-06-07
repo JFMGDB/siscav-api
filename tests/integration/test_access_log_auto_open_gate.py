@@ -1,6 +1,5 @@
 """Integration tests for auto-open gate on authorized access log ingest."""
 
-from io import BytesIO
 from unittest.mock import MagicMock, patch
 from urllib.error import URLError
 
@@ -21,7 +20,7 @@ def _create_whitelist_plate(client: TestClient, auth_token: str, plate: str = "A
     )
 
 
-def _post_access_log(client: TestClient, plate: str = "ABC-1234"):
+def _post_access_log(_client: TestClient, plate: str = "ABC-1234"):
     file_content = b"fake image content"
     files = {"file": ("test_image.jpg", file_content, "image/jpeg")}
     data = {"plate": plate}
@@ -31,9 +30,7 @@ def _post_access_log(client: TestClient, plate: str = "ABC-1234"):
 class TestAccessLogAutoOpenGate:
     """Auto-open gate after authorized access log (GATE_AUTO_OPEN_ON_AUTHORIZE)."""
 
-    def test_create_access_log_returns_201(
-        self, client: TestClient, auth_token: str, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_create_access_log_returns_201(self, client: TestClient, auth_token: str):
         _create_whitelist_plate(client, auth_token)
         files, data, _ = _post_access_log(client)
         response = client.post("/api/v1/access_logs/", files=files, data=data, headers=_DEVICE)
@@ -91,15 +88,13 @@ class TestAccessLogAutoOpenGate:
             get_settings.cache_clear()
 
     def test_auto_open_skipped_when_denied(
-        self, client: TestClient, auth_token: str, monkeypatch: pytest.MonkeyPatch
+        self, client: TestClient, monkeypatch: pytest.MonkeyPatch
     ):
         monkeypatch.setenv("GATE_AUTO_OPEN_ON_AUTHORIZE", "true")
         get_settings.cache_clear()
         try:
             files, data, _ = _post_access_log(client, plate="XYZ-9999")
-            with patch(
-                "apps.api.src.api.v1.controllers.gate_controller.urlopen"
-            ) as mock_urlopen:
+            with patch("apps.api.src.api.v1.controllers.gate_controller.urlopen") as mock_urlopen:
                 response = client.post(
                     "/api/v1/access_logs/", files=files, data=data, headers=_DEVICE
                 )
@@ -126,7 +121,7 @@ class TestAccessLogAutoOpenGate:
         get_settings.cache_clear()
         try:
             _create_whitelist_plate(client, auth_token)
-            files, data, file_content = _post_access_log(client)
+            files, data, _ = _post_access_log(client)
             response = client.post("/api/v1/access_logs/", files=files, data=data, headers=_DEVICE)
             assert response.status_code == 201
             body = response.json()

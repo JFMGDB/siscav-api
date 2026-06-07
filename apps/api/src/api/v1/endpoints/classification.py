@@ -1,13 +1,20 @@
 """Vehicle classification endpoint (optional ML integration)."""
 
 import logging
+from functools import partial
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 
 from apps.api.src.api.v1.core.config import get_settings
 from apps.api.src.api.v1.deps import get_classifier, get_current_client_admin_user
-from apps.api.src.api.v1.ml.classifier import StubVehicleClassifier, classifier_stack_available
+from apps.api.src.api.v1.ml.classifier import (
+    StubVehicleClassifier,
+    classifier_onnx_stack_available,
+    classifier_stack_available,
+)
+from apps.api.src.api.v1.ml.onnx_ambulance_classifier import OnnxAmbulanceClassifier
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.schemas.classification import VehicleClassificationResult
 
@@ -64,16 +71,22 @@ async def classify_vehicle_from_image(
             detail=f"Image exceeds {settings.max_file_size_mb} MB.",
         )
 
-    # Stub classifier must work even when the optional ML stack is not installed.
-    if not classifier_stack_available():
-        if isinstance(classifier, StubVehicleClassifier):
+    if isinstance(classifier, StubVehicleClassifier):
+        if not classifier_stack_available():
             return classifier.classify(None, plate_hint=plate_hint)
+    elif isinstance(classifier, OnnxAmbulanceClassifier):
+        if not classifier_onnx_stack_available():
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=(
+                    "Vehicle classification is not available: install optional ONNX dependencies "
+                    "(uv sync --extra onnx) and restart the server."
+                ),
+            )
+    elif not classifier_stack_available():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "Vehicle classification is not available: install optional ML dependencies "
-                "(e.g. pip install -r requirements-ml.txt) and restart the server."
-            ),
+            detail="Vehicle classification is not available.",
         )
 
     import cv2  # noqa: PLC0415
@@ -88,7 +101,7 @@ async def classify_vehicle_from_image(
         )
 
     try:
-        return classifier.classify(frame, plate_hint=plate_hint)
+        return await run_in_threadpool(partial(classifier.classify, frame, plate_hint=plate_hint))
     except HTTPException:
         raise
     except Exception:

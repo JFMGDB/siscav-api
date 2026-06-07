@@ -1,12 +1,14 @@
 import logging
 import os
 import traceback
+from contextlib import asynccontextmanager
 
 from apps.api.src.api.v1.core.config import assert_production_secrets_valid, get_settings
 
 assert_production_secrets_valid()
 
 from fastapi import FastAPI, Request, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -15,6 +17,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from apps.api.src.api.v1.api import api_router
 from apps.api.src.api.v1.core.limiter import limiter
+from apps.api.src.api.v1.ml.classifier import get_vehicle_classifier
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -36,7 +39,7 @@ Esta API fornece o backend para o sistema SISCAV, integrando dispositivos IoT (c
 *   **Controle Remoto**: Acionamento remoto do portão (`POST /api/v1/gate_control/trigger`) exige **JWT de administrador do cliente**.
 *   **Download de imagem de log**: `GET /api/v1/access_logs/images/{filename}` exige **JWT de administrador do cliente**.
 *   **OCR opcional (frame → candidatos de placa)**: `POST /api/v1/ml/recognize-plate` (multipart, JPEG/PNG/WebP) exige **JWT de administrador do cliente**; sem pacotes ML instalados (`requirements-ml.txt`) responde **503**.
-*   **Classificação veicular (frame → categoria)**: `POST /api/v1/ml/classify-vehicle` (multipart: `file` + `plate_hint` opcional) exige **JWT de administrador do cliente**; backend **stub** funciona sem ML; modelo real futuro via `VEHICLE_CLASSIFIER_BACKEND`.
+*   **Classificação veicular (frame → categoria)**: `POST /api/v1/ml/classify-vehicle` (multipart: `file` + `plate_hint` opcional) exige **JWT de administrador do cliente**; backend **stub** ou **onnx** via `VEHICLE_CLASSIFIER_BACKEND`.
 *   **Gate**: `POST /api/v1/gate_control/trigger` — resposta com `integration` **simulated** (sem `GATE_ACTUATOR_URL`) ou **live** (POST ao atuador com 2xx); falhas do atuador → 502/503.
 
 ## Tecnologias
@@ -47,10 +50,30 @@ Esta API fornece o backend para o sistema SISCAV, integrando dispositivos IoT (c
 *   PostgreSQL
 """
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if get_settings().vehicle_classifier_backend == "onnx":
+        classifier = get_vehicle_classifier()
+        warm_up = getattr(classifier, "warm_up", None)
+        if callable(warm_up):
+            try:
+                await run_in_threadpool(warm_up)
+                logger.info("ONNX ambulance classifier warm-up completed")
+            except Exception:
+                logger.warning(
+                    "ONNX ambulance classifier warm-up failed; "
+                    "classification may be unavailable until model loads",
+                    exc_info=True,
+                )
+    yield
+
+
 app = FastAPI(
     title="Sistema de Controle de Acesso Veicular (SISCAV) API",
     description=description,
     version="1.0.0",
+    lifespan=lifespan,
     contact={
         "name": "Equipe SISCAV",
         "email": "contato@siscav.com.br",

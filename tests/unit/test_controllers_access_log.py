@@ -18,7 +18,8 @@ from apps.api.src.api.v1.schemas.access_log import AccessStatus
 class TestAccessLogController:
     """Testes para AccessLogController."""
 
-    def test_create_access_log_authorized(self, db_session: Session):
+    @pytest.mark.anyio
+    async def test_create_access_log_authorized(self, db_session: Session):
         """Testa criação de log de acesso autorizado."""
         # Criar placa autorizada
         plate = AuthorizedPlateRepository.create(
@@ -36,7 +37,7 @@ class TestAccessLogController:
         )
 
         controller = AccessLogController(db_session)
-        result = controller.create_access_log(
+        result = await controller.create_access_log(
             plate="ABC-1234",
             file=file,
             ingest_via_device=True,
@@ -57,7 +58,8 @@ class TestAccessLogController:
         # Limpar
         image_path.unlink()
 
-    def test_create_access_log_denied(self, db_session: Session):
+    @pytest.mark.anyio
+    async def test_create_access_log_denied(self, db_session: Session):
         """Testa criação de log de acesso negado."""
         # Criar arquivo de imagem simulado
         file_content = b"fake image content"
@@ -68,7 +70,7 @@ class TestAccessLogController:
         )
 
         controller = AccessLogController(db_session)
-        result = controller.create_access_log(
+        result = await controller.create_access_log(
             plate="XYZ-9999",
             file=file,
             ingest_via_device=True,
@@ -84,7 +86,8 @@ class TestAccessLogController:
         # Limpar
         Path(result.image_storage_key).unlink()
 
-    def test_create_access_log_invalid_file_type(self, db_session: Session):
+    @pytest.mark.anyio
+    async def test_create_access_log_invalid_file_type(self, db_session: Session):
         """Testa criação de log com arquivo inválido."""
         file = UploadFile(
             filename="test.txt",
@@ -95,12 +98,13 @@ class TestAccessLogController:
         controller = AccessLogController(db_session)
 
         with pytest.raises(HTTPException) as exc_info:
-            controller.create_access_log(plate="ABC-1234", file=file)
+            await controller.create_access_log(plate="ABC-1234", file=file)
 
         assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
         assert "imagem" in str(exc_info.value.detail).lower()
 
-    def test_create_access_log_file_too_large(self, db_session: Session, monkeypatch):
+    @pytest.mark.anyio
+    async def test_create_access_log_file_too_large(self, db_session: Session, monkeypatch):
         """Testa criação de log com arquivo muito grande."""
         # Mock para reduzir tamanho máximo
         settings = get_settings()
@@ -118,7 +122,7 @@ class TestAccessLogController:
         controller = AccessLogController(db_session)
 
         with pytest.raises(HTTPException) as exc_info:
-            controller.create_access_log(plate="ABC-1234", file=file)
+            await controller.create_access_log(plate="ABC-1234", file=file)
 
         assert exc_info.value.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
 
@@ -214,7 +218,8 @@ class TestAccessLogController:
         denied_count = controller.count(status_filter=AccessStatus.Denied)
         assert denied_count == 1
 
-    def test_create_access_log_manual_ingest_not_automatic(self, db_session: Session):
+    @pytest.mark.anyio
+    async def test_create_access_log_manual_ingest_not_automatic(self, db_session: Session):
         AuthorizedPlateRepository.create(
             db_session,
             plate="ABC-1234",
@@ -226,7 +231,7 @@ class TestAccessLogController:
             headers={"content-type": "image/jpeg"},
         )
         controller = AccessLogController(db_session)
-        result = controller.create_access_log(
+        result = await controller.create_access_log(
             plate="ABC-1234",
             file=file,
             ingest_via_device=False,

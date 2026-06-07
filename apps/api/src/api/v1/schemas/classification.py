@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 
 class VehicleCategory(str, Enum):
+    ambulance = "ambulance"
     car = "car"
     motorcycle = "motorcycle"
     truck = "truck"

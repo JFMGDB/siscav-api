@@ -34,6 +34,15 @@ dev = [
     "ruff==0.14.6",  # Para linting rápido
     "httpx==0.28.1",  # Cliente HTTP para usar nos testes
 ]
+onnx = [
+    "onnxruntime>=1.19",
+]
+convert = [
+    "torch>=2.5",
+    "torchvision>=0.20",
+    "onnx>=1.16",
+    "onnxruntime>=1.19",
+]
 
 [build-system]
 requires = ["setuptools>=61"]

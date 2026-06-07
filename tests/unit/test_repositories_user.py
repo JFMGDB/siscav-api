@@ -124,9 +124,7 @@ class TestUserRepository:
         db_session.commit()
         db_session.refresh(user)
 
-        updated = UserRepository.update(
-            db_session, user.id, email="newemail@example.com"
-        )
+        updated = UserRepository.update(db_session, user.id, email="newemail@example.com")
         assert updated is not None
         assert updated.email == "newemail@example.com"
 

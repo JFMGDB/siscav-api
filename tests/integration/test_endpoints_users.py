@@ -4,7 +4,7 @@ import uuid
 
 from fastapi.testclient import TestClient
 
-from apps.api.src.api.v1.core.security import get_password_hash
+from apps.api.src.api.v1.core.security import create_access_token, get_password_hash
 from apps.api.src.api.v1.models.user import User
 
 
@@ -15,9 +15,7 @@ class TestUserManagementEndpoints:
         response = client.get("/api/v1/users/stats")
         assert response.status_code == 401
 
-    def test_stats_forbidden_for_client_admin(
-        self, client: TestClient, admin_auth_token: str
-    ):
+    def test_stats_forbidden_for_client_admin(self, client: TestClient, admin_auth_token: str):
         response = client.get(
             "/api/v1/users/stats",
             headers={"Authorization": f"Bearer {admin_auth_token}"},
@@ -61,9 +59,7 @@ class TestUserManagementEndpoints:
         assert len(data["items"]) >= 2
         assert "hashed_password" not in data["items"][0]
 
-    def test_list_users_forbidden_for_client_admin(
-        self, client: TestClient, admin_auth_token: str
-    ):
+    def test_list_users_forbidden_for_client_admin(self, client: TestClient, admin_auth_token: str):
         response = client.get(
             "/api/v1/users/",
             headers={"Authorization": f"Bearer {admin_auth_token}"},
@@ -74,7 +70,6 @@ class TestUserManagementEndpoints:
         self,
         client: TestClient,
         superadmin_auth_token: str,
-        db_session,
         test_user: User,
     ):
         new_email = f"updated-{uuid.uuid4().hex[:8]}@example.com"
@@ -155,8 +150,6 @@ class TestUserManagementEndpoints:
         db_session.add(actor)
         db_session.commit()
         db_session.refresh(actor)
-
-        from apps.api.src.api.v1.core.security import create_access_token
 
         actor_token = create_access_token(actor.id)
 

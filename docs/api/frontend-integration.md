@@ -160,9 +160,12 @@ O frontend pode enviar um **frame ou recorte** (JPEG, PNG ou WebP) para a API cl
 
 | Variável | Valores (hoje) | Efeito |
 |----------|----------------|--------|
-| `VEHICLE_CLASSIFIER_BACKEND` | `stub` (padrão) | Usa `StubVehicleClassifier` (sem ML) |
+| `VEHICLE_CLASSIFIER_BACKEND` | `stub` (padrão), `onnx` | `stub` → `StubVehicleClassifier`; `onnx` → `OnnxAmbulanceClassifier` (requer `onnxruntime` + ficheiro `.onnx`) |
+| `VEHICLE_CLASSIFIER_MODEL_PATH` | `models/ambulance_classifier.onnx` | Caminho do artefato ONNX quando `backend=onnx` |
+| `VEHICLE_CLASSIFIER_THRESHOLD` | `0.85` | Confiança mínima para auto-autorização de ambulância no ingest |
+| `VEHICLE_CLASSIFIER_LABELS` | `ambulance,other` | Ordem das classes no output do modelo (índice 0 = ambulância) |
 
-Valores desconhecidos fazem fallback para `stub` com aviso no log. Modelos futuros (`onnx`, `torch`, etc.) serão ligados nesta variável.
+Valores desconhecidos fazem fallback para `stub` com aviso no log.
 
 ### Endpoint
 
@@ -236,7 +239,57 @@ export async function classifyVehicleFromImage(
 }
 ```
 
-Documentação de arquitetura: `docs/architecture/adr/002-vehicle-classification-layer.md`.
+Documentação de arquitetura: `docs/architecture/adr/002-vehicle-classification-layer.md` e `docs/architecture/adr/011-ambulance-auto-authorization-policy.md`.
+
+### Resposta de sucesso (200) — ONNX (`backend=onnx`)
+
+```json
+{
+  "predicted_category": "ambulance",
+  "confidence": 0.92,
+  "model_version": "ambulance-mobilenetv2-onnx-v1",
+  "classifier_backend": "onnx"
+}
+```
+
+Categorias possíveis incluem `ambulance` e `unknown` (classe `other` do modelo binário).
+
+### Ingestão (`POST /access_logs/`) — classificação efémera
+
+Quando `VEHICLE_CLASSIFIER_BACKEND=onnx`, a resposta de criação de log pode incluir `vehicle_classification` (não persistido no banco):
+
+```json
+{
+  "id": "...",
+  "status": "Authorized",
+  "plate_string_detected": "ABC-1234",
+  "vehicle_classification": {
+    "predicted_category": "ambulance",
+    "confidence": 0.92,
+    "model_version": "ambulance-mobilenetv2-onnx-v1",
+    "classifier_backend": "onnx"
+  },
+  "gate_trigger": { "...": "..." }
+}
+```
+
+Regra de negócio: ambulância com confiança ≥ `VEHICLE_CLASSIFIER_THRESHOLD` (0,85) → `Authorized` mesmo sem whitelist. Ver ADR 011.
+
+### ML Playground (demonstração acadêmica)
+
+Rota frontend: `/ml-playground` (`siscav-web`).
+
+- Chama **diretamente** `POST /api/v1/ml/classify-vehicle` (JWT do operador)
+- **Não** cria access log, **não** aciona cancela
+- Resultado permanece em estado React local até novo upload
+- Sidebar: item **Playground ML**
+
+Componente: `src/components/features/ml/MLPlayground.tsx`  
+API client: `classifyVehicle()` em `src/lib/api/ml.ts`
+
+### Monitor — feedback de classificação
+
+`ManualRegistrationForm` exibe chip com categoria/confiança após ingest manual e toast específico quando ambulância auto-autorizada (`vehicle_classification` + `gate-trigger-toast.ts`). **Não** alterar `LogsTable` (sem histórico de classificação).
 
 ## Endpoints de Autenticação
 
@@ -845,7 +898,7 @@ export function LoginForm() {
 3. **Armazenamento**: Guarde access_token e refresh_token de forma segura
 4. **Requisições**: Inclua `Authorization: Bearer {access_token}` em todas as requisições protegidas
 5. **OCR (operador)**: `POST /api/v1/ml/recognize-plate` com `multipart/form-data` campo `file` — requer JWT e `requirements-ml.txt` no servidor
-6. **Classificação veicular**: `POST /api/v1/ml/classify-vehicle` com `file` e `plate_hint` opcional — requer JWT; stub funciona sem ML (`VEHICLE_CLASSIFIER_BACKEND=stub`)
+6. **Classificação veicular**: `POST /api/v1/ml/classify-vehicle` — Playground ML (`/ml-playground`) ou chip efémero no Monitor após ingest; ONNX via `VEHICLE_CLASSIFIER_BACKEND=onnx`
 7. **Renovação**: Use `POST /api/v1/login/refresh-token` quando access_token expirar
 8. **Erros**: Trate 401/403 renovando tokens ou fazendo logout; trate 503 no OCR conforme mensagem do servidor
 9. **Segurança**: Use HTTPS, valide tokens e implemente proteções adequadas

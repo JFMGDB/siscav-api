@@ -127,9 +127,25 @@ class TestSettings:
 
     def test_vehicle_classifier_backend_unknown_falls_back_to_stub(self):
         get_settings.cache_clear()
-        with patch.dict(os.environ, {"VEHICLE_CLASSIFIER_BACKEND": "onnx"}, clear=False):
+        with patch.dict(os.environ, {"VEHICLE_CLASSIFIER_BACKEND": "torch"}, clear=False):
             settings = Settings()
             assert settings.vehicle_classifier_backend == "stub"
+
+    def test_vehicle_classifier_backend_explicit_onnx(self):
+        get_settings.cache_clear()
+        with patch.dict(os.environ, {"VEHICLE_CLASSIFIER_BACKEND": "onnx"}, clear=False):
+            settings = Settings()
+            assert settings.vehicle_classifier_backend == "onnx"
+
+    def test_vehicle_classifier_threshold_default(self):
+        get_settings.cache_clear()
+        settings = Settings()
+        assert settings.vehicle_classifier_threshold == 0.85
+
+    def test_vehicle_classifier_model_path_default(self):
+        get_settings.cache_clear()
+        settings = Settings()
+        assert settings.vehicle_classifier_model_path == "models/ambulance_classifier.onnx"
 
     def test_settings_from_env_vars(self):
         """Testa carregamento de configurações de variáveis de ambiente."""

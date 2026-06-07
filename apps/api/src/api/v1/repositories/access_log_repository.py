@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from uuid import UUID
+
 from sqlalchemy import and_, case, func, select
 from sqlalchemy.orm import Session
 
