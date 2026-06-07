@@ -8,8 +8,8 @@ services:
     runtime: python
     plan: free
     healthCheckPath: /api/v1/health
-    # requirements.txt includes ML/OCR stack (EasyOCR, OpenCV, PyTorch transitives)
-    buildCommand: pip install -r requirements.txt
+    # requirements.txt = core + OCR; requirements-onnx.txt = onnxruntime for ambulance classifier
+    buildCommand: pip install -r requirements.txt && pip install -r requirements-onnx.txt
     startCommand: uvicorn apps.api.src.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHONPATH
@@ -28,3 +28,13 @@ services:
         sync: false
       - key: BACKEND_CORS_ORIGINS
         sync: false
+      - key: VEHICLE_CLASSIFIER_BACKEND
+        value: onnx
+      - key: VEHICLE_CLASSIFIER_MODEL_PATH
+        value: models/ambulance_classifier.onnx
+      - key: VEHICLE_CLASSIFIER_THRESHOLD
+        value: "0.85"
+      - key: VEHICLE_CLASSIFIER_LABELS
+        value: ambulance,other
+      - key: VEHICLE_CLASSIFIER_INPUT_SIZE
+        value: "224"
