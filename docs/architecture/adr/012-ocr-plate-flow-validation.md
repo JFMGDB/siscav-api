@@ -70,6 +70,7 @@ EasyOCR on CPU dominates latency. Expect **1–2 minutes per OCR request** on fi
 - Unknown plates require explicit confirmation before gate override.
 - Demo depends on USB camera configuration and ML dependencies on the API host.
 - First EasyOCR request may be slow (model load).
+- On Render and similar PaaS, EasyOCR warm-up runs **in background** after startup so `/api/v1/health` responds before models finish loading.
 
 ## Alternatives considered
 
