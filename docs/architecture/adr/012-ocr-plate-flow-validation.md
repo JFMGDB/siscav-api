@@ -62,7 +62,7 @@ Reference plate JPEGs for rehearsal: `siscav-web/public/demo/plates/abc1d23.jpg`
 
 ### Demo timing note
 
-EasyOCR on CPU dominates latency. Expect **1–2 minutes per OCR request** on first warm models; monitor waits for **two consecutive identical reads** (~12 s interval between attempts, but each attempt blocks until OCR returns). For the banca, warm up the API before presenting (start server, trigger one OCR from `/ml-playground` or `/monitor`).
+EasyOCR on CPU dominates latency. Expect **1–2 minutes per OCR request** on first warm models; monitor waits for **two consecutive identical reads** (~12 s interval between attempts, but each attempt blocks until OCR returns). For the banca, warm up the API before presenting (start server, trigger one OCR from `/monitor`).
 
 ## Consequences
 

@@ -269,18 +269,6 @@ Quando `VEHICLE_CLASSIFIER_BACKEND=onnx`, a resposta de criação de log pode in
 
 Regra de negócio: ambulância com confiança ≥ `VEHICLE_CLASSIFIER_THRESHOLD` (0,85) → `Authorized` mesmo sem whitelist. Ver ADR 011.
 
-### ML Playground (demonstração acadêmica)
-
-Rota frontend: `/ml-playground` (`siscav-web`).
-
-- Chama **diretamente** `POST /api/v1/ml/classify-vehicle` (JWT do operador)
-- **Não** cria access log, **não** aciona cancela
-- Resultado permanece em estado React local até novo upload
-- Sidebar: item **Playground ML**
-
-Componente: `src/components/features/ml/MLPlayground.tsx`  
-API client: `classifyVehicle()` em `src/lib/api/ml.ts`
-
 ### Monitor — feedback de classificação
 
 `ManualRegistrationForm` exibe chip com categoria/confiança após ingest manual e toast específico quando ambulância auto-autorizada (`vehicle_classification` + `gate-trigger-toast.ts`). **Não** alterar `LogsTable` (sem histórico de classificação).
@@ -927,7 +915,7 @@ export function LoginForm() {
 3. **Armazenamento**: Guarde access_token e refresh_token de forma segura
 4. **Requisições**: Inclua `Authorization: Bearer {access_token}` em todas as requisições protegidas
 5. **OCR (operador)**: `POST /api/v1/ml/recognize-plate` com `multipart/form-data` campo `file` — requer JWT e `requirements-ml.txt` no servidor
-6. **Classificação veicular**: `POST /api/v1/ml/classify-vehicle` — Playground ML (`/ml-playground`) ou chip efémero no Monitor após ingest; ONNX via `VEHICLE_CLASSIFIER_BACKEND=onnx`
+6. **Classificação veicular**: `POST /api/v1/ml/classify-vehicle` — chip efémero no Monitor após ingest e classificação paralela no loop automático; ONNX via `VEHICLE_CLASSIFIER_BACKEND=onnx`
 7. **Renovação**: Use `POST /api/v1/login/refresh-token` quando access_token expirar
 8. **Erros**: Trate 401/403 renovando tokens ou fazendo logout; trate 503 no OCR conforme mensagem do servidor
 9. **Segurança**: Use HTTPS, valide tokens e implemente proteções adequadas

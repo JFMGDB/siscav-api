@@ -46,25 +46,18 @@ Structured log: `ambulance_auto_authorized` with plate, confidence, model_versio
 - `vehicle_classification` on `AccessLogRead` response only — **not** persisted in `access_logs`
 - No Alembic migration in this phase
 
-### 5. ML Playground (academic demo)
-
-- Frontend route `/ml-playground` calls `POST /api/v1/ml/classify-vehicle` directly
-- No access log creation, no gate trigger
-- Results stay on screen until next upload (React local state)
-
-### 6. Cold start mitigations
+### 5. Cold start mitigations
 
 | Mitigation | Purpose |
 |------------|---------|
 | FastAPI **lifespan warm-up** | Load ONNX + dummy inference at container startup |
 | External **keep-alive** (`GET /api/v1/health` every 10–14 min) | Prevent Render spin-down during operations |
-| Pre-demo warm-up runbook | Ping health + one Playground classification before presentation |
+| Pre-demo warm-up runbook | Ping health + one classification via Monitor or access-log ingest before presentation |
 
 IoT firmware HTTP timeout must account for cold-start latency or rely on keep-alive. Retry logic is a future evolution.
 
 ## Consequences
 
-- Positive: Clear separation between demo ML path and operational ingest path
 - Positive: Minimal DB impact; rollback via `VEHICLE_CLASSIFIER_BACKEND=stub`
 - Risk: False-positive ambulance detection opens gate — mitigated by conservative threshold (0.85) and monitoring
 - Risk: First request after long idle may still hit Render VM spin-up before warm-up helps

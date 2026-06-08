@@ -10,7 +10,7 @@ The `/monitor` page had three frontend issues:
 
 1. **Blind 6 s OCR timer** — `recognize-plate` was called even with no vehicle/plate in frame.
 2. **Missed triggers** — Slow OCR held the in-flight lock and dropped timer ticks; pointing a plate did not reliably start recognition.
-3. **No parallel classification** — Only `recognize-plate` ran; ambulance ONNX classification existed on `/ml-playground` and on access-log ingest (ADR 011) but not in the auto monitor loop.
+3. **No parallel classification** — Only `recognize-plate` ran; ambulance ONNX classification existed on access-log ingest (ADR 011) but not in the auto monitor loop.
 
 Additionally, `GET /access_logs?...` without a trailing slash caused **307 redirects**, doubling poll traffic (~40 req/min per tab at 3 s interval).
 

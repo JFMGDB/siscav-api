@@ -50,7 +50,7 @@ Per [ADR 011](./011-ambulance-auto-authorization-policy.md):
 - `VehicleCategory.ambulance` added to contracts; non-ambulance ONNX labels map to `unknown`
 - Ingest (`POST /access_logs/`) classifies via `run_in_threadpool`; ambulance + confidence ≥ threshold auto-authorizes
 - `vehicle_classification` returned on `AccessLogRead` only (not persisted)
-- `POST /ml/classify-vehicle` used by the frontend ML Playground for academic demo (no logs/gate)
+- `POST /ml/classify-vehicle` used by the Monitor (parallel classify in auto loop and manual ingest feedback)
 
 ## Implementation inventory (what was changed)
 
