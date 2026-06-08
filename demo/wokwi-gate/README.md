@@ -43,7 +43,7 @@ Default gateway forward: `http://127.0.0.1:9080/` → ESP32 port 80.
 ```env
 GATE_AUTO_OPEN_ON_AUTHORIZE=true
 GATE_ACTUATOR_URL=http://127.0.0.1:9080/open
-GATE_AUTO_OPEN_TIMEOUT_SECONDS=2
+GATE_AUTO_OPEN_TIMEOUT_SECONDS=8
 ```
 
 Use **`127.0.0.1`**, not `localhost` (Windows IPv6 bypass).

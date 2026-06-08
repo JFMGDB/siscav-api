@@ -219,7 +219,7 @@ class TestAccessLogController:
         assert denied_count == 1
 
     @pytest.mark.anyio
-    async def test_create_access_log_manual_ingest_not_automatic(self, db_session: Session):
+    async def test_create_access_log_jwt_ingest_is_automatic(self, db_session: Session):
         AuthorizedPlateRepository.create(
             db_session,
             plate="ABC-1234",
@@ -235,6 +235,31 @@ class TestAccessLogController:
             plate="ABC-1234",
             file=file,
             ingest_via_device=False,
+        )
+        assert result.status == AccessStatus.Authorized
+        assert result.is_automatic is True
+        Path(result.image_storage_key).unlink()
+
+    @pytest.mark.anyio
+    async def test_create_access_log_operator_override_not_automatic(
+        self, db_session: Session
+    ):
+        AuthorizedPlateRepository.create(
+            db_session,
+            plate="ABC-1234",
+            normalized_plate="ABC1234",
+        )
+        file = UploadFile(
+            filename="test.jpg",
+            file=io.BytesIO(b"fake image content"),
+            headers={"content-type": "image/jpeg"},
+        )
+        controller = AccessLogController(db_session)
+        result = await controller.create_access_log(
+            plate="ABC-1234",
+            file=file,
+            ingest_via_device=False,
+            operator_override=True,
         )
         assert result.status == AccessStatus.Authorized
         assert result.is_automatic is False

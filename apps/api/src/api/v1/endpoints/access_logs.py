@@ -33,6 +33,15 @@ async def create_access_log(
     owner_user_id: Annotated[
         UUID | None, Depends(resolve_access_log_owner_user_id)
     ],
+    operator_override: Annotated[
+        bool,
+        Form(
+            description=(
+                "True quando o operador autoriza manualmente uma placa desconhecida; "
+                "não conta em aprovação sem intervenção."
+            ),
+        ),
+    ] = False,
 ) -> AccessLogRead:
     """
     Registrar acesso veicular.
@@ -63,6 +72,7 @@ async def create_access_log(
         plate=plate,
         file=file,
         ingest_via_device=ingest_via_device,
+        operator_override=operator_override,
         owner_user_id=owner_user_id,
     )
 

@@ -45,7 +45,7 @@ class TestAccessLogAmbulancePolicy:
         controller = AccessLogController(db)
         settings = MagicMock()
         settings.vehicle_classifier_backend = "onnx"
-        settings.vehicle_classifier_threshold = 0.85
+        settings.vehicle_classifier_threshold = 0.60
         settings.gate_auto_open_on_authorize = False
         settings.upload_dir = "uploads"
         settings.max_file_size_mb = 10
@@ -108,7 +108,7 @@ class TestAccessLogAmbulancePolicy:
         controller = AccessLogController(db)
         settings = MagicMock()
         settings.vehicle_classifier_backend = "onnx"
-        settings.vehicle_classifier_threshold = 0.85
+        settings.vehicle_classifier_threshold = 0.60
         settings.gate_auto_open_on_authorize = False
         settings.upload_dir = "uploads"
         settings.max_file_size_mb = 10
@@ -119,7 +119,7 @@ class TestAccessLogAmbulancePolicy:
 
         classification = VehicleClassificationResult(
             predicted_category=VehicleCategory.ambulance,
-            confidence=0.50,
+            confidence=0.55,
             model_version="test",
             classifier_backend="onnx",
         )

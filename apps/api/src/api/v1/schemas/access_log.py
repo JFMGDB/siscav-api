@@ -30,7 +30,10 @@ class AccessLogRead(BaseModel):
     )
     is_automatic: bool = Field(
         False,
-        description="True quando a aprovação ocorreu sem intervenção humana (ingestão IoT).",
+        description=(
+            "True quando o acesso foi autorizado sem intervenção do operador "
+            "(whitelist, ambulância, dispositivo IoT)."
+        ),
     )
     ocr_success: bool = Field(
         True,

@@ -140,7 +140,7 @@ class TestSettings:
     def test_vehicle_classifier_threshold_default(self):
         get_settings.cache_clear()
         settings = Settings()
-        assert settings.vehicle_classifier_threshold == 0.85
+        assert settings.vehicle_classifier_threshold == 0.60
 
     def test_vehicle_classifier_model_path_default(self):
         get_settings.cache_clear()

@@ -162,11 +162,11 @@ def _read_gate_actuator_url() -> str | None:
 
 
 def _read_gate_actuator_timeout_seconds() -> int:
-    raw = os.getenv("GATE_ACTUATOR_TIMEOUT_SECONDS", "5").strip()
+    raw = os.getenv("GATE_ACTUATOR_TIMEOUT_SECONDS", "30").strip()
     try:
         n = int(raw)
     except ValueError:
-        return 5
+        return 30
     return max(1, min(n, 120))
 
 
@@ -176,12 +176,12 @@ def _read_gate_auto_open_on_authorize() -> bool:
 
 
 def _read_gate_auto_open_timeout_seconds() -> float:
-    raw = os.getenv("GATE_AUTO_OPEN_TIMEOUT_SECONDS", "2").strip()
+    raw = os.getenv("GATE_AUTO_OPEN_TIMEOUT_SECONDS", "15").strip()
     try:
         n = float(raw)
     except ValueError:
-        return 2.0
-    return max(1.5, min(n, 2.0))
+        return 15.0
+    return max(1.5, min(n, 60.0))
 
 
 def _read_vehicle_classifier_backend() -> str:
@@ -203,11 +203,11 @@ def _read_vehicle_classifier_model_path() -> str:
 
 
 def _read_vehicle_classifier_threshold() -> float:
-    raw = os.getenv("VEHICLE_CLASSIFIER_THRESHOLD", "0.85").strip()
+    raw = os.getenv("VEHICLE_CLASSIFIER_THRESHOLD", "0.60").strip()
     try:
         value = float(raw)
     except ValueError:
-        return 0.85
+        return 0.60
     return max(0.0, min(value, 1.0))
 
 

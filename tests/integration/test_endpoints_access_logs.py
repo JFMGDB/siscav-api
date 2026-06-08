@@ -80,10 +80,10 @@ class TestAccessLogsEndpoints:
             if image_path.exists():
                 image_path.unlink()
 
-    def test_create_access_log_via_admin_jwt_is_manual(
+    def test_create_access_log_via_admin_jwt_counts_as_automatic(
         self, client: TestClient, auth_token: str, db_session: Session
     ):
-        """Ingestão com JWT admin marca is_automatic=false."""
+        """Ingestão via monitor/JWT com placa na whitelist conta como automática."""
         AuthorizedPlateRepository.create(
             db_session,
             plate="ABC-1234",
@@ -94,6 +94,33 @@ class TestAccessLogsEndpoints:
         file_content = b"fake image content"
         files = {"file": ("test_image.jpg", file_content, "image/jpeg")}
         data = {"plate": "ABC-1234"}
+
+        response = client.post(
+            "/api/v1/access_logs/",
+            files=files,
+            data=data,
+            headers={"Authorization": f"Bearer {auth_token}"},
+        )
+
+        assert response.status_code == 201
+        log = response.json()
+        assert log["status"] == "Authorized"
+        assert log["is_automatic"] is True
+
+    def test_create_access_log_operator_override_is_manual(
+        self, client: TestClient, auth_token: str, db_session: Session
+    ):
+        """Autorização explícita do operador não conta como automática."""
+        AuthorizedPlateRepository.create(
+            db_session,
+            plate="ABC-1234",
+            normalized_plate="ABC1234",
+        )
+        db_session.commit()
+
+        file_content = b"fake image content"
+        files = {"file": ("test_image.jpg", file_content, "image/jpeg")}
+        data = {"plate": "ABC-1234", "operator_override": "true"}
 
         response = client.post(
             "/api/v1/access_logs/",

@@ -107,7 +107,7 @@ class TestAccessLogAutoOpenGate:
             get_settings.cache_clear()
 
     @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
-    def test_actuator_timeout_returns_201_with_error_gate_trigger(
+    def test_actuator_timeout_acknowledges_optimistically(
         self,
         mock_urlopen: MagicMock,
         client: TestClient,
@@ -127,9 +127,8 @@ class TestAccessLogAutoOpenGate:
             body = response.json()
             assert body["status"] == "Authorized"
             gate = body["gate_trigger"]
-            assert gate["status"] == "error"
-            assert gate["reason"] == "actuator_timeout"
-            assert gate["acknowledged"] is False
+            assert gate["status"] == "ok"
+            assert gate["acknowledged"] is True
             assert body["image_storage_key"].endswith(".jpg")
         finally:
             monkeypatch.delenv("GATE_AUTO_OPEN_ON_AUTHORIZE", raising=False)

@@ -33,7 +33,7 @@ services:
       - key: VEHICLE_CLASSIFIER_MODEL_PATH
         value: models/ambulance_classifier.onnx
       - key: VEHICLE_CLASSIFIER_THRESHOLD
-        value: "0.85"
+        value: "0.60"
       - key: VEHICLE_CLASSIFIER_LABELS
         value: ambulance,other
       - key: VEHICLE_CLASSIFIER_INPUT_SIZE

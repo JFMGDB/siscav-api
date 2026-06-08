@@ -19,9 +19,11 @@ logger = logging.getLogger(__name__)
 
 _PLATE_ALLOWLIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 _PLATE_LEN = 7
-_MAX_READTEXT_DIM = 1280
-_MAX_CONTOUR_CANDIDATES = 6
+_MAX_READTEXT_DIM = 960
+_EASYOCR_CANVAS_SIZE = 960
+_MAX_CONTOUR_CANDIDATES = 3
 _MIN_OCR_CONFIDENCE = 0.52
+_HIGH_CONFIDENCE_EARLY_EXIT = 0.78
 
 _ml_lock = threading.Lock()
 _reader = None
@@ -93,7 +95,14 @@ def warm_up_easyocr() -> None:
         import numpy as np
 
         dummy = np.zeros((32, 128, 3), dtype=np.uint8)
-        reader.readtext(dummy, detail=1, allowlist=_PLATE_ALLOWLIST)
+        reader.readtext(
+            dummy,
+            detail=1,
+            allowlist=_PLATE_ALLOWLIST,
+            canvas_size=_EASYOCR_CANVAS_SIZE,
+            mag_ratio=1.0,
+            paragraph=False,
+        )
         _warm_up_ready = True
         _warm_up_error = None
         logger.info("EasyOCR warm-up completed (Reader + dummy inference)")
@@ -201,19 +210,24 @@ def _normalize_plate_candidate(text: str) -> str | None:
     return _repair_plate_ocr(merged)
 
 
-def _ocr_image_variants(placa_img: np.ndarray, tipo: str) -> list[tuple[np.ndarray, str]]:
+def _readtext_for_plate(reader, img: np.ndarray) -> list:
     import cv2
 
-    variants: list[tuple[np.ndarray, str]] = []
-    placa_final, cor = preprocess_placa(placa_img, tipo)
-    variants.append((placa_final, cor))
-
-    capped = _cap_for_readtext(placa_img)
-    variants.append((capped, cor))
-
-    gray = cv2.cvtColor(capped, cv2.COLOR_BGR2GRAY)
-    variants.append((gray, cor))
-    return variants
+    if img.ndim == 2:
+        longest = max(img.shape[:2])
+        if longest > _MAX_READTEXT_DIM:
+            scale = _MAX_READTEXT_DIM / longest
+            img = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    else:
+        img = _cap_for_readtext(img)
+    return reader.readtext(
+        img,
+        detail=1,
+        allowlist=_PLATE_ALLOWLIST,
+        canvas_size=_EASYOCR_CANVAS_SIZE,
+        mag_ratio=1.0,
+        paragraph=False,
+    )
 
 
 def _best_valid_plate_from_image(
@@ -234,11 +248,12 @@ def _best_valid_plate_from_image(
         if plate and (best is None or conf > best[1]):
             best = (plate, conf)
 
-    for ocr_img, _cor in _ocr_image_variants(placa_img, tipo):
-        read_img = ocr_img if ocr_img.ndim == 2 else _cap_for_readtext(ocr_img)
-        results = reader.readtext(read_img, detail=1, allowlist=_PLATE_ALLOWLIST)
-        for _bbox, text, conf in results:
+    placa_bin, _cor = preprocess_placa(placa_img, tipo)
+    for img in (placa_bin, _cap_for_readtext(placa_img)):
+        for _bbox, text, conf in _readtext_for_plate(reader, img):
             consider(text, float(conf))
+        if best and best[1] >= _HIGH_CONFIDENCE_EARLY_EXIT:
+            return best
 
     return best
 
@@ -291,10 +306,11 @@ def _collect_frame_candidates(frame_bgr: np.ndarray) -> list[PlateOcrCandidate]:
         hit = _scan_plate_region(placa, tipo)
         if hit:
             register(*hit)
+            if hit[1] >= _HIGH_CONFIDENCE_EARLY_EXIT:
+                break
 
     if not best_by_plate:
-        capped = _cap_for_readtext(frame_bgr)
-        hit = _scan_plate_region(capped, "carro")
+        hit = _scan_plate_region(_cap_for_readtext(frame_bgr), "carro")
         if hit:
             register(*hit)
 
@@ -305,14 +321,14 @@ def _upscale_if_small(frame_bgr: np.ndarray) -> np.ndarray:
     import cv2
 
     h, w = frame_bgr.shape[:2]
-    if h >= 720 or w >= 1280:
+    longest = max(h, w)
+    if longest >= 640:
         return frame_bgr
-    scale = 2 if max(h, w) < 640 else 1.5
     return cv2.resize(
         frame_bgr,
         None,
-        fx=scale,
-        fy=scale,
+        fx=1.5,
+        fy=1.5,
         interpolation=cv2.INTER_CUBIC,
     )
 

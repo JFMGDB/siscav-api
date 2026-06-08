@@ -65,6 +65,7 @@ class AccessLogController:
         file: UploadFile,
         *,
         ingest_via_device: bool = True,
+        operator_override: bool = False,
         owner_user_id: UUID | None = None,
     ) -> AccessLogRead:
         """
@@ -149,7 +150,9 @@ class AccessLogController:
             authorized_plate_id = authorized_plate.id if authorized_plate else None
 
         ocr_success, _ = validate_brazilian_plate(plate)
-        is_automatic = ingest_via_device and access_status == AccessStatus.Authorized
+        is_automatic = (
+            access_status == AccessStatus.Authorized and not operator_override
+        )
 
         # Salvar arquivo
         upload_dir = Path(self.settings.upload_dir)

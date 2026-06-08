@@ -89,10 +89,12 @@ class TestGateControlEndpoints:
             monkeypatch.delenv("GATE_ACTUATOR_URL", raising=False)
             get_settings.cache_clear()
 
+    @patch("apps.api.src.api.v1.controllers.gate_controller.time.sleep")
     @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
     def test_trigger_gate_connection_reset_returns_502(
         self,
         mock_urlopen: MagicMock,
+        _mock_sleep: MagicMock,
         client: TestClient,
         admin_auth_token: str,
         monkeypatch: pytest.MonkeyPatch,
@@ -110,6 +112,31 @@ class TestGateControlEndpoints:
             )
             assert response.status_code == 502
             assert "detail" in response.json()
+        finally:
+            monkeypatch.delenv("GATE_ACTUATOR_URL", raising=False)
+            get_settings.cache_clear()
+
+    @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
+    def test_trigger_gate_timeout_acknowledges_optimistically(
+        self,
+        mock_urlopen: MagicMock,
+        client: TestClient,
+        admin_auth_token: str,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        mock_urlopen.side_effect = TimeoutError()
+
+        monkeypatch.setenv("GATE_ACTUATOR_URL", "http://actuator.test/open")
+        get_settings.cache_clear()
+        try:
+            response = client.post(
+                "/api/v1/gate_control/trigger",
+                headers={"Authorization": f"Bearer {admin_auth_token}"},
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["acknowledged"] is True
+            assert data["status"] == "ok"
         finally:
             monkeypatch.delenv("GATE_ACTUATOR_URL", raising=False)
             get_settings.cache_clear()
