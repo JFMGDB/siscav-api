@@ -40,7 +40,7 @@ class TestAccessLogController:
         result = await controller.create_access_log(
             plate="ABC-1234",
             file=file,
-            ingest_via_device=True,
+            _ingest_via_device=True,
         )
 
         assert result.status == AccessStatus.Authorized
@@ -73,7 +73,7 @@ class TestAccessLogController:
         result = await controller.create_access_log(
             plate="XYZ-9999",
             file=file,
-            ingest_via_device=True,
+            _ingest_via_device=True,
         )
 
         assert result.status == AccessStatus.Denied
@@ -234,16 +234,14 @@ class TestAccessLogController:
         result = await controller.create_access_log(
             plate="ABC-1234",
             file=file,
-            ingest_via_device=False,
+            _ingest_via_device=False,
         )
         assert result.status == AccessStatus.Authorized
         assert result.is_automatic is True
         Path(result.image_storage_key).unlink()
 
     @pytest.mark.anyio
-    async def test_create_access_log_operator_override_not_automatic(
-        self, db_session: Session
-    ):
+    async def test_create_access_log_operator_override_not_automatic(self, db_session: Session):
         AuthorizedPlateRepository.create(
             db_session,
             plate="ABC-1234",
@@ -258,7 +256,7 @@ class TestAccessLogController:
         result = await controller.create_access_log(
             plate="ABC-1234",
             file=file,
-            ingest_via_device=False,
+            _ingest_via_device=False,
             operator_override=True,
         )
         assert result.status == AccessStatus.Authorized

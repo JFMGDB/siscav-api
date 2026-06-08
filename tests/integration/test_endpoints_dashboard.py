@@ -64,15 +64,9 @@ class TestDashboardEndpoints:
                 update(AccessLog).where(AccessLog.id == log.id).values(timestamp=day)
             )
         ocr_rows = [
-            OcrAttemptRepository.create(
-                db_session, success=True, owner_user_id=test_user.id
-            ),
-            OcrAttemptRepository.create(
-                db_session, success=True, owner_user_id=test_user.id
-            ),
-            OcrAttemptRepository.create(
-                db_session, success=False, owner_user_id=test_user.id
-            ),
+            OcrAttemptRepository.create(db_session, success=True, owner_user_id=test_user.id),
+            OcrAttemptRepository.create(db_session, success=True, owner_user_id=test_user.id),
+            OcrAttemptRepository.create(db_session, success=False, owner_user_id=test_user.id),
         ]
         for row in ocr_rows:
             db_session.execute(
@@ -95,9 +89,7 @@ class TestDashboardEndpoints:
         self, client: TestClient, auth_token: str, test_user: User, db_session: Session
     ):
         """Taxa OCR independe do volume de access_logs."""
-        OcrAttemptRepository.create(
-            db_session, success=True, owner_user_id=test_user.id
-        )
+        OcrAttemptRepository.create(db_session, success=True, owner_user_id=test_user.id)
         db_session.commit()
 
         response = client.get(

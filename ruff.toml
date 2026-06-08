@@ -70,7 +70,7 @@ unfixable = []
 # Ignorar imports não utilizados em arquivos __init__.py
 "__init__.py" = ["F401", "F403"]
 # Ignorar prints e números mágicos em testes
-"tests/**/*.py" = ["T20", "PLR2004"]
+"tests/**/*.py" = ["T20", "PLR2004", "ARG002"]
 # Scripts de teste manual usam sys.path antes dos imports
 "tests/manual/**/*.py" = ["T20", "E402", "PLR2004", "PLC0415", "TRY300"]
 # Scripts usam print e manipulação de sys.path antes dos imports

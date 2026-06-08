@@ -8,6 +8,7 @@ from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.models.access_log import AccessLog
+from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.access_log_repository import AccessLogRepository
 from apps.api.src.api.v1.repositories.authorized_plate_repository import AuthorizedPlateRepository
 from apps.api.src.api.v1.schemas.access_log import AccessStatus
@@ -185,7 +186,9 @@ class TestAccessLogsEndpoints:
 
         assert response.status_code == 400
 
-    def test_list_access_logs(self, client: TestClient, auth_token: str, db_session: Session):
+    def test_list_access_logs(
+        self, client: TestClient, auth_token: str, test_user: User, db_session: Session
+    ):
         """Testa listagem de logs de acesso."""
         # Criar alguns logs
         for i in range(3):
@@ -194,6 +197,7 @@ class TestAccessLogsEndpoints:
                 plate_string_detected=f"ABC-{i:04d}",
                 status=AccessStatus.Authorized,
                 image_storage_key=f"test{i}.jpg",
+                owner_user_id=test_user.id,
             )
         db_session.commit()
 
@@ -209,7 +213,7 @@ class TestAccessLogsEndpoints:
         assert len(data) >= 3
 
     def test_list_access_logs_with_filters(
-        self, client: TestClient, auth_token: str, db_session: Session
+        self, client: TestClient, auth_token: str, test_user: User, db_session: Session
     ):
         """Testa listagem de logs com filtros."""
         # Criar logs com diferentes status
@@ -218,12 +222,14 @@ class TestAccessLogsEndpoints:
             plate_string_detected="ABC-1234",
             status=AccessStatus.Authorized,
             image_storage_key="test1.jpg",
+            owner_user_id=test_user.id,
         )
         AccessLogRepository.create(
             db_session,
             plate_string_detected="XYZ-9999",
             status=AccessStatus.Denied,
             image_storage_key="test2.jpg",
+            owner_user_id=test_user.id,
         )
         db_session.commit()
 
@@ -241,7 +247,7 @@ class TestAccessLogsEndpoints:
         assert all(item["status"] == "Authorized" for item in data)
 
     def test_list_access_logs_ordered_by_timestamp_desc(
-        self, client: TestClient, auth_token: str, db_session: Session
+        self, client: TestClient, auth_token: str, test_user: User, db_session: Session
     ):
         """Lista retorna mais recente primeiro (timestamp DESC)."""
         older = datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC)
@@ -252,12 +258,14 @@ class TestAccessLogsEndpoints:
             plate_string_detected="ORD-A",
             status=AccessStatus.Authorized,
             image_storage_key="ord_a.jpg",
+            owner_user_id=test_user.id,
         )
         log_b = AccessLogRepository.create(
             db_session,
             plate_string_detected="ORD-B",
             status=AccessStatus.Authorized,
             image_storage_key="ord_b.jpg",
+            owner_user_id=test_user.id,
         )
         db_session.execute(
             update(AccessLog).where(AccessLog.id == log_a.id).values(timestamp=older)
@@ -282,7 +290,7 @@ class TestAccessLogsEndpoints:
         assert plates == ["ORD-B", "ORD-A"]
 
     def test_list_access_logs_start_date_end_date_filters(
-        self, client: TestClient, auth_token: str, db_session: Session
+        self, client: TestClient, auth_token: str, test_user: User, db_session: Session
     ):
         """start_date e end_date (inclusivos) restringem o conjunto retornado."""
         day1 = datetime(2024, 3, 10, 12, 0, 0, tzinfo=UTC)
@@ -293,12 +301,14 @@ class TestAccessLogsEndpoints:
             plate_string_detected="DATE-IN",
             status=AccessStatus.Denied,
             image_storage_key="din.jpg",
+            owner_user_id=test_user.id,
         )
         log_out = AccessLogRepository.create(
             db_session,
             plate_string_detected="DATE-OUT",
             status=AccessStatus.Denied,
             image_storage_key="dout.jpg",
+            owner_user_id=test_user.id,
         )
         db_session.execute(
             update(AccessLog).where(AccessLog.id == log_in.id).values(timestamp=day1)

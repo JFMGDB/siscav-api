@@ -207,7 +207,7 @@ class TestAccessLogsEndpoints:
             file_content = b"fake image content"
             files = {"file": (f"test_{i}.jpg", file_content, "image/jpeg")}
             data = {"plate": f"ABC-{i:04d}"}
-            client.post("/api/v1/access_logs/", files=files, data=data, headers=_DEVICE_HEADERS)
+            client.post("/api/v1/access_logs/", files=files, data=data, headers=headers)
         response = client.get("/api/v1/access_logs/", headers=headers)
         assert response.status_code == 200
         assert len(response.json()) >= 3
@@ -226,13 +226,13 @@ class TestAccessLogsEndpoints:
             "/api/v1/access_logs/",
             files=files,
             data={"plate": "ABC-1234"},
-            headers=_DEVICE_HEADERS,
+            headers=headers,
         )
         client.post(
             "/api/v1/access_logs/",
             files=files,
             data={"plate": "XYZ-9999"},
-            headers=_DEVICE_HEADERS,
+            headers=headers,
         )
         response = client.get("/api/v1/access_logs/?status=Authorized", headers=headers)
         assert response.status_code == 200

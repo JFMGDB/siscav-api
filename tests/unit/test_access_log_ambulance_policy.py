@@ -96,7 +96,7 @@ class TestAccessLogAmbulancePolicy:
             result = await controller.create_access_log(
                 plate="ABC1234",
                 file=_upload_file(),
-                ingest_via_device=True,
+                _ingest_via_device=True,
             )
 
         assert result.status == AccessStatus.Authorized

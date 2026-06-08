@@ -80,7 +80,7 @@ def _get_reader():
                 _reader = easyocr.Reader(["en"], gpu=False)
             except Exception as exc:
                 _warm_up_error = f"EasyOCR Reader failed to load: {exc}"
-                logger.error(_warm_up_error, exc_info=True)
+                logger.exception(_warm_up_error)
                 raise
         return _reader
 
@@ -109,7 +109,7 @@ def warm_up_easyocr() -> None:
     except Exception as exc:
         _warm_up_ready = False
         _warm_up_error = f"EasyOCR warm-up failed: {exc}"
-        logger.error(_warm_up_error, exc_info=True)
+        logger.exception(_warm_up_error)
         raise
 
 

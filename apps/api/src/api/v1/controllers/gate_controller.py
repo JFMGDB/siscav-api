@@ -67,10 +67,7 @@ def _optimistic_actuator_ack() -> GateTriggerResponse:
     """wokwigw/Wokwi costumam aplicar o comando sem devolver HTTP 2xx a tempo."""
     return GateTriggerResponse(
         integration="live",
-        message=(
-            "Comando enviado ao atuador "
-            "(resposta HTTP não confirmada a tempo)."
-        ),
+        message=("Comando enviado ao atuador (resposta HTTP não confirmada a tempo)."),
         acknowledged=True,
         downstream_status_code=None,
         status="ok",

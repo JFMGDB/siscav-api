@@ -94,7 +94,7 @@ class TestGateControlEndpoints:
     def test_trigger_gate_connection_reset_returns_502(
         self,
         mock_urlopen: MagicMock,
-        _mock_sleep: MagicMock,
+        mock_sleep: MagicMock,
         client: TestClient,
         admin_auth_token: str,
         monkeypatch: pytest.MonkeyPatch,

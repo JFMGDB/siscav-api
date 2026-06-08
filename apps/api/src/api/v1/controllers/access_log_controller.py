@@ -64,7 +64,7 @@ class AccessLogController:
         plate: str,
         file: UploadFile,
         *,
-        ingest_via_device: bool = True,
+        _ingest_via_device: bool = True,
         operator_override: bool = False,
         owner_user_id: UUID | None = None,
     ) -> AccessLogRead:
@@ -150,9 +150,7 @@ class AccessLogController:
             authorized_plate_id = authorized_plate.id if authorized_plate else None
 
         ocr_success, _ = validate_brazilian_plate(plate)
-        is_automatic = (
-            access_status == AccessStatus.Authorized and not operator_override
-        )
+        is_automatic = access_status == AccessStatus.Authorized and not operator_override
 
         # Salvar arquivo
         upload_dir = Path(self.settings.upload_dir)
@@ -223,15 +221,9 @@ class AccessLogController:
             ) from exc
         return plate_controller.create(plate_data)
 
-    def get_daily_metrics(
-        self, day: date, owner_user_id: UUID
-    ) -> tuple[DailyAccessMetrics, float]:
-        access = self.access_log_repository.get_daily_metrics(
-            self.db, day, owner_user_id
-        )
-        _, ocr_rate = OcrAttemptRepository.get_daily_success_rate(
-            self.db, day, owner_user_id
-        )
+    def get_daily_metrics(self, day: date, owner_user_id: UUID) -> tuple[DailyAccessMetrics, float]:
+        access = self.access_log_repository.get_daily_metrics(self.db, day, owner_user_id)
+        _, ocr_rate = OcrAttemptRepository.get_daily_success_rate(self.db, day, owner_user_id)
         return access, ocr_rate
 
     def get_image_path(self, image_filename: str) -> Path:

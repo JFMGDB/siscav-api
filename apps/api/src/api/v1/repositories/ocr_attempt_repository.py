@@ -28,9 +28,7 @@ class OcrAttemptRepository:
         return row
 
     @staticmethod
-    def get_daily_success_rate(
-        db: Session, day: date, owner_user_id: UUID
-    ) -> tuple[int, float]:
+    def get_daily_success_rate(db: Session, day: date, owner_user_id: UUID) -> tuple[int, float]:
         """Retorna (total_tentativas, taxa_sucesso_percent) para o dia civil BR."""
         start_local = datetime.combine(day, time.min, tzinfo=BRAZIL_TZ)
         end_local = start_local + timedelta(days=1)

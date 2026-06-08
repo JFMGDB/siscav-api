@@ -3,8 +3,8 @@
 from uuid import uuid4
 
 import pytest
-from pydantic import ValidationError
 from fastapi import HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from apps.api.src.api.v1.controllers.plate_controller import PlateController

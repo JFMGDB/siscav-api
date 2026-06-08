@@ -66,11 +66,7 @@ CLASSIFICATION_PROCESS_FAILED = "Falha ao processar a classificação veicular."
 INTERNAL_SERVER_ERROR = "Erro interno do servidor. Tente novamente mais tarde."
 DATABASE_ERROR_CREATING_USER = "Erro ao salvar usuário. Tente novamente mais tarde."
 ERROR_CREATING_USER = "Erro ao criar usuário. Tente novamente mais tarde."
-DATABASE_CONFIG_ERROR = (
-    "Erro de configuração do banco de dados. Verifique a instalação."
-)
-DATABASE_CONNECTION_ERROR = (
-    "Erro de conexão com o banco de dados. Verifique a configuração."
-)
+DATABASE_CONFIG_ERROR = "Erro de configuração do banco de dados. Verifique a instalação."
+DATABASE_CONNECTION_ERROR = "Erro de conexão com o banco de dados. Verifique a configuração."
 PLATE_CREATE_INTERNAL_ERROR = "Erro interno ao criar placa autorizada."
 RATE_LIMIT_EXCEEDED = "Muitas tentativas. Aguarde 1 minuto antes de tentar novamente."

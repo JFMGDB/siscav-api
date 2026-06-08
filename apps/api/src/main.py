@@ -38,6 +38,7 @@ def _cors_headers_for_request(request: Request) -> dict[str, str]:
         }
     return {}
 
+
 description = """
 SISCAV API - Sistema de Controle de Acesso Veicular.
 

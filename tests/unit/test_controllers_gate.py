@@ -35,9 +35,7 @@ class TestGateController:
         assert "simulado" in result.message.lower() or "GATE_ACTUATOR" in result.message
 
     @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
-    def test_trigger_gate_safe_timeout_acknowledges_optimistically(
-        self, mock_urlopen: MagicMock
-    ):
+    def test_trigger_gate_safe_timeout_acknowledges_optimistically(self, mock_urlopen: MagicMock):
         mock_urlopen.side_effect = TimeoutError()
         settings = MagicMock()
         settings.gate_actuator_url = "http://127.0.0.1:9080/open"
@@ -53,7 +51,7 @@ class TestGateController:
     @patch("apps.api.src.api.v1.controllers.gate_controller.time.sleep")
     @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
     def test_trigger_gate_safe_connection_reset_returns_error_envelope(
-        self, mock_urlopen: MagicMock, _mock_sleep: MagicMock
+        self, mock_urlopen: MagicMock, mock_sleep: MagicMock
     ):
         mock_urlopen.side_effect = ConnectionResetError(
             10054, "An existing connection was forcibly closed by the remote host"
@@ -74,7 +72,7 @@ class TestGateController:
     @patch("apps.api.src.api.v1.controllers.gate_controller.time.sleep")
     @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
     def test_trigger_gate_safe_retries_then_succeeds(
-        self, mock_urlopen: MagicMock, _mock_sleep: MagicMock
+        self, mock_urlopen: MagicMock, mock_sleep: MagicMock
     ):
         mock_resp = MagicMock()
         mock_resp.getcode.return_value = 200

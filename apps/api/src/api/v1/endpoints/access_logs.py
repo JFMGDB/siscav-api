@@ -30,9 +30,7 @@ async def create_access_log(
     plate: Annotated[str, Form()],
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
     ingest_via_device: Annotated[bool, Depends(verify_device_ingest_or_admin)],
-    owner_user_id: Annotated[
-        UUID | None, Depends(resolve_access_log_owner_user_id)
-    ],
+    owner_user_id: Annotated[UUID | None, Depends(resolve_access_log_owner_user_id)],
     operator_override: Annotated[
         bool,
         Form(
@@ -71,7 +69,7 @@ async def create_access_log(
     return await access_log_controller.create_access_log(
         plate=plate,
         file=file,
-        ingest_via_device=ingest_via_device,
+        _ingest_via_device=ingest_via_device,
         operator_override=operator_override,
         owner_user_id=owner_user_id,
     )

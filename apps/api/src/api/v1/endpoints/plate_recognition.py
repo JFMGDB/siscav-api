@@ -17,6 +17,7 @@ from apps.api.src.api.v1.ml.plate_ocr import (
     ocr_engine_ready,
     ocr_engine_unavailable_reason,
     recognize_plates_from_bgr,
+    warm_up_easyocr,
 )
 from apps.api.src.api.v1.models.user import User
 from apps.api.src.api.v1.repositories.ocr_attempt_repository import OcrAttemptRepository
@@ -64,12 +65,10 @@ async def recognize_plate_from_image(
 
     if not ocr_engine_ready():
         try:
-            from apps.api.src.api.v1.ml.plate_ocr import warm_up_easyocr
-
             await run_in_threadpool(warm_up_easyocr)
         except Exception:
             reason = ocr_engine_unavailable_reason() or "EasyOCR engine not ready"
-            logger.error("recognize-plate rejected: %s", reason)
+            logger.exception("recognize-plate rejected: %s", reason)
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=reason,

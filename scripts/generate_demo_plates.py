@@ -18,7 +18,9 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-DEFAULT_OUT = Path(__file__).resolve().parents[1].parent / "siscav-web" / "public" / "demo" / "plates"
+DEFAULT_OUT = (
+    Path(__file__).resolve().parents[1].parent / "siscav-web" / "public" / "demo" / "plates"
+)
 
 # Placas NÃO presentes em scripts/seed_demo.py (DEMO_PLATES)
 # e diferentes da `XYZ9A87` já usada como exemplo de placa desconhecida.
@@ -49,7 +51,8 @@ BORDER = (0, 0, 0)
 
 def _validate(plate: str) -> None:
     if not (MERCOSUL_RE.match(plate) or LEGACY_RE.match(plate)):
-        raise ValueError(f"Placa fora do padrão BR: {plate!r}")
+        msg = f"Placa fora do padrão BR: {plate!r}"
+        raise ValueError(msg)
 
 
 def _load_font(size: int) -> ImageFont.ImageFont:
@@ -65,8 +68,13 @@ def _load_font(size: int) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def _draw_centered(draw: ImageDraw.ImageDraw, text: str, box: tuple[int, int, int, int],
-                   font: ImageFont.ImageFont, fill: tuple[int, int, int]) -> None:
+def _draw_centered(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    box: tuple[int, int, int, int],
+    font: ImageFont.ImageFont,
+    fill: tuple[int, int, int],
+) -> None:
     left, top, right, bottom = box
     bbox = draw.textbbox((0, 0), text, font=font)
     tw = bbox[2] - bbox[0]
@@ -94,20 +102,27 @@ def render_plate(plate: str) -> Image.Image:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT,
-                        help="Diretório de saída (padrão: siscav-web/public/demo/plates)")
-    parser.add_argument("--plates", nargs="*", default=DEMO_NEW_PLATES,
-                        help="Lista custom de placas (default: 10 placas demo prontas)")
-    parser.add_argument("--force", action="store_true",
-                        help="Sobrescreve arquivos existentes")
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=DEFAULT_OUT,
+        help="Diretório de saída (padrão: siscav-web/public/demo/plates)",
+    )
+    parser.add_argument(
+        "--plates",
+        nargs="*",
+        default=DEMO_NEW_PLATES,
+        help="Lista custom de placas (default: 10 placas demo prontas)",
+    )
+    parser.add_argument("--force", action="store_true", help="Sobrescreve arquivos existentes")
     args = parser.parse_args()
 
     out: Path = args.out
     out.mkdir(parents=True, exist_ok=True)
 
     generated: list[Path] = []
-    for plate in args.plates:
-        plate = plate.upper().strip()
+    for raw_plate in args.plates:
+        plate = raw_plate.upper().strip()
         target = out / f"{plate.lower()}.jpg"
         if target.exists() and not args.force:
             print(f"[SKIP] {target.name} já existe (use --force para sobrescrever)")
