@@ -1,12 +1,29 @@
 """Testes da rota opcional POST /api/v1/ml/recognize-plate."""
 
 import sys
+from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.src.api.v1.core.config import get_settings
+
+
+@contextmanager
+def _ocr_route_ready():
+    """Simula stack ML e engine OCR prontos (CI não instala EasyOCR)."""
+    with (
+        patch(
+            "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
+            return_value=True,
+        ),
+        patch(
+            "apps.api.src.api.v1.endpoints.plate_recognition.ocr_engine_ready",
+            return_value=True,
+        ),
+    ):
+        yield
 
 
 @pytest.fixture
@@ -49,10 +66,7 @@ class TestRecognizePlateRoute:
         assert "OCR" in r.json().get("detail", "")
 
     def test_unsupported_media_type(self, client: TestClient, auth_token: str):
-        with patch(
-            "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
-            return_value=True,
-        ):
+        with _ocr_route_ready():
             r = client.post(
                 "/api/v1/ml/recognize-plate",
                 headers={"Authorization": f"Bearer {auth_token}"},
@@ -65,10 +79,7 @@ class TestRecognizePlateRoute:
     ):
         fake_cv2_module.imdecode.return_value = None
         with (
-            patch(
-                "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
-                return_value=True,
-            ),
+            _ocr_route_ready(),
             patch.dict(sys.modules, {"cv2": fake_cv2_module, "numpy": fake_numpy_module}),
         ):
             r = client.post(
@@ -82,10 +93,7 @@ class TestRecognizePlateRoute:
         self, client: TestClient, auth_token: str, fake_cv2_module, fake_numpy_module
     ):
         with (
-            patch(
-                "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
-                return_value=True,
-            ),
+            _ocr_route_ready(),
             patch(
                 "apps.api.src.api.v1.endpoints.plate_recognition.recognize_plates_from_bgr",
                 return_value=[
@@ -113,10 +121,7 @@ class TestRecognizePlateRoute:
         get_settings.cache_clear()
         try:
             with (
-                patch(
-                    "apps.api.src.api.v1.endpoints.plate_recognition.ml_stack_available",
-                    return_value=True,
-                ),
+                _ocr_route_ready(),
                 patch.dict(sys.modules, {"cv2": fake_cv2_module}),
             ):
                 r = client.post(
