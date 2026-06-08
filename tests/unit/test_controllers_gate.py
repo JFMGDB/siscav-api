@@ -2,11 +2,24 @@
 
 from unittest.mock import MagicMock, patch
 
-from apps.api.src.api.v1.controllers.gate_controller import GateController
+from apps.api.src.api.v1.controllers.gate_controller import (
+    GateController,
+    _actuator_url_for_action,
+)
 
 
 class TestGateController:
     """Testes para GateController."""
+
+    def test_actuator_url_for_action_derives_close_from_open(self):
+        assert (
+            _actuator_url_for_action("http://127.0.0.1:9080/open", "close")
+            == "http://127.0.0.1:9080/close"
+        )
+        assert (
+            _actuator_url_for_action("http://127.0.0.1:9080/open", "open")
+            == "http://127.0.0.1:9080/open"
+        )
 
     def test_trigger_gate_simulated_without_url(self):
         """Sem URL de atuador → integration simulated."""
@@ -54,3 +67,24 @@ class TestGateController:
         assert result.reason == "actuator_network_error"
         assert result.integration == "live"
         assert result.acknowledged is False
+
+    @patch("apps.api.src.api.v1.controllers.gate_controller.urlopen")
+    def test_close_gate_live_calls_close_url(self, mock_urlopen: MagicMock):
+        mock_resp = MagicMock()
+        mock_resp.getcode.return_value = 200
+        mock_cm = MagicMock()
+        mock_cm.__enter__.return_value = mock_resp
+        mock_cm.__exit__.return_value = None
+        mock_urlopen.return_value = mock_cm
+
+        settings = MagicMock()
+        settings.gate_actuator_url = "http://127.0.0.1:9080/open"
+        settings.gate_actuator_timeout_seconds = 5
+        controller = GateController(settings)
+        result = controller.close_gate()
+
+        assert result.integration == "live"
+        assert result.acknowledged is True
+        call_req = mock_urlopen.call_args[0][0]
+        assert call_req.full_url == "http://127.0.0.1:9080/close"
+        assert call_req.data == b'{"action": "close"}'

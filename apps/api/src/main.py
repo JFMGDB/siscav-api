@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 import traceback
@@ -84,31 +83,16 @@ async def lifespan(app: FastAPI):
                     exc_info=True,
                 )
 
-    easyocr_warmup_task: asyncio.Task[None] | None = None
     if ml_stack_available():
-
-        async def _background_easyocr_warmup() -> None:
-            try:
-                await run_in_threadpool(warm_up_easyocr)
-            except Exception:
-                logger.warning(
-                    "EasyOCR warm-up failed; first recognize-plate request may be slow",
-                    exc_info=True,
-                )
-
-        # Do not block startup: EasyOCR model load can take minutes on CPU-only
-        # hosts (e.g. Render free tier) and would fail the platform health check.
-        easyocr_warmup_task = asyncio.create_task(_background_easyocr_warmup())
-        logger.info("EasyOCR warm-up scheduled in background")
+        try:
+            await run_in_threadpool(warm_up_easyocr)
+        except Exception:
+            logger.warning(
+                "EasyOCR warm-up failed; first recognize-plate request may be slow",
+                exc_info=True,
+            )
 
     yield
-
-    if easyocr_warmup_task is not None:
-        easyocr_warmup_task.cancel()
-        try:
-            await easyocr_warmup_task
-        except asyncio.CancelledError:
-            pass
 
 
 app = FastAPI(

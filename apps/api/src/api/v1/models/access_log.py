@@ -25,3 +25,6 @@ class AccessLog(Base):
     )
     is_automatic: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     ocr_success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    owner_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID(), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )

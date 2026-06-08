@@ -89,7 +89,7 @@ class TestRecognizePlateRoute:
             patch(
                 "apps.api.src.api.v1.endpoints.plate_recognition.recognize_plates_from_bgr",
                 return_value=[
-                    {"plate_raw": "ABC1D23", "plate_color_hint": "branca"},
+                    {"plate_raw": "ABC1D23", "plate_color_hint": "branca", "confidence": 0.91},
                 ],
             ),
             patch.dict(sys.modules, {"cv2": fake_cv2_module, "numpy": fake_numpy_module}),

@@ -10,6 +10,7 @@ from apps.api.src.api.v1.controllers.access_log_controller import AccessLogContr
 from apps.api.src.api.v1.deps import (
     get_access_log_controller,
     get_current_client_admin_user,
+    resolve_access_log_owner_user_id,
     verify_device_ingest_or_admin,
 )
 from apps.api.src.api.v1.models.user import User
@@ -29,6 +30,9 @@ async def create_access_log(
     plate: Annotated[str, Form()],
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
     ingest_via_device: Annotated[bool, Depends(verify_device_ingest_or_admin)],
+    owner_user_id: Annotated[
+        UUID | None, Depends(resolve_access_log_owner_user_id)
+    ],
 ) -> AccessLogRead:
     """
     Registrar acesso veicular.
@@ -59,6 +63,7 @@ async def create_access_log(
         plate=plate,
         file=file,
         ingest_via_device=ingest_via_device,
+        owner_user_id=owner_user_id,
     )
 
 
@@ -126,7 +131,7 @@ def get_access_log_image(
 @router.get("/", response_model=list[AccessLogRead])
 def list_access_logs(
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    _current_user: Annotated[User, Depends(get_current_client_admin_user)],
+    current_user: Annotated[User, Depends(get_current_client_admin_user)],
     skip: Annotated[int, Query(ge=0, description="Registros a pular (paginação).")] = 0,
     limit: Annotated[int, Query(ge=1, le=100, description="Máximo de registros (1-100).")] = 100,
     plate: Annotated[
@@ -194,4 +199,5 @@ def list_access_logs(
         status_filter=status,
         start_date=start_date,
         end_date=end_date,
+        owner_user_id=current_user.id,
     )

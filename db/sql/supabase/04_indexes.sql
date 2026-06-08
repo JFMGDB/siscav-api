@@ -17,6 +17,16 @@ CREATE INDEX IF NOT EXISTS idx_access_logs_plate_textpattern
 CREATE INDEX IF NOT EXISTS idx_access_logs_authorized_plate_id
   ON access_logs (authorized_plate_id);
 
+CREATE INDEX IF NOT EXISTS ix_access_logs_owner_user_id
+  ON access_logs (owner_user_id);
+
+-- ocr_attempts
+CREATE INDEX IF NOT EXISTS ix_ocr_attempts_timestamp
+  ON ocr_attempts ("timestamp");
+
+CREATE INDEX IF NOT EXISTS ix_ocr_attempts_owner_user_id
+  ON ocr_attempts (owner_user_id);
+
 -- Opcional: busca por trechos com GIN/pg_trgm
 CREATE INDEX IF NOT EXISTS idx_access_logs_plate_trgm
   ON access_logs USING GIN (plate_string_detected gin_trgm_ops);

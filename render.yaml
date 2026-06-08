@@ -9,7 +9,6 @@ services:
     plan: free
     healthCheckPath: /api/v1/health
     # Slim runtime (no EasyOCR/torch — exceeds 512MB on free tier). OCR returns 503 on Render;
-    # run OCR locally or on a host with `pip install -r requirements-ml.txt`.
     buildCommand: pip install -r requirements.txt && pip install -r requirements-onnx.txt
     startCommand: uvicorn apps.api.src.main:app --host 0.0.0.0 --port $PORT
     envVars:

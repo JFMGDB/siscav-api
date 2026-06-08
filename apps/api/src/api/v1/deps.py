@@ -141,6 +141,18 @@ def verify_device_ingest_or_admin(
     )
 
 
+def resolve_access_log_owner_user_id(
+    ingest_via_device: Annotated[bool, Depends(verify_device_ingest_or_admin)],
+    token: Annotated[str | None, Depends(oauth2_optional)],
+    db: Annotated[Session, Depends(get_db)],
+) -> UUID | None:
+    """Owner for operator ingest (JWT admin); None for device IoT ingest."""
+    if ingest_via_device:
+        return None
+    user = _validate_client_admin_token(token, db)
+    return user.id
+
+
 def get_current_user(
     token: Annotated[str, Depends(reusable_oauth2)],
     db: Annotated[Session, Depends(get_db)],

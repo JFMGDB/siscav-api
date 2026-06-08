@@ -38,3 +38,17 @@ def trigger_gate(
         HTTPException: Erro de rede ou resposta inválida do atuador (modo live).
     """
     return gate_controller.trigger_gate()
+
+
+@router.post("/close", response_model=GateTriggerResponse)
+def close_gate(
+    gate_controller: Annotated[GateController, Depends(get_gate_controller)],
+    _current_user: Annotated[User, Depends(get_current_client_admin_user)],
+) -> GateTriggerResponse:
+    """
+    Fechar o portão remotamente.
+
+    Requer JWT de **administrador do cliente**. Com `GATE_ACTUATOR_URL` definida,
+    envia POST JSON `{"action": "close"}` para a URL derivada (…/open → …/close).
+    """
+    return gate_controller.close_gate()

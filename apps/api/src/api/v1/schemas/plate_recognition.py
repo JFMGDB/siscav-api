@@ -13,6 +13,11 @@ class PlateRecognizeItem(BaseModel):
     plate_color_hint: str = Field(
         description="Heurística de cor de fundo da região: branca, amarela, cinza, desconhecida"
     )
+    confidence: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Confiança EasyOCR (0–1) para este candidato",
+    )
 
 
 class PlateRecognizeResponse(BaseModel):

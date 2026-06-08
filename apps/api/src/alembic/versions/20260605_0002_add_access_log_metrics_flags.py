@@ -16,18 +16,26 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "access_logs",
-        sa.Column("is_automatic", sa.Boolean(), nullable=False, server_default=sa.false()),
-    )
-    op.add_column(
-        "access_logs",
-        sa.Column("ocr_success", sa.Boolean(), nullable=False, server_default=sa.true()),
-    )
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = {col["name"] for col in inspector.get_columns("access_logs")}
+
+    if "is_automatic" not in columns:
+        op.add_column(
+            "access_logs",
+            sa.Column("is_automatic", sa.Boolean(), nullable=False, server_default=sa.false()),
+        )
+    if "ocr_success" not in columns:
+        op.add_column(
+            "access_logs",
+            sa.Column("ocr_success", sa.Boolean(), nullable=False, server_default=sa.true()),
+        )
+
     op.execute(
         """
         UPDATE access_logs
         SET is_automatic = (status = 'Authorized' AND authorized_plate_id IS NOT NULL)
+        WHERE is_automatic IS DISTINCT FROM (status = 'Authorized' AND authorized_plate_id IS NOT NULL)
         """
     )
     op.alter_column("access_logs", "is_automatic", server_default=None)

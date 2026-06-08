@@ -12,19 +12,28 @@ from typing import TYPE_CHECKING, TypedDict
 
 from apps.api.src.api.v1.utils.plate import validate_brazilian_plate
 
+if TYPE_CHECKING:
+    import numpy as np
+
 logger = logging.getLogger(__name__)
 
 _PLATE_ALLOWLIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 _PLATE_LEN = 7
+_MAX_READTEXT_DIM = 1280
+_MAX_CONTOUR_CANDIDATES = 6
+_MIN_OCR_CONFIDENCE = 0.52
 
 _ml_lock = threading.Lock()
 _reader = None
 _ml_available: bool | None = None
+_warm_up_ready = False
+_warm_up_error: str | None = None
 
 
 class PlateOcrCandidate(TypedDict):
     plate_raw: str
     plate_color_hint: str
+    confidence: float
 
 
 def ml_stack_available() -> bool:
@@ -43,8 +52,20 @@ def ml_stack_available() -> bool:
     return True
 
 
+def ocr_engine_ready() -> bool:
+    """True when warm-up completed successfully."""
+    return _warm_up_ready and _warm_up_error is None
+
+
+def ocr_engine_unavailable_reason() -> str | None:
+    """Human-readable reason when OCR cannot run."""
+    if not ml_stack_available():
+        return "ML stack not installed (pip install -r requirements-ml.txt)"
+    return _warm_up_error
+
+
 def _get_reader():
-    global _reader
+    global _reader, _warm_up_error
     if not ml_stack_available():
         msg = "ML stack not installed"
         raise RuntimeError(msg)
@@ -52,17 +73,46 @@ def _get_reader():
         if _reader is None:
             import easyocr
 
-            logger.warning("Carregando EasyOCR (primeira requisição pode demorar)...")
-            _reader = easyocr.Reader(["en"], gpu=False)
+            logger.info("Loading EasyOCR Reader (CPU)...")
+            try:
+                _reader = easyocr.Reader(["en"], gpu=False)
+            except Exception as exc:
+                _warm_up_error = f"EasyOCR Reader failed to load: {exc}"
+                logger.error(_warm_up_error, exc_info=True)
+                raise
         return _reader
 
 
 def warm_up_easyocr() -> None:
-    """Load EasyOCR models at startup so the first HTTP request is not blocked for minutes."""
+    """Load EasyOCR and run a tiny inference so the first HTTP request is fast."""
+    global _warm_up_ready, _warm_up_error
     if not ml_stack_available():
         return
-    _get_reader()
-    logger.info("EasyOCR warm-up completed")
+    try:
+        reader = _get_reader()
+        import numpy as np
+
+        dummy = np.zeros((32, 128, 3), dtype=np.uint8)
+        reader.readtext(dummy, detail=1, allowlist=_PLATE_ALLOWLIST)
+        _warm_up_ready = True
+        _warm_up_error = None
+        logger.info("EasyOCR warm-up completed (Reader + dummy inference)")
+    except Exception as exc:
+        _warm_up_ready = False
+        _warm_up_error = f"EasyOCR warm-up failed: {exc}"
+        logger.error(_warm_up_error, exc_info=True)
+        raise
+
+
+def _cap_for_readtext(img: np.ndarray, max_dim: int = _MAX_READTEXT_DIM) -> np.ndarray:
+    import cv2
+
+    h, w = img.shape[:2]
+    longest = max(h, w)
+    if longest <= max_dim:
+        return img
+    scale = max_dim / longest
+    return cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
 
 def detectar_tipo_cor(placa_img: np.ndarray) -> str:
@@ -101,7 +151,11 @@ def preprocess_placa(placa_img: np.ndarray, tipo: str = "carro") -> tuple[np.nda
         largura = 7 * 20
         gray = cv2.resize(gray, (largura, altura), interpolation=cv2.INTER_CUBIC)
     else:
-        gray = cv2.resize(gray, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+        longest = max(gray.shape[:2])
+        if longest < 200:
+            gray = cv2.resize(gray, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+        elif longest < 400:
+            gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
     placa_bin = cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 15
@@ -112,96 +166,139 @@ def preprocess_placa(placa_img: np.ndarray, tipo: str = "carro") -> tuple[np.nda
     return placa_bin, cor
 
 
-def _append_candidate(
-    texto: str,
-    cor: str,
-    seen: set[str],
-    out: list[PlateOcrCandidate],
-) -> None:
-    if len(texto) != _PLATE_LEN or texto in seen:
-        return
-    valid, _ = validate_brazilian_plate(texto)
-    if not valid:
-        return
-    seen.add(texto)
-    out.append({"plate_raw": texto, "plate_color_hint": cor})
+def _repair_plate_ocr(text: str) -> str | None:
+    """Fix common OCR confusions using Brazilian plate position rules."""
+    merged = "".join(c for c in text.upper() if c.isalnum())
+    if len(merged) != _PLATE_LEN:
+        return None
+
+    letter_to_digit = str.maketrans("OQIZSGB", "0012586")
+    digit_to_letter = str.maketrans("0158", "OISB")
+
+    def try_layout(letter_positions: set[int], digit_positions: set[int]) -> str | None:
+        chars: list[str] = []
+        for i, ch in enumerate(merged):
+            if i in letter_positions and ch.isdigit():
+                chars.append(ch.translate(digit_to_letter))
+            elif i in digit_positions and ch.isalpha():
+                chars.append(ch.translate(letter_to_digit))
+            else:
+                chars.append(ch)
+        candidate = "".join(chars)
+        valid, _ = validate_brazilian_plate(candidate)
+        return candidate if valid else None
+
+    return try_layout({0, 1, 2, 4}, {3, 5, 6}) or try_layout({0, 1, 2}, {3, 4, 5, 6})
 
 
-def _extract_valid_plates(
-    merged: str,
-    cor: str,
-    seen: set[str],
-    out: list[PlateOcrCandidate],
-) -> None:
-    if len(merged) < _PLATE_LEN:
-        return
-    for i in range(len(merged) - _PLATE_LEN + 1):
-        chunk = merged[i : i + _PLATE_LEN]
-        _append_candidate(chunk, cor, seen, out)
+def _normalize_plate_candidate(text: str) -> str | None:
+    merged = "".join(c for c in text.upper() if c.isalnum())
+    if len(merged) != _PLATE_LEN:
+        return None
+    valid, _ = validate_brazilian_plate(merged)
+    if valid:
+        return merged
+    return _repair_plate_ocr(merged)
 
 
-def _ocr_text_from_image(placa_img: np.ndarray) -> str:
-    best = _best_valid_plate_from_image(placa_img)
-    return best[0] if best else ""
+def _ocr_image_variants(placa_img: np.ndarray, tipo: str) -> list[tuple[np.ndarray, str]]:
+    import cv2
+
+    variants: list[tuple[np.ndarray, str]] = []
+    placa_final, cor = preprocess_placa(placa_img, tipo)
+    variants.append((placa_final, cor))
+
+    capped = _cap_for_readtext(placa_img)
+    variants.append((capped, cor))
+
+    gray = cv2.cvtColor(capped, cv2.COLOR_BGR2GRAY)
+    variants.append((gray, cor))
+    return variants
 
 
-def _best_valid_plate_from_image(placa_img: np.ndarray) -> tuple[str, float] | None:
+def _best_valid_plate_from_image(
+    placa_img: np.ndarray,
+    tipo: str = "carro",
+) -> tuple[str, float] | None:
     reader = _get_reader()
-    results = reader.readtext(placa_img, detail=1, allowlist=_PLATE_ALLOWLIST)
     best: tuple[str, float] | None = None
 
     def consider(text: str, conf: float) -> None:
         nonlocal best
+        if conf < _MIN_OCR_CONFIDENCE:
+            return
         merged = "".join(c for c in text.upper() if c.isalnum())
-        chunks: list[str] = []
-        if len(merged) == _PLATE_LEN:
-            chunks.append(merged)
-        if len(merged) > _PLATE_LEN:
-            for i in range(len(merged) - _PLATE_LEN + 1):
-                chunks.append(merged[i : i + _PLATE_LEN])
-        for chunk in chunks:
-            valid, _ = validate_brazilian_plate(chunk)
-            if valid and (best is None or conf > best[1]):
-                best = (chunk, conf)
+        if len(merged) != _PLATE_LEN:
+            return
+        plate = _normalize_plate_candidate(merged)
+        if plate and (best is None or conf > best[1]):
+            best = (plate, conf)
 
-    for _bbox, text, conf in results:
-        consider(text, float(conf))
+    for ocr_img, _cor in _ocr_image_variants(placa_img, tipo):
+        read_img = ocr_img if ocr_img.ndim == 2 else _cap_for_readtext(ocr_img)
+        results = reader.readtext(read_img, detail=1, allowlist=_PLATE_ALLOWLIST)
+        for _bbox, text, conf in results:
+            consider(text, float(conf))
 
-    if best:
-        return best
-
-    paragraph = reader.readtext(
-        placa_img, detail=0, paragraph=True, allowlist=_PLATE_ALLOWLIST
-    )
-    consider("".join(paragraph), 0.0)
     return best
 
 
-def _full_frame_fallback(frame_bgr: np.ndarray, seen: set[str], out: list[PlateOcrCandidate]) -> None:
-    """When contour detection finds nothing, try preprocessing + OCR on plate-like regions."""
+def _scan_plate_region(
+    placa_img: np.ndarray,
+    tipo: str,
+) -> tuple[str, float, str] | None:
+    hit = _best_valid_plate_from_image(placa_img, tipo)
+    if not hit:
+        return None
+    plate, confidence = hit
+    return plate, confidence, detectar_tipo_cor(placa_img)
+
+
+def _collect_frame_candidates(frame_bgr: np.ndarray) -> list[PlateOcrCandidate]:
     import cv2
 
-    h, w = frame_bgr.shape[:2]
-    regions: list[np.ndarray] = [frame_bgr]
-    if h > 80 and w > 80:
-        y0 = int(h * 0.45)
-        regions.append(frame_bgr[y0:h, :])
-        x0, x1 = int(w * 0.1), int(w * 0.9)
-        regions.append(frame_bgr[y0:h, x0:x1])
+    best_by_plate: dict[str, PlateOcrCandidate] = {}
 
-    for region in regions:
-        placa_final, cor = preprocess_placa(region, "carro")
-        merged = _ocr_text_from_image(placa_final)
-        _append_candidate(merged, cor, seen, out)
-        _extract_valid_plates(merged, cor, seen, out)
-        if out:
-            return
+    def register(plate: str, confidence: float, cor: str) -> None:
+        existing = best_by_plate.get(plate)
+        if existing is None or confidence > existing["confidence"]:
+            best_by_plate[plate] = {
+                "plate_raw": plate,
+                "plate_color_hint": cor,
+                "confidence": confidence,
+            }
 
-    for region in regions:
-        merged = _ocr_text_from_image(region)
-        _extract_valid_plates(merged, "desconhecida", seen, out)
-        if out:
-            return
+    gray_eq = cv2.equalizeHist(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY))
+    edges = cv2.Canny(gray_eq, 80, 180)
+    contornos, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    contour_regions: list[tuple[int, np.ndarray, str]] = []
+    for c in contornos:
+        x, y, w, h = cv2.boundingRect(c)
+        if w < 40 or h < 12:
+            continue
+        aspect = w / max(h, 1)
+        if aspect < 1.2 or aspect > 8.0:
+            continue
+        placa = frame_bgr[y : y + h, x : x + w]
+        if placa.size == 0:
+            continue
+        tipo = "moto" if w <= h else "carro"
+        contour_regions.append((w * h, placa, tipo))
+
+    contour_regions.sort(key=lambda item: item[0], reverse=True)
+    for _area, placa, tipo in contour_regions[:_MAX_CONTOUR_CANDIDATES]:
+        hit = _scan_plate_region(placa, tipo)
+        if hit:
+            register(*hit)
+
+    if not best_by_plate:
+        capped = _cap_for_readtext(frame_bgr)
+        hit = _scan_plate_region(capped, "carro")
+        if hit:
+            register(*hit)
+
+    return sorted(best_by_plate.values(), key=lambda item: item["confidence"], reverse=True)
 
 
 def _upscale_if_small(frame_bgr: np.ndarray) -> np.ndarray:
@@ -222,40 +319,8 @@ def _upscale_if_small(frame_bgr: np.ndarray) -> np.ndarray:
 
 def recognize_plates_from_bgr(frame_bgr: np.ndarray) -> list[PlateOcrCandidate]:
     """Procura regiões candidatas (contornos) e devolve placas com 7 caracteres alfanuméricos."""
-    import cv2
-
     if not ml_stack_available():
         return []
 
     frame_bgr = _upscale_if_small(frame_bgr)
-
-    seen: set[str] = set()
-    out: list[PlateOcrCandidate] = []
-
-    # Webcam frames often lack clean contours; try full-frame OCR first.
-    _full_frame_fallback(frame_bgr, seen, out)
-    if out:
-        return out
-
-    gray_eq = cv2.equalizeHist(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY))
-    edges = cv2.Canny(gray_eq, 80, 180)
-    contornos, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    for c in contornos:
-        x, y, w, h = cv2.boundingRect(c)
-        if w < 40 or h < 12:
-            continue
-        aspect = w / max(h, 1)
-        if aspect < 1.2 or aspect > 8.0:
-            continue
-        placa = frame_bgr[y : y + h, x : x + w]
-        if placa.size == 0:
-            continue
-        tipo = "moto" if w <= h else "carro"
-
-        placa_final, cor = preprocess_placa(placa, tipo)
-        merged = _ocr_text_from_image(placa_final)
-        _append_candidate(merged, cor, seen, out)
-        _extract_valid_plates(merged, cor, seen, out)
-
-    return out
+    return _collect_frame_candidates(frame_bgr)

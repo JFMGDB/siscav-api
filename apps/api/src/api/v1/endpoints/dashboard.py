@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("/metrics", response_model=DashboardDailyMetrics)
 def get_daily_metrics(
     access_log_controller: Annotated[AccessLogController, Depends(get_access_log_controller)],
-    _current_user: Annotated[User, Depends(get_current_client_admin_user)],
+    current_user: Annotated[User, Depends(get_current_client_admin_user)],
     day: Annotated[
         date | None,
         Query(
@@ -28,7 +28,9 @@ def get_daily_metrics(
 ) -> DashboardDailyMetrics:
     """Métricas consolidadas de acesso para um dia específico."""
     target = day or datetime.now(BRAZIL_TZ).date()
-    access_metrics, ocr_success_rate_percent = access_log_controller.get_daily_metrics(target)
+    access_metrics, ocr_success_rate_percent = access_log_controller.get_daily_metrics(
+        target, current_user.id
+    )
     return DashboardDailyMetrics(
         date=target,
         traffic_volume=access_metrics.traffic_volume,

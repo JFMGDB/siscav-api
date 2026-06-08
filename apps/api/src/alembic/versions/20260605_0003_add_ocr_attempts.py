@@ -16,14 +16,17 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "ocr_attempts",
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("timestamp", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("success", sa.Boolean(), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index("ix_ocr_attempts_timestamp", "ocr_attempts", ["timestamp"])
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if "ocr_attempts" not in inspector.get_table_names():
+        op.create_table(
+            "ocr_attempts",
+            sa.Column("id", sa.Uuid(), nullable=False),
+            sa.Column("timestamp", sa.DateTime(timezone=True), nullable=False),
+            sa.Column("success", sa.Boolean(), nullable=False),
+            sa.PrimaryKeyConstraint("id"),
+        )
+        op.create_index("ix_ocr_attempts_timestamp", "ocr_attempts", ["timestamp"])
 
 
 def downgrade() -> None:

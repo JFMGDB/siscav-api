@@ -39,7 +39,7 @@ Write-Host "Acesse: http://localhost:8000" -ForegroundColor Cyan
 Write-Host "Documentação: http://localhost:8000/docs" -ForegroundColor Cyan
 Write-Host "`nPressione Ctrl+C para parar o servidor`n" -ForegroundColor Yellow
 
-# Executar uvicorn com o caminho completo do módulo
-uvicorn apps.api.src.main:app --reload --host 0.0.0.0 --port 8000
+# Demo/banca: no --reload (avoids worker restarts that abort in-flight OCR and re-pay warm-up).
+uvicorn apps.api.src.main:app --host 0.0.0.0 --port 8000
 
 

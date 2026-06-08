@@ -26,5 +26,14 @@ CREATE TABLE IF NOT EXISTS access_logs (
   plate_string_detected TEXT NOT NULL,
   status access_status NOT NULL,
   image_storage_key TEXT NOT NULL,
-  authorized_plate_id UUID REFERENCES authorized_plates(id) ON DELETE SET NULL
+  authorized_plate_id UUID REFERENCES authorized_plates(id) ON DELETE SET NULL,
+  owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- ocr_attempts (ML recognize-plate metrics)
+CREATE TABLE IF NOT EXISTS ocr_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "timestamp" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  success BOOLEAN NOT NULL,
+  owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL
 );

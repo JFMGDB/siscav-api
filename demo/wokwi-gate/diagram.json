@@ -4,11 +4,11 @@
   "editor": "wokwi",
   "parts": [
     {
-      "type": "wokwi-esp32-devkit-c",
+      "type": "board-esp32-devkit-c-v4",
       "id": "esp",
       "top": 80,
       "left": 40,
-      "attrs": { "env": "Arduino-ESP32" }
+      "attrs": {}
     },
     {
       "type": "wokwi-servo",

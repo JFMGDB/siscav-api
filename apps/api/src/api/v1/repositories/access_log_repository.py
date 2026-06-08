@@ -44,6 +44,7 @@ class AccessLogRepository:
         status_filter: AccessStatus | None = None,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
+        owner_user_id: UUID | None = None,
     ) -> list[AccessLog]:
         """
         Lista registros de log de acesso com filtros opcionais.
@@ -77,6 +78,9 @@ class AccessLogRepository:
         if end_date:
             conditions.append(AccessLog.timestamp <= end_date)
 
+        if owner_user_id is not None:
+            conditions.append(AccessLog.owner_user_id == owner_user_id)
+
         if conditions:
             query = query.where(and_(*conditions))
 
@@ -95,6 +99,7 @@ class AccessLogRepository:
         *,
         is_automatic: bool = False,
         ocr_success: bool = True,
+        owner_user_id: UUID | None = None,
     ) -> AccessLog:
         """
         Cria um novo registro de log de acesso.
@@ -120,6 +125,7 @@ class AccessLogRepository:
             authorized_plate_id=authorized_plate_id,
             is_automatic=is_automatic,
             ocr_success=ocr_success,
+            owner_user_id=owner_user_id,
             timestamp=now,
         )
         db.add(db_log)
@@ -175,7 +181,7 @@ class AccessLogRepository:
         return db.scalar(query) or 0
 
     @staticmethod
-    def get_daily_metrics(db: Session, day: date) -> DailyAccessMetrics:
+    def get_daily_metrics(db: Session, day: date, owner_user_id: UUID) -> DailyAccessMetrics:
         """Agrega métricas de acesso para um dia civil em America/Sao_Paulo."""
         start_local = datetime.combine(day, time.min, tzinfo=BRAZIL_TZ)
         end_local = start_local + timedelta(days=1)
@@ -199,6 +205,7 @@ class AccessLogRepository:
                 and_(
                     AccessLog.timestamp >= start_local,
                     AccessLog.timestamp < end_local,
+                    AccessLog.owner_user_id == owner_user_id,
                 )
             )
         ).one()

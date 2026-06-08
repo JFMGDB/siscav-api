@@ -23,6 +23,15 @@ def _raise_actuator_bad_status(code: int) -> None:
     )
 
 
+def _actuator_url_for_action(base_url: str, action: str) -> str:
+    """Deriva URL de fechamento a partir de GATE_ACTUATOR_URL (ex.: .../open → .../close)."""
+    if action == "open":
+        return base_url
+    if base_url.rstrip("/").endswith("/open"):
+        return base_url.rstrip("/")[:-4] + "close"
+    return base_url.rstrip("/") + "/close"
+
+
 class GateController:
     """Controller para operações de controle de portão."""
 
@@ -31,13 +40,27 @@ class GateController:
 
     def trigger_gate(self) -> GateTriggerResponse:
         """
-        Aciona o portão remotamente (simulado ou via HTTP ao atuador).
+        Abre o portão remotamente (simulado ou via HTTP ao atuador).
 
         Sem `GATE_ACTUATOR_URL`: retorna `integration=simulated` (nenhum hardware contactado).
         Com URL: POST JSON `{"action": "open"}`; sucesso só com HTTP 2xx do atuador.
         Falhas de rede/HTTP propagam como HTTPException (uso manual em /gate_control/trigger).
         """
-        result = self._call_actuator(timeout_seconds=self._settings.gate_actuator_timeout_seconds)
+        return self._trigger_gate_action("open")
+
+    def close_gate(self) -> GateTriggerResponse:
+        """
+        Fecha o portão remotamente (simulado ou via HTTP ao atuador).
+
+        Deriva a URL de fechamento de `GATE_ACTUATOR_URL` (substitui `/open` por `/close`).
+        """
+        return self._trigger_gate_action("close")
+
+    def _trigger_gate_action(self, action: str) -> GateTriggerResponse:
+        result = self._call_actuator(
+            action=action,
+            timeout_seconds=self._settings.gate_actuator_timeout_seconds,
+        )
         if result.status == "error" and result.integration == "live":
             if result.downstream_status_code is not None:
                 _raise_actuator_bad_status(result.downstream_status_code)
@@ -67,7 +90,10 @@ class GateController:
             if timeout_seconds is not None
             else self._settings.gate_auto_open_timeout_seconds
         )
-        result = self._call_actuator(timeout_seconds=timeout)
+        result = self._call_actuator(
+            action="open",
+            timeout_seconds=timeout,
+        )
         if result.status == "error":
             logger.warning(
                 "Gate auto-open failed: reason=%s integration=%s",
@@ -76,23 +102,25 @@ class GateController:
             )
         return result
 
-    def _call_actuator(self, *, timeout_seconds: float) -> GateTriggerResponse:
+    def _call_actuator(self, *, action: str, timeout_seconds: float) -> GateTriggerResponse:
         raw_url = (self._settings.gate_actuator_url or "").strip()
         if not raw_url:
+            verb = "abrir" if action == "open" else "fechar"
             return GateTriggerResponse(
                 integration="simulated",
                 message=(
-                    "Modo simulado: GATE_ACTUATOR_URL não está definido. "
-                    "Nenhum comando foi enviado a um relé ou atuador físico."
+                    f"Modo simulado: GATE_ACTUATOR_URL não está definido. "
+                    f"Nenhum comando de {verb} foi enviado ao atuador."
                 ),
                 acknowledged=False,
                 downstream_status_code=None,
                 status="ok",
             )
 
-        payload = json.dumps({"action": "open"}).encode("utf-8")
+        target_url = _actuator_url_for_action(raw_url, action)
+        payload = json.dumps({"action": action}).encode("utf-8")
         req = Request(
-            raw_url,
+            target_url,
             data=payload,
             method="POST",
             headers={"Content-Type": "application/json"},

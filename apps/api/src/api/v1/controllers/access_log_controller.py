@@ -65,6 +65,7 @@ class AccessLogController:
         file: UploadFile,
         *,
         ingest_via_device: bool = True,
+        owner_user_id: UUID | None = None,
     ) -> AccessLogRead:
         """
         Cria um novo registro de log de acesso veicular.
@@ -172,6 +173,7 @@ class AccessLogController:
             authorized_plate_id=authorized_plate_id,
             is_automatic=is_automatic,
             ocr_success=ocr_success,
+            owner_user_id=owner_user_id,
         )
 
         log_read = AccessLogRead.model_validate(access_log)
@@ -218,9 +220,15 @@ class AccessLogController:
             ) from exc
         return plate_controller.create(plate_data)
 
-    def get_daily_metrics(self, day: date) -> tuple[DailyAccessMetrics, float]:
-        access = self.access_log_repository.get_daily_metrics(self.db, day)
-        _, ocr_rate = OcrAttemptRepository.get_daily_success_rate(self.db, day)
+    def get_daily_metrics(
+        self, day: date, owner_user_id: UUID
+    ) -> tuple[DailyAccessMetrics, float]:
+        access = self.access_log_repository.get_daily_metrics(
+            self.db, day, owner_user_id
+        )
+        _, ocr_rate = OcrAttemptRepository.get_daily_success_rate(
+            self.db, day, owner_user_id
+        )
         return access, ocr_rate
 
     def get_image_path(self, image_filename: str) -> Path:
@@ -261,6 +269,7 @@ class AccessLogController:
         status_filter: AccessStatus | None = None,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
+        owner_user_id: UUID | None = None,
     ) -> list[AccessLogRead]:
         """Lista registros de acesso veicular com filtros opcionais."""
         access_logs = self.access_log_repository.get_all(
@@ -271,6 +280,7 @@ class AccessLogController:
             status_filter=status_filter,
             start_date=start_date,
             end_date=end_date,
+            owner_user_id=owner_user_id,
         )
 
         return [AccessLogRead.model_validate(log) for log in access_logs]
